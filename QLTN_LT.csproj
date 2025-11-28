@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7912D911-64EA-454F-A5A8-47F835842DF1}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>QLTN_LT</RootNamespace>
+    <AssemblyName>QLTN_LT</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <BaseIntermediateOutputPath>GUI\obj\</BaseIntermediateOutputPath>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>GUI\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>GUI\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Guna.UI2, Version=2.0.4.7, Culture=neutral, PublicKeyToken=8b9d14aa5142e261, processorArchitecture=MSIL">
+      <HintPath>GUI\packages\Guna.UI2.WinForms.2.0.4.7\lib\net48\Guna.UI2.dll</HintPath>
+    </Reference>
+    <Reference Include="LiveCharts, Version=0.9.7.0, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
+      <HintPath>GUI\packages\LiveCharts.0.9.7\lib\net45\LiveCharts.dll</HintPath>
+    </Reference>
+    <Reference Include="LiveCharts.WinForms, Version=0.9.7.1, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
+      <HintPath>GUI\packages\LiveCharts.WinForms.0.9.7.1\lib\net45\LiveCharts.WinForms.dll</HintPath>
+    </Reference>
+    <Reference Include="LiveCharts.Wpf, Version=0.9.7.0, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
+      <HintPath>GUI\packages\LiveCharts.Wpf.0.9.7\lib\net45\LiveCharts.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="QRCoder, Version=1.4.3.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
+      <HintPath>GUI\packages\QRCoder.1.4.3\lib\net40\QRCoder.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Compile Include="BLL\SeafoodBLL.cs" />
+    <Compile Include="BLL\SupplierBLL.cs" />
+    <Compile Include="BLL\TableBLL.cs" />
+    <Compile Include="GUI\Category\FormCategoryEdit.Designer.cs">
+      <DependentUpon>FormCategoryEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Customer\FormCustomerAdd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Customer\FormCustomerAdd.Designer.cs">
+      <DependentUpon>FormCustomerAdd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Customer\FormCustomerEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Customer\FormCustomerEdit.Designer.cs">
+      <DependentUpon>FormCustomerEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormStockIn.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormStockIn.Designer.cs">
+      <DependentUpon>FormStockIn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormStockOut.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormStockOut.Designer.cs">
+      <DependentUpon>FormStockOut.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Order\FormOrderDetail.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Order\FormOrderDetail.Designer.cs">
+      <DependentUpon>FormOrderDetail.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Report\FormReportInventory.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Report\FormReportInventory.Designer.cs">
+      <DependentUpon>FormReportInventory.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Report\FormReportSales.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Report\FormReportSales.Designer.cs">
+      <DependentUpon>FormReportSales.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Seafood\FormSeafoodList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Seafood\FormSeafoodList.Designer.cs">
+      <DependentUpon>FormSeafoodList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Main\FormMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Main\FormMain.Designer.cs">
+      <DependentUpon>FormMain.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="GUI\Main\FormMain.resx">
+      <DependentUpon>FormMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <!-- Authentication -->
+    <Compile Include="GUI\Authentication\FormLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Authentication\FormLogin.Designer.cs">
+      <DependentUpon>FormLogin.cs</DependentUpon>
+    </Compile>
+    <!-- Category -->
+    <Compile Include="GUI\Category\FormCategoryList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Category\FormCategoryList.Designer.cs">
+      <DependentUpon>FormCategoryList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Category\FormCategoryAdd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Category\FormCategoryAdd.Designer.cs">
+      <DependentUpon>FormCategoryAdd.cs</DependentUpon>
+    </Compile>
+    <!-- Customer -->
+    <Compile Include="GUI\Customer\FormCustomerList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Customer\FormCustomerList.Designer.cs">
+      <DependentUpon>FormCustomerList.cs</DependentUpon>
+    </Compile>
+    <!-- Seafood Add -->
+    <Compile Include="GUI\Seafood\FormSeafoodAdd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Seafood\FormSeafoodAdd.Designer.cs">
+      <DependentUpon>FormSeafoodAdd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Seafood\FormSeafoodEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Seafood\FormSeafoodEdit.Designer.cs">
+      <DependentUpon>FormSeafoodEdit.cs</DependentUpon>
+    </Compile>
+    <!-- Orders -->
+    <Compile Include="GUI\Order\FormOrderList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Order\FormOrderList.Designer.cs">
+      <DependentUpon>FormOrderList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Order\FormOrderCreate.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Order\FormOrderCreate.Designer.cs">
+      <DependentUpon>FormOrderCreate.cs</DependentUpon>
+    </Compile>
+    <!-- Table Management -->
+    <Compile Include="GUI\Table\FormTableList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Table\FormTableList.Designer.cs">
+      <DependentUpon>FormTableList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Table\FormGenerateQR.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Table\FormGenerateQR.Designer.cs">
+      <DependentUpon>FormGenerateQR.cs</DependentUpon>
+    </Compile>
+    <!-- Dashboard -->
+    <Compile Include="GUI\Dashboard\FormDashboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Dashboard\FormDashboard.Designer.cs">
+      <DependentUpon>FormDashboard.cs</DependentUpon>
+    </Compile>
+    <!-- Menu Management -->
+    <Compile Include="GUI\Menu\FormMenuList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Menu\FormMenuList.Designer.cs">
+      <DependentUpon>FormMenuList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Menu\FormMenuEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Menu\FormMenuEdit.Designer.cs">
+      <DependentUpon>FormMenuEdit.cs</DependentUpon>
+    </Compile>
+    <!-- Inventory Management -->
+    <Compile Include="GUI\Inventory\FormInventoryList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormInventoryList.Designer.cs">
+      <DependentUpon>FormInventoryList.cs</DependentUpon>
+    </Compile>
+    <!-- Supplier Management -->
+    <Compile Include="GUI\Supplier\FormSupplierList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Supplier\FormSupplierList.Designer.cs">
+      <DependentUpon>FormSupplierList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Supplier\FormSupplierAdd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Supplier\FormSupplierEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Supplier\FormSupplierAdd.Designer.cs">
+      <DependentUpon>FormSupplierAdd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Supplier\FormSupplierEdit.Designer.cs">
+      <DependentUpon>FormSupplierEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Table\FormTableAdd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Table\FormTableEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Table\FormTableAdd.Designer.cs">
+      <DependentUpon>FormTableAdd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Table\FormTableEdit.Designer.cs">
+      <DependentUpon>FormTableEdit.cs</DependentUpon>
+    </Compile>
+    <!-- User Management -->
+    <Compile Include="GUI\User\FormUserList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\User\FormUserList.Designer.cs">
+      <DependentUpon>FormUserList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\User\FormUserAdd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\User\FormUserAdd.Designer.cs">
+      <DependentUpon>FormUserAdd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\User\FormUserEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\User\FormUserEdit.Designer.cs">
+      <DependentUpon>FormUserEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="GUI\Seafood\FormSeafoodList.resx">
+      <DependentUpon>FormSeafoodList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Seafood\FormSeafoodAdd.resx">
+      <DependentUpon>FormSeafoodAdd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Authentication\FormLogin.resx">
+      <DependentUpon>FormLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Category\FormCategoryList.resx">
+      <DependentUpon>FormCategoryList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Category\FormCategoryAdd.resx">
+      <DependentUpon>FormCategoryAdd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Customer\FormCustomerList.resx">
+      <DependentUpon>FormCustomerList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Table\FormTableList.resx">
+      <DependentUpon>FormTableList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Table\FormGenerateQR.resx">
+      <DependentUpon>FormGenerateQR.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Dashboard\FormDashboard.resx">
+      <DependentUpon>FormDashboard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Menu\FormMenuList.resx">
+      <DependentUpon>FormMenuList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Menu\FormMenuEdit.resx">
+      <DependentUpon>FormMenuEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Inventory\FormInventoryList.resx">
+      <DependentUpon>FormInventoryList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Supplier\FormSupplierList.resx">
+      <DependentUpon>FormSupplierList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Order\FormOrderList.resx">
+      <DependentUpon>FormOrderList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Order\FormOrderCreate.resx">
+      <DependentUpon>FormOrderCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\User\FormUserList.resx">
+      <DependentUpon>FormUserList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\User\FormUserAdd.resx">
+      <DependentUpon>FormUserAdd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\User\FormUserEdit.resx">
+      <DependentUpon>FormUserEdit.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.8">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.8 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

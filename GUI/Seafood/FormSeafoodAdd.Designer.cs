@@ -1,0 +1,239 @@
+namespace QLTN_LT.GUI.Seafood
+{
+    partial class FormSeafoodAdd
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        private void InitializeComponent()
+        {
+            this.components = new System.ComponentModel.Container();
+            this.guna2Elipse1 = new Guna.UI2.WinForms.Guna2Elipse(this.components);
+            this.guna2ShadowForm1 = new Guna.UI2.WinForms.Guna2ShadowForm(this.components);
+            this.pnlHeader = new Guna.UI2.WinForms.Guna2Panel();
+            this.lblTitle = new System.Windows.Forms.Label();
+            this.btnClose = new Guna.UI2.WinForms.Guna2ControlBox();
+            this.pnlBody = new Guna.UI2.WinForms.Guna2Panel();
+            this.txtSeafoodName = new Guna.UI2.WinForms.Guna2TextBox();
+            this.cboCategory = new Guna.UI2.WinForms.Guna2ComboBox();
+            this.txtUnitPrice = new Guna.UI2.WinForms.Guna2TextBox();
+            this.txtQuantity = new Guna.UI2.WinForms.Guna2TextBox();
+            this.txtUnit = new Guna.UI2.WinForms.Guna2TextBox();
+            this.txtDescription = new Guna.UI2.WinForms.Guna2TextBox();
+            this.btnSave = new Guna.UI2.WinForms.Guna2Button();
+            this.btnCancel = new Guna.UI2.WinForms.Guna2Button();
+            this.guna2DragControl1 = new Guna.UI2.WinForms.Guna2DragControl(this.components);
+            this.pnlHeader.SuspendLayout();
+            this.pnlBody.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // guna2Elipse1
+            // 
+            this.guna2Elipse1.BorderRadius = 10;
+            this.guna2Elipse1.TargetControl = this;
+            // 
+            // pnlHeader
+            // 
+            this.pnlHeader.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.pnlHeader.Controls.Add(this.btnClose);
+            this.pnlHeader.Controls.Add(this.lblTitle);
+            this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlHeader.Location = new System.Drawing.Point(0, 0);
+            this.pnlHeader.Name = "pnlHeader";
+            this.pnlHeader.Size = new System.Drawing.Size(500, 50);
+            this.pnlHeader.TabIndex = 0;
+            // 
+            // lblTitle
+            // 
+            this.lblTitle.AutoSize = true;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.lblTitle.Location = new System.Drawing.Point(20, 15);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(148, 21);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "Thêm hải sản mới";
+            // 
+            // btnClose
+            // 
+            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClose.FillColor = System.Drawing.Color.Transparent;
+            this.btnClose.IconColor = System.Drawing.Color.Gray;
+            this.btnClose.Location = new System.Drawing.Point(450, 0);
+            this.btnClose.Name = "btnClose";
+            this.btnClose.Size = new System.Drawing.Size(50, 50);
+            this.btnClose.TabIndex = 1;
+            // 
+            // pnlBody
+            // 
+            this.pnlBody.Controls.Add(this.btnCancel);
+            this.pnlBody.Controls.Add(this.btnSave);
+            this.pnlBody.Controls.Add(this.txtDescription);
+            this.pnlBody.Controls.Add(this.txtUnit);
+            this.pnlBody.Controls.Add(this.txtQuantity);
+            this.pnlBody.Controls.Add(this.txtUnitPrice);
+            this.pnlBody.Controls.Add(this.cboCategory);
+            this.pnlBody.Controls.Add(this.txtSeafoodName);
+            this.pnlBody.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlBody.Location = new System.Drawing.Point(0, 50);
+            this.pnlBody.Name = "pnlBody";
+            this.pnlBody.Size = new System.Drawing.Size(500, 500);
+            this.pnlBody.TabIndex = 1;
+            // 
+            // txtSeafoodName
+            // 
+            this.txtSeafoodName.BorderRadius = 6;
+            this.txtSeafoodName.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.txtSeafoodName.DefaultText = "";
+            this.txtSeafoodName.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.txtSeafoodName.Location = new System.Drawing.Point(30, 20);
+            this.txtSeafoodName.Name = "txtSeafoodName";
+            this.txtSeafoodName.PlaceholderText = "Tên hải sản (*)";
+            this.txtSeafoodName.Size = new System.Drawing.Size(440, 40);
+            this.txtSeafoodName.TabIndex = 0;
+            // 
+            // cboCategory
+            // 
+            this.cboCategory.BackColor = System.Drawing.Color.Transparent;
+            this.cboCategory.BorderRadius = 6;
+            this.cboCategory.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
+            this.cboCategory.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboCategory.FocusedColor = System.Drawing.Color.FromArgb(((int)(((byte)(94)))), ((int)(((byte)(148)))), ((int)(((byte)(255)))));
+            this.cboCategory.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.cboCategory.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(68)))), ((int)(((byte)(88)))), ((int)(((byte)(112)))));
+            this.cboCategory.ItemHeight = 30;
+            this.cboCategory.Location = new System.Drawing.Point(30, 80);
+            this.cboCategory.Name = "cboCategory";
+            this.cboCategory.Size = new System.Drawing.Size(440, 36);
+            this.cboCategory.TabIndex = 1;
+            // 
+            // txtUnitPrice
+            // 
+            this.txtUnitPrice.BorderRadius = 6;
+            this.txtUnitPrice.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.txtUnitPrice.DefaultText = "";
+            this.txtUnitPrice.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.txtUnitPrice.Location = new System.Drawing.Point(30, 140);
+            this.txtUnitPrice.Name = "txtUnitPrice";
+            this.txtUnitPrice.PlaceholderText = "Đơn giá";
+            this.txtUnitPrice.Size = new System.Drawing.Size(210, 40);
+            this.txtUnitPrice.TabIndex = 2;
+            // 
+            // txtQuantity
+            // 
+            this.txtQuantity.BorderRadius = 6;
+            this.txtQuantity.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.txtQuantity.DefaultText = "";
+            this.txtQuantity.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.txtQuantity.Location = new System.Drawing.Point(260, 140);
+            this.txtQuantity.Name = "txtQuantity";
+            this.txtQuantity.PlaceholderText = "Số lượng";
+            this.txtQuantity.Size = new System.Drawing.Size(210, 40);
+            this.txtQuantity.TabIndex = 3;
+            // 
+            // txtUnit
+            // 
+            this.txtUnit.BorderRadius = 6;
+            this.txtUnit.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.txtUnit.DefaultText = "";
+            this.txtUnit.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.txtUnit.Location = new System.Drawing.Point(30, 200);
+            this.txtUnit.Name = "txtUnit";
+            this.txtUnit.PlaceholderText = "Đơn vị tính (kg, con...)";
+            this.txtUnit.Size = new System.Drawing.Size(440, 40);
+            this.txtUnit.TabIndex = 4;
+            // 
+            // txtDescription
+            // 
+            this.txtDescription.BorderRadius = 6;
+            this.txtDescription.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.txtDescription.DefaultText = "";
+            this.txtDescription.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.txtDescription.Location = new System.Drawing.Point(30, 260);
+            this.txtDescription.Multiline = true;
+            this.txtDescription.Name = "txtDescription";
+            this.txtDescription.PlaceholderText = "Mô tả";
+            this.txtDescription.Size = new System.Drawing.Size(440, 100);
+            this.txtDescription.TabIndex = 5;
+            // 
+            // btnSave
+            // 
+            this.btnSave.BorderRadius = 8;
+            this.btnSave.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
+            this.btnSave.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+            this.btnSave.ForeColor = System.Drawing.Color.White;
+            this.btnSave.Location = new System.Drawing.Point(230, 400);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(110, 40);
+            this.btnSave.TabIndex = 6;
+            this.btnSave.Text = "Lưu";
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            // 
+            // btnCancel
+            // 
+            this.btnCancel.BorderRadius = 8;
+            this.btnCancel.FillColor = System.Drawing.Color.White;
+            this.btnCancel.BorderColor = System.Drawing.Color.Gray;
+            this.btnCancel.BorderThickness = 1;
+            this.btnCancel.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+            this.btnCancel.ForeColor = System.Drawing.Color.Gray;
+            this.btnCancel.Location = new System.Drawing.Point(360, 400);
+            this.btnCancel.Name = "btnCancel";
+            this.btnCancel.Size = new System.Drawing.Size(110, 40);
+            this.btnCancel.TabIndex = 7;
+            this.btnCancel.Text = "Hủy";
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            // 
+            // guna2DragControl1
+            // 
+            this.guna2DragControl1.TargetControl = this.pnlHeader;
+            // 
+            // FormSeafoodAdd
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.White;
+            this.ClientSize = new System.Drawing.Size(500, 500);
+            this.Controls.Add(this.pnlBody);
+            this.Controls.Add(this.pnlHeader);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Name = "FormSeafoodAdd";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.Text = "FormSeafoodAdd";
+            this.pnlHeader.ResumeLayout(false);
+            this.pnlHeader.PerformLayout();
+            this.pnlBody.ResumeLayout(false);
+            this.pnlBody.PerformLayout();
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+
+        private Guna.UI2.WinForms.Guna2Elipse guna2Elipse1;
+        private Guna.UI2.WinForms.Guna2ShadowForm guna2ShadowForm1;
+        private Guna.UI2.WinForms.Guna2Panel pnlHeader;
+        private System.Windows.Forms.Label lblTitle;
+        private Guna.UI2.WinForms.Guna2ControlBox btnClose;
+        private Guna.UI2.WinForms.Guna2Panel pnlBody;
+        private Guna.UI2.WinForms.Guna2TextBox txtSeafoodName;
+        private Guna.UI2.WinForms.Guna2ComboBox cboCategory;
+        private Guna.UI2.WinForms.Guna2TextBox txtUnitPrice;
+        private Guna.UI2.WinForms.Guna2TextBox txtQuantity;
+        private Guna.UI2.WinForms.Guna2TextBox txtUnit;
+        private Guna.UI2.WinForms.Guna2TextBox txtDescription;
+        private Guna.UI2.WinForms.Guna2Button btnSave;
+        private Guna.UI2.WinForms.Guna2Button btnCancel;
+        private Guna.UI2.WinForms.Guna2DragControl guna2DragControl1;
+    }
+}
