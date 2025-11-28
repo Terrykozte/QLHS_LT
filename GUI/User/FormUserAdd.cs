@@ -1,32 +1,26 @@
 using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.DAL;
 
 namespace QLTN_LT.GUI.User
 {
     public partial class FormUserAdd : Form
     {
-        private readonly UserService _userService;
+        private readonly UserBLL _userBLL;
 
         public FormUserAdd()
         {
             InitializeComponent();
-            
-            var dbContext = new DatabaseContext();
-            var userRepo = new UserRepository(dbContext);
-            _userService = new UserService(userRepo);
+            _userBLL = new UserBLL();
         }
 
-        private async void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
             if (!ValidateInput()) return;
 
-            var newUser = new AppUser
+            var newUser = new UserDTO
             {
                 Username = txtUsername.Text.Trim(),
                 FullName = txtFullName.Text.Trim(),
@@ -36,15 +30,10 @@ namespace QLTN_LT.GUI.User
                 Roles = new List<string> { cboRole.SelectedItem.ToString() }
             };
 
-            // Hash Password
-            CreatePasswordHash(txtPassword.Text, out byte[] passwordHash, out byte[] passwordSalt);
-            newUser.PasswordHash = passwordHash;
-            newUser.PasswordSalt = passwordSalt;
-
             try
             {
-                var result = await _userService.CreateAsync(newUser);
-                if (result > 0)
+                var result = _userBLL.Insert(newUser, txtPassword.Text);
+                if (result)
                 {
                     MessageBox.Show("Thêm người dùng thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     DialogResult = DialogResult.OK;
@@ -74,15 +63,6 @@ namespace QLTN_LT.GUI.User
                 return false;
             }
             return true;
-        }
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            }
         }
 
         private void btnCancel_Click(object sender, EventArgs e)

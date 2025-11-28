@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace QLTN_LT.DTO
 {
-    public class AppUser
+    public class UserDTO
     {
         public int UserID { get; set; }
         public string Username { get; set; }
@@ -14,7 +14,7 @@ namespace QLTN_LT.DTO
         public bool IsActive { get; set; }
         public List<string> Roles { get; set; }
 
-        public AppUser()
+        public UserDTO()
         {
             Roles = new List<string>();
         }

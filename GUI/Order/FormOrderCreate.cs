@@ -5,51 +5,48 @@ using System.Linq;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.DAL;
 
 namespace QLTN_LT.GUI.Order
 {
     public partial class FormOrderCreate : Form
     {
-        private readonly OrderService _orderService;
-        private readonly CustomerService _customerService;
-        private readonly TableService _tableService;
-        private readonly SeafoodService _seafoodService;
+        private readonly OrderBLL _orderBLL;
+        private readonly CustomerBLL _customerBLL;
+        private readonly TableBLL _tableBLL;
+        private readonly SeafoodBLL _seafoodBLL;
 
         private BindingList<OrderDetailDTO> _currentOrderDetails = new BindingList<OrderDetailDTO>();
 
         public FormOrderCreate()
         {
             InitializeComponent();
-            
-            var dbContext = new DatabaseContext();
-            _orderService = new OrderService(new OrderRepository(dbContext));
-            _customerService = new CustomerService(new CustomerRepository(dbContext));
-            _tableService = new TableService(new TableRepository(dbContext));
-            _seafoodService = new SeafoodService(new SeafoodRepository(dbContext));
+            _orderBLL = new OrderBLL();
+            _customerBLL = new CustomerBLL();
+            _tableBLL = new TableBLL();
+            _seafoodBLL = new SeafoodBLL();
         }
 
-        private async void FormOrderCreate_Load(object sender, EventArgs e)
+        private void FormOrderCreate_Load(object sender, EventArgs e)
         {
-            await LoadInitialData();
+            LoadInitialData();
             SetupGrids();
         }
 
-        private async System.Threading.Tasks.Task LoadInitialData()
+        private void LoadInitialData()
         {
             try
             {
-                var customers = await _customerService.GetAllAsync();
+                var customers = _customerBLL.GetAll();
                 cmbCustomer.DataSource = customers;
-                cmbCustomer.DisplayMember = "FullName";
-                cmbCustomer.ValueMember = "Id";
+                cmbCustomer.DisplayMember = "CustomerName";
+                cmbCustomer.ValueMember = "CustomerID";
 
-                var tables = await _tableService.GetAllAsync();
+                var tables = _tableBLL.GetAll();
                 cmbTable.DataSource = tables;
                 cmbTable.DisplayMember = "TableName";
-                cmbTable.ValueMember = "Id";
+                cmbTable.ValueMember = "TableID";
 
-                var seafoods = await _seafoodService.GetAllAsync();
+                var seafoods = _seafoodBLL.GetAll();
                 dgvProducts.DataSource = seafoods;
             }
             catch (Exception ex)
@@ -64,7 +61,7 @@ namespace QLTN_LT.GUI.Order
             dgvProducts.AutoGenerateColumns = false;
             dgvProducts.Columns.Clear();
             dgvProducts.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "SeafoodName", HeaderText = "TÊN SẢN PHẨM", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvProducts.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Price", HeaderText = "GIÁ", Width = 100, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" } });
+            dgvProducts.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "UnitPrice", HeaderText = "GIÁ", Width = 100, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" } });
             dgvProducts.CellDoubleClick += dgvProducts_CellDoubleClick;
 
             // Order Details Grid
@@ -80,11 +77,11 @@ namespace QLTN_LT.GUI.Order
             dgvOrderDetails.CellContentClick += dgvOrderDetails_CellContentClick;
         }
 
-        private void AddProductToOrder(Seafood selectedProduct)
+        private void AddProductToOrder(SeafoodDTO selectedProduct)
         {
             if (selectedProduct == null) return;
 
-            var existingDetail = _currentOrderDetails.FirstOrDefault(d => d.SeafoodID == selectedProduct.Id);
+            var existingDetail = _currentOrderDetails.FirstOrDefault(d => d.SeafoodID == selectedProduct.SeafoodID);
 
             if (existingDetail != null)
             {
@@ -94,23 +91,23 @@ namespace QLTN_LT.GUI.Order
             {
                 _currentOrderDetails.Add(new OrderDetailDTO
                 {
-                    SeafoodID = selectedProduct.Id,
+                    SeafoodID = selectedProduct.SeafoodID,
                     SeafoodName = selectedProduct.SeafoodName,
                     Quantity = 1,
-                    UnitPrice = selectedProduct.Price
+                    UnitPrice = selectedProduct.UnitPrice
                 });
             }
             _currentOrderDetails.ResetBindings();
             UpdateTotalAmount();
         }
 
-        private async void txtSearchProduct_KeyDown(object sender, KeyEventArgs e)
+        private void txtSearchProduct_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
                 try
                 {
-                    var allSeafood = await _seafoodService.GetAllAsync();
+                    var allSeafood = _seafoodBLL.GetAll();
                     var filtered = allSeafood.Where(s => s.SeafoodName.ToLower().Contains(txtSearchProduct.Text.ToLower())).ToList();
                     dgvProducts.DataSource = filtered;
                 }
@@ -126,7 +123,7 @@ namespace QLTN_LT.GUI.Order
         {
             if (e.RowIndex >= 0)
             {
-                var selectedProduct = (Seafood)dgvProducts.Rows[e.RowIndex].DataBoundItem;
+                var selectedProduct = (SeafoodDTO)dgvProducts.Rows[e.RowIndex].DataBoundItem;
                 AddProductToOrder(selectedProduct);
             }
         }
@@ -167,7 +164,7 @@ namespace QLTN_LT.GUI.Order
             lblTotalAmount.Text = $"Tổng tiền: {total:N0} VNĐ";
         }
 
-        private async void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
             try
             {
@@ -177,21 +174,16 @@ namespace QLTN_LT.GUI.Order
                     return;
                 }
 
-                var order = new Order
+                var order = new OrderDTO
                 {
                     CustomerID = (int?)cmbCustomer.SelectedValue,
                     TableID = (int?)cmbTable.SelectedValue,
                     OrderDate = DateTime.Now,
                     Status = "Pending",
-                    OrderDetails = _currentOrderDetails.Select(d => new OrderDetail
-                    {
-                        SeafoodID = d.SeafoodID,
-                        Quantity = d.Quantity,
-                        UnitPrice = d.UnitPrice
-                    }).ToList()
+                    OrderDetails = _currentOrderDetails.ToList()
                 };
 
-                await _orderService.CreateAsync(order);
+                _orderBLL.Create(order);
 
                 MessageBox.Show("Tạo đơn hàng thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.DialogResult = DialogResult.OK;

@@ -2,7 +2,7 @@ using System;
 
 namespace QLTN_LT.DTO
 {
-    public class Seafood
+    public class SeafoodDTO
     {
         public int SeafoodID { get; set; }
         public string SeafoodName { get; set; }

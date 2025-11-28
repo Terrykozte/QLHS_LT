@@ -3,30 +3,25 @@ using System.Linq;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.DAL;
 
 namespace QLTN_LT.GUI.Category
 {
     public partial class FormCategoryList : Form
     {
-        private readonly CategoryService _categoryService;
+        private readonly CategoryBLL _categoryBLL;
 
         public FormCategoryList()
         {
             InitializeComponent();
-            
-            var dbContext = new DatabaseContext();
-            var categoryRepo = new CategoryRepository(dbContext);
-            _categoryService = new CategoryService(categoryRepo);
-
+            _categoryBLL = new CategoryBLL();
             LoadData();
         }
 
-        private async void LoadData()
+        private void LoadData()
         {
             try
             {
-                var list = await _categoryService.GetAllAsync();
+                var list = _categoryBLL.GetAll();
                 
                 string keyword = txtSearch.Text.ToLower();
                 if (!string.IsNullOrEmpty(keyword))
@@ -38,8 +33,8 @@ namespace QLTN_LT.GUI.Category
                 
                 // Configure Columns
                 if (dgvCategory.Columns["IsDeleted"] != null) dgvCategory.Columns["IsDeleted"].Visible = false;
-                if (dgvCategory.Columns["CreatedAt"] != null) dgvCategory.Columns["CreatedAt"].Visible = false;
-                if (dgvCategory.Columns["UpdatedAt"] != null) dgvCategory.Columns["UpdatedAt"].Visible = false;
+                if (dgvCategory.Columns["CreatedDate"] != null) dgvCategory.Columns["CreatedDate"].Visible = false;
+                if (dgvCategory.Columns["UpdatedDate"] != null) dgvCategory.Columns["UpdatedDate"].Visible = false;
 
                 if (dgvCategory.Columns["CategoryName"] != null) dgvCategory.Columns["CategoryName"].HeaderText = "Tên danh mục";
                 if (dgvCategory.Columns["Description"] != null) dgvCategory.Columns["Description"].HeaderText = "Mô tả";
@@ -66,7 +61,7 @@ namespace QLTN_LT.GUI.Category
         {
             if (e.RowIndex >= 0)
             {
-                var item = dgvCategory.Rows[e.RowIndex].DataBoundItem as Category;
+                var item = dgvCategory.Rows[e.RowIndex].DataBoundItem as CategoryDTO;
                 if (item != null)
                 {
                     using (var form = new FormCategoryEdit(item))

@@ -3,17 +3,17 @@ using System.Drawing;
 using System.Windows.Forms;
 using Guna.UI2.WinForms;
 using QLTN_LT.DTO;
-using QLTN_LT.BLL;ntication;
+using QLTN_LT.BLL;
 
 namespace QLTN_LT.GUI.Main
 {
     public partial class FormMain : Form
     {
-        private readonly AppUser _currentUser;
+        private readonly UserDTO _currentUser;
         private Guna2Button _currentButton;
         private Form _activeForm;
 
-        public FormMain(AppUser user)
+        public FormMain(UserDTO user)
         {
             InitializeComponent();
             _currentUser = user;

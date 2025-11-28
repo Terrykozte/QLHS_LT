@@ -39,15 +39,15 @@ namespace QLTN_LT.BLL
             _repo.UpdateStatus(orderId, "Cancelled");
         }
 
-        public int CreateOrder(OrderDTO order, List<OrderDetailDTO> details)
+        public int Create(OrderDTO order)
         {
-            if (details == null || details.Count == 0)
+            if (order.OrderDetails == null || order.OrderDetails.Count == 0)
             {
                 throw new ArgumentException("Đơn hàng phải có ít nhất một sản phẩm.");
             }
 
             int newOrderId = _repo.Insert(order);
-            foreach (var detail in details)
+            foreach (var detail in order.OrderDetails)
             {
                 detail.OrderID = newOrderId;
                 _repo.AddDetail(detail);

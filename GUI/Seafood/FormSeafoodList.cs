@@ -3,30 +3,25 @@ using System.Linq;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.DAL;
 
 namespace QLTN_LT.GUI.Seafood
 {
     public partial class FormSeafoodList : Form
     {
-        private readonly SeafoodService _seafoodService;
+        private readonly SeafoodBLL _seafoodBLL;
 
         public FormSeafoodList()
         {
             InitializeComponent();
-            
-            var dbContext = new DatabaseContext();
-            var seafoodRepo = new SeafoodRepository(dbContext);
-            _seafoodService = new SeafoodService(seafoodRepo);
-
+            _seafoodBLL = new SeafoodBLL();
             LoadData();
         }
 
-        private async void LoadData()
+        private void LoadData()
         {
             try
             {
-                var list = await _seafoodService.GetAllAsync();
+                var list = _seafoodBLL.GetAll();
                 
                 string keyword = txtSearch.Text.ToLower();
                 if (!string.IsNullOrEmpty(keyword))
@@ -44,8 +39,9 @@ namespace QLTN_LT.GUI.Seafood
                 if (dgvSeafood.Columns["Description"] != null) dgvSeafood.Columns["Description"].Visible = false;
                 if (dgvSeafood.Columns["ImagePath"] != null) dgvSeafood.Columns["ImagePath"].Visible = false;
                 if (dgvSeafood.Columns["IsDeleted"] != null) dgvSeafood.Columns["IsDeleted"].Visible = false;
-                if (dgvSeafood.Columns["CreatedAt"] != null) dgvSeafood.Columns["CreatedAt"].Visible = false;
-                if (dgvSeafood.Columns["UpdatedAt"] != null) dgvSeafood.Columns["UpdatedAt"].Visible = false;
+                if (dgvSeafood.Columns["CreatedDate"] != null) dgvSeafood.Columns["CreatedDate"].Visible = false;
+                if (dgvSeafood.Columns["UpdatedDate"] != null) dgvSeafood.Columns["UpdatedDate"].Visible = false;
+                if (dgvSeafood.Columns["Price"] != null) dgvSeafood.Columns["Price"].Visible = false; // Hide duplicate Price property
 
                 if (dgvSeafood.Columns["SeafoodName"] != null) dgvSeafood.Columns["SeafoodName"].HeaderText = "Tên hải sản";
                 if (dgvSeafood.Columns["CategoryName"] != null) dgvSeafood.Columns["CategoryName"].HeaderText = "Danh mục";
@@ -79,7 +75,7 @@ namespace QLTN_LT.GUI.Seafood
         {
             if (e.RowIndex >= 0)
             {
-                var item = dgvSeafood.Rows[e.RowIndex].DataBoundItem as Seafood;
+                var item = dgvSeafood.Rows[e.RowIndex].DataBoundItem as SeafoodDTO;
                 if (item != null)
                 {
                     using (var form = new FormSeafoodEdit(item))

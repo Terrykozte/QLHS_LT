@@ -8,7 +8,6 @@ using LiveCharts.Wpf;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
 using Guna.UI2.WinForms;
-using System.Drawing;
 
 namespace QLTN_LT.GUI.Dashboard
 {

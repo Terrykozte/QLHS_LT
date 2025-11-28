@@ -4,21 +4,17 @@ using System.Linq;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.DAL;
 
 namespace QLTN_LT.GUI.Order
 {
     public partial class FormOrderList : Form
     {
-        private readonly OrderService _orderService;
+        private readonly OrderBLL _orderBLL;
 
         public FormOrderList()
         {
             InitializeComponent();
-            
-            var dbContext = new DatabaseContext();
-            var orderRepo = new OrderRepository(dbContext);
-            _orderService = new OrderService(orderRepo);
+            _orderBLL = new OrderBLL();
         }
 
         private void FormOrderList_Load(object sender, EventArgs e)
@@ -48,7 +44,7 @@ namespace QLTN_LT.GUI.Order
             dgvOrders.AutoGenerateColumns = false;
             dgvOrders.Columns.Clear();
 
-            dgvOrders.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Id", HeaderText = "ID", Width = 60 });
+            dgvOrders.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "OrderID", HeaderText = "ID", Width = 60 });
             dgvOrders.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "OrderNumber", HeaderText = "MÃ ĐƠN", Width = 120 });
             dgvOrders.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "OrderDate", HeaderText = "NGÀY ĐẶT", Width = 120, DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy HH:mm" } });
             dgvOrders.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "CustomerName", HeaderText = "KHÁCH HÀNG", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
@@ -56,7 +52,7 @@ namespace QLTN_LT.GUI.Order
             dgvOrders.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Status", HeaderText = "TRẠNG THÁI", Width = 120 });
         }
 
-        private async void LoadData()
+        private void LoadData()
         {
             try
             {
@@ -65,7 +61,7 @@ namespace QLTN_LT.GUI.Order
                 var status = cmbStatus.SelectedItem.ToString() == "Tất cả" ? null : cmbStatus.SelectedItem.ToString();
                 var keyword = txtSearch.Text;
 
-                var data = await _orderService.GetAllAsync(fromDate, toDate, status, keyword);
+                var data = _orderBLL.GetAll(fromDate, toDate, status, keyword);
                 dgvOrders.DataSource = data.ToList();
                 lblPageInfo.Text = $"Showing {data.Count()} entries";
             }
@@ -91,7 +87,7 @@ namespace QLTN_LT.GUI.Order
             }
         }
 
-        private async void btnCancelOrder_Click(object sender, EventArgs e)
+        private void btnCancelOrder_Click(object sender, EventArgs e)
         {
             if (dgvOrders.CurrentRow == null)
             {
@@ -99,7 +95,7 @@ namespace QLTN_LT.GUI.Order
                 return;
             }
 
-            var selectedOrder = (Order)dgvOrders.CurrentRow.DataBoundItem;
+            var selectedOrder = (OrderDTO)dgvOrders.CurrentRow.DataBoundItem;
             if (selectedOrder.Status == "Completed" || selectedOrder.Status == "Cancelled")
             {
                 MessageBox.Show("Không thể hủy đơn hàng đã hoàn thành hoặc đã bị hủy.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -114,16 +110,9 @@ namespace QLTN_LT.GUI.Order
             {
                 try
                 {
-                    var result = await _orderService.CancelOrderAsync(selectedOrder.Id);
-                    if (result.IsSuccess)
-                    {
-                        MessageBox.Show("Hủy đơn hàng thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        LoadData();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Hủy thất bại: " + result.ErrorMessage, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    _orderBLL.CancelOrder(selectedOrder.OrderID);
+                    MessageBox.Show("Hủy đơn hàng thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadData();
                 }
                 catch (Exception ex)
                 {
@@ -140,8 +129,8 @@ namespace QLTN_LT.GUI.Order
                 return;
             }
 
-            var selectedOrder = (Order)dgvOrders.CurrentRow.DataBoundItem;
-            using (var form = new FormOrderDetail(selectedOrder.Id))
+            var selectedOrder = (OrderDTO)dgvOrders.CurrentRow.DataBoundItem;
+            using (var form = new FormOrderDetail(selectedOrder.OrderID))
             {
                 form.ShowDialog(this);
             }

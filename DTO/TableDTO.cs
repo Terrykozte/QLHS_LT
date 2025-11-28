@@ -1,6 +1,6 @@
 namespace QLTN_LT.DTO
 {
-    public class Table
+    public class TableDTO
     {
         public int TableID { get; set; }
         public string TableName { get; set; }

@@ -12,22 +12,6 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-    <BaseIntermediateOutputPath>GUI\obj\</BaseIntermediateOutputPath>
-    <PublishUrl>publish\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -47,9 +31,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Guna.UI2, Version=2.0.4.7, Culture=neutral, PublicKeyToken=8b9d14aa5142e261, processorArchitecture=MSIL">
@@ -77,11 +58,95 @@
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsFormsIntegration" />
+    <Reference Include="Microsoft.VisualBasic" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- BLL -->
+    <Compile Include="BLL\AuthBLL.cs" />
+    <Compile Include="BLL\CategoryBLL.cs" />
+    <Compile Include="BLL\CustomerBLL.cs" />
+    <Compile Include="BLL\InventoryBLL.cs" />
+    <Compile Include="BLL\MenuBLL.cs" />
+    <Compile Include="BLL\OrderBLL.cs" />
+    <Compile Include="BLL\ReportBLL.cs" />
     <Compile Include="BLL\SeafoodBLL.cs" />
     <Compile Include="BLL\SupplierBLL.cs" />
     <Compile Include="BLL\TableBLL.cs" />
+    <Compile Include="BLL\UserBLL.cs" />
+    <Compile Include="BLL\Interfaces\ISeafoodService.cs" />
+    <!-- DAL -->
+    <Compile Include="DAL\CategoryDAL.cs" />
+    <Compile Include="DAL\CustomerDAL.cs" />
+    <Compile Include="DAL\DatabaseHelper.cs" />
+    <Compile Include="DAL\InventoryDAL.cs" />
+    <Compile Include="DAL\MenuDAL.cs" />
+    <Compile Include="DAL\OrderDAL.cs" />
+    <Compile Include="DAL\ReportDAL.cs" />
+    <Compile Include="DAL\SeafoodDAL.cs" />
+    <Compile Include="DAL\SupplierDAL.cs" />
+    <Compile Include="DAL\TableDAL.cs" />
+    <Compile Include="DAL\UserDAL.cs" />
+    <Compile Include="DAL\DatabaseContext.cs" />
+    <Compile Include="DAL\Interfaces\ICategoryRepository.cs" />
+    <Compile Include="DAL\Interfaces\ICustomerRepository.cs" />
+    <Compile Include="DAL\Interfaces\IInventoryRepository.cs" />
+    <Compile Include="DAL\Interfaces\IOrderRepository.cs" />
+    <Compile Include="DAL\Interfaces\ISeafoodRepository.cs" />
+    <Compile Include="DAL\Interfaces\ISupplierRepository.cs" />
+    <Compile Include="DAL\Interfaces\ITableRepository.cs" />
+    <Compile Include="DAL\Interfaces\IUserRepository.cs" />
+    <!-- DTO -->
+    <Compile Include="DTO\BranchDTO.cs" />
+    <Compile Include="DTO\CategoryDTO.cs" />
+    <Compile Include="DTO\CustomerDTO.cs" />
+    <Compile Include="DTO\DailyRevenueDTO.cs" />
+    <Compile Include="DTO\InventoryStatusDTO.cs" />
+    <Compile Include="DTO\InventoryTransactionDTO.cs" />
+    <Compile Include="DTO\MenuCategoryDTO.cs" />
+    <Compile Include="DTO\MenuItemDTO.cs" />
+    <Compile Include="DTO\OrderDTO.cs" />
+    <Compile Include="DTO\OrderDetailDTO.cs" />
+    <Compile Include="DTO\SeafoodDTO.cs" />
+    <Compile Include="DTO\SupplierDTO.cs" />
+    <Compile Include="DTO\TableDTO.cs" />
+    <Compile Include="DTO\TopSellingItemDTO.cs" />
+    <Compile Include="DTO\UserDTO.cs" />
+    <Compile Include="DTO\Result.cs" />
+    <!-- GUI -->
+    <Compile Include="GUI\Authentication\FormLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Authentication\FormLogin.Designer.cs">
+      <DependentUpon>FormLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Category\FormCategoryList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Category\FormCategoryList.Designer.cs">
+      <DependentUpon>FormCategoryList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Category\FormCategoryAdd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Category\FormCategoryAdd.Designer.cs">
+      <DependentUpon>FormCategoryAdd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Category\FormCategoryEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="GUI\Category\FormCategoryEdit.Designer.cs">
       <DependentUpon>FormCategoryEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Customer\FormCustomerList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Customer\FormCustomerList.Designer.cs">
+      <DependentUpon>FormCustomerList.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\Customer\FormCustomerAdd.cs">
       <SubType>Form</SubType>
@@ -95,6 +160,18 @@
     <Compile Include="GUI\Customer\FormCustomerEdit.Designer.cs">
       <DependentUpon>FormCustomerEdit.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\Dashboard\FormDashboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Dashboard\FormDashboard.Designer.cs">
+      <DependentUpon>FormDashboard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormInventoryList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormInventoryList.Designer.cs">
+      <DependentUpon>FormInventoryList.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Inventory\FormStockIn.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -106,6 +183,36 @@
     </Compile>
     <Compile Include="GUI\Inventory\FormStockOut.Designer.cs">
       <DependentUpon>FormStockOut.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Main\FormMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Main\FormMain.Designer.cs">
+      <DependentUpon>FormMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Menu\FormMenuList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Menu\FormMenuList.Designer.cs">
+      <DependentUpon>FormMenuList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Menu\FormMenuEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Menu\FormMenuEdit.Designer.cs">
+      <DependentUpon>FormMenuEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Order\FormOrderList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Order\FormOrderList.Designer.cs">
+      <DependentUpon>FormOrderList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Order\FormOrderCreate.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Order\FormOrderCreate.Designer.cs">
+      <DependentUpon>FormOrderCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\Order\FormOrderDetail.cs">
       <SubType>Form</SubType>
@@ -131,43 +238,6 @@
     <Compile Include="GUI\Seafood\FormSeafoodList.Designer.cs">
       <DependentUpon>FormSeafoodList.cs</DependentUpon>
     </Compile>
-    <Compile Include="GUI\Main\FormMain.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Main\FormMain.Designer.cs">
-      <DependentUpon>FormMain.cs</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="GUI\Main\FormMain.resx">
-      <DependentUpon>FormMain.cs</DependentUpon>
-    </EmbeddedResource>
-    <!-- Authentication -->
-    <Compile Include="GUI\Authentication\FormLogin.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Authentication\FormLogin.Designer.cs">
-      <DependentUpon>FormLogin.cs</DependentUpon>
-    </Compile>
-    <!-- Category -->
-    <Compile Include="GUI\Category\FormCategoryList.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Category\FormCategoryList.Designer.cs">
-      <DependentUpon>FormCategoryList.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\Category\FormCategoryAdd.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Category\FormCategoryAdd.Designer.cs">
-      <DependentUpon>FormCategoryAdd.cs</DependentUpon>
-    </Compile>
-    <!-- Customer -->
-    <Compile Include="GUI\Customer\FormCustomerList.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Customer\FormCustomerList.Designer.cs">
-      <DependentUpon>FormCustomerList.cs</DependentUpon>
-    </Compile>
-    <!-- Seafood Add -->
     <Compile Include="GUI\Seafood\FormSeafoodAdd.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -180,60 +250,6 @@
     <Compile Include="GUI\Seafood\FormSeafoodEdit.Designer.cs">
       <DependentUpon>FormSeafoodEdit.cs</DependentUpon>
     </Compile>
-    <!-- Orders -->
-    <Compile Include="GUI\Order\FormOrderList.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Order\FormOrderList.Designer.cs">
-      <DependentUpon>FormOrderList.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\Order\FormOrderCreate.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Order\FormOrderCreate.Designer.cs">
-      <DependentUpon>FormOrderCreate.cs</DependentUpon>
-    </Compile>
-    <!-- Table Management -->
-    <Compile Include="GUI\Table\FormTableList.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Table\FormTableList.Designer.cs">
-      <DependentUpon>FormTableList.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\Table\FormGenerateQR.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Table\FormGenerateQR.Designer.cs">
-      <DependentUpon>FormGenerateQR.cs</DependentUpon>
-    </Compile>
-    <!-- Dashboard -->
-    <Compile Include="GUI\Dashboard\FormDashboard.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Dashboard\FormDashboard.Designer.cs">
-      <DependentUpon>FormDashboard.cs</DependentUpon>
-    </Compile>
-    <!-- Menu Management -->
-    <Compile Include="GUI\Menu\FormMenuList.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Menu\FormMenuList.Designer.cs">
-      <DependentUpon>FormMenuList.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\Menu\FormMenuEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Menu\FormMenuEdit.Designer.cs">
-      <DependentUpon>FormMenuEdit.cs</DependentUpon>
-    </Compile>
-    <!-- Inventory Management -->
-    <Compile Include="GUI\Inventory\FormInventoryList.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\Inventory\FormInventoryList.Designer.cs">
-      <DependentUpon>FormInventoryList.cs</DependentUpon>
-    </Compile>
-    <!-- Supplier Management -->
     <Compile Include="GUI\Supplier\FormSupplierList.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -243,28 +259,39 @@
     <Compile Include="GUI\Supplier\FormSupplierAdd.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="GUI\Supplier\FormSupplierEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="GUI\Supplier\FormSupplierAdd.Designer.cs">
       <DependentUpon>FormSupplierAdd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Supplier\FormSupplierEdit.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="GUI\Supplier\FormSupplierEdit.Designer.cs">
       <DependentUpon>FormSupplierEdit.cs</DependentUpon>
     </Compile>
-    <Compile Include="GUI\Table\FormTableAdd.cs">
+    <Compile Include="GUI\Table\FormTableList.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="GUI\Table\FormTableEdit.cs">
+    <Compile Include="GUI\Table\FormTableList.Designer.cs">
+      <DependentUpon>FormTableList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Table\FormTableAdd.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="GUI\Table\FormTableAdd.Designer.cs">
       <DependentUpon>FormTableAdd.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\Table\FormTableEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="GUI\Table\FormTableEdit.Designer.cs">
       <DependentUpon>FormTableEdit.cs</DependentUpon>
     </Compile>
-    <!-- User Management -->
+    <Compile Include="GUI\Table\FormGenerateQR.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Table\FormGenerateQR.Designer.cs">
+      <DependentUpon>FormGenerateQR.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\User\FormUserList.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -297,23 +324,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="GUI\Seafood\FormSeafoodList.resx">
-      <DependentUpon>FormSeafoodList.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="GUI\Seafood\FormSeafoodAdd.resx">
-      <DependentUpon>FormSeafoodAdd.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI\Authentication\FormLogin.resx">
       <DependentUpon>FormLogin.cs</DependentUpon>
     </EmbeddedResource>
@@ -326,14 +336,14 @@
     <EmbeddedResource Include="GUI\Customer\FormCustomerList.resx">
       <DependentUpon>FormCustomerList.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\Table\FormTableList.resx">
-      <DependentUpon>FormTableList.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="GUI\Table\FormGenerateQR.resx">
-      <DependentUpon>FormGenerateQR.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI\Dashboard\FormDashboard.resx">
       <DependentUpon>FormDashboard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Inventory\FormInventoryList.resx">
+      <DependentUpon>FormInventoryList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Main\FormMain.resx">
+      <DependentUpon>FormMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Menu\FormMenuList.resx">
       <DependentUpon>FormMenuList.cs</DependentUpon>
@@ -341,17 +351,26 @@
     <EmbeddedResource Include="GUI\Menu\FormMenuEdit.resx">
       <DependentUpon>FormMenuEdit.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\Inventory\FormInventoryList.resx">
-      <DependentUpon>FormInventoryList.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="GUI\Supplier\FormSupplierList.resx">
-      <DependentUpon>FormSupplierList.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI\Order\FormOrderList.resx">
       <DependentUpon>FormOrderList.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\Order\FormOrderCreate.resx">
       <DependentUpon>FormOrderCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Seafood\FormSeafoodList.resx">
+      <DependentUpon>FormSeafoodList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Seafood\FormSeafoodAdd.resx">
+      <DependentUpon>FormSeafoodAdd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Supplier\FormSupplierList.resx">
+      <DependentUpon>FormSupplierList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Table\FormTableList.resx">
+      <DependentUpon>FormTableList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Table\FormGenerateQR.resx">
+      <DependentUpon>FormGenerateQR.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\User\FormUserList.resx">
       <DependentUpon>FormUserList.cs</DependentUpon>
@@ -362,18 +381,17 @@
     <EmbeddedResource Include="GUI\User\FormUserEdit.resx">
       <DependentUpon>FormUserEdit.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.8">
-      <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4.8 %28x86 and x64%29</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
+    <None Include="App.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

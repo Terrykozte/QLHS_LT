@@ -2,7 +2,7 @@ using System;
 
 namespace QLTN_LT.DTO
 {
-    public class Customer
+    public class CustomerDTO
     {
         public int CustomerID { get; set; }
         public string CustomerName { get; set; }

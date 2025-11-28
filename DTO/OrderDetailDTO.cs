@@ -1,6 +1,6 @@
 namespace QLTN_LT.DTO
 {
-    public class OrderDetail
+    public class OrderDetailDTO
     {
         public int OrderDetailID { get; set; }
         public int OrderID { get; set; }

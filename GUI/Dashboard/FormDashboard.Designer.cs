@@ -1,3 +1,4 @@
+#pragma warning disable CS0649
 namespace QLTN_LT.GUI.Dashboard
 {
     partial class FormDashboard

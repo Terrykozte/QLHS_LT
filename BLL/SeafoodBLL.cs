@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using QLTN_LT.DTO;
-using QLTN_LT.BLL.Mocks;
 using QLTN_LT.BLL.Interfaces;
 using QLTN_LT.DAL.Interfaces;
 using QLTN_LT.DAL;
@@ -27,12 +26,12 @@ namespace QLTN_LT.BLL
             return _repo.Search(keyword);
         }
 
-                public void Delete(int id)
+        public void Delete(int id)
         {
             _repo.Delete(id);
         }
 
-                public SeafoodDTO GetById(int id)
+        public SeafoodDTO GetById(int id)
         {
             return _repo.GetById(id);
         }
@@ -69,21 +68,8 @@ namespace QLTN_LT.BLL
 
         public List<SeafoodDTO> GetAll()
         {
-            try
-            {
-                if (DesignTimeData.UseMock)
-                {
-                    return DesignTimeData.Seafoods().OrderBy(s => s.SeafoodName).ToList();
-                }
-
-                var list = _repo.GetAll();
-                return list.OrderBy(s => s.SeafoodName).ToList();
-            }
-            catch
-            {
-                // Fallback: nếu DB chưa sẵn sàng, dùng dữ liệu mock
-                return DesignTimeData.Seafoods().OrderBy(s => s.SeafoodName).ToList();
-            }
+            var list = _repo.GetAll();
+            return list.OrderBy(s => s.SeafoodName).ToList();
         }
     }
 }

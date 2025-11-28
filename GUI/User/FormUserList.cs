@@ -3,31 +3,25 @@ using System.Linq;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.DAL;
 
 namespace QLTN_LT.GUI.User
 {
     public partial class FormUserList : Form
     {
-        private readonly UserService _userService;
+        private readonly UserBLL _userBLL;
 
         public FormUserList()
         {
             InitializeComponent();
-            
-            // Init dependencies
-            var dbContext = new DatabaseContext();
-            var userRepo = new UserRepository(dbContext);
-            _userService = new UserService(userRepo);
-
+            _userBLL = new UserBLL();
             LoadData();
         }
 
-        private async void LoadData()
+        private void LoadData()
         {
             try
             {
-                var users = await _userService.GetAllAsync();
+                var users = _userBLL.GetAll();
                 
                 string keyword = txtSearch.Text.ToLower();
                 if (!string.IsNullOrEmpty(keyword))
@@ -44,7 +38,7 @@ namespace QLTN_LT.GUI.User
                 // Configure Columns if not already done in Designer or here
                 if (dgvUser.Columns["PasswordHash"] != null) dgvUser.Columns["PasswordHash"].Visible = false;
                 if (dgvUser.Columns["PasswordSalt"] != null) dgvUser.Columns["PasswordSalt"].Visible = false;
-                if (dgvUser.Columns["IsDeleted"] != null) dgvUser.Columns["IsDeleted"].Visible = false;
+                if (dgvUser.Columns["Roles"] != null) dgvUser.Columns["Roles"].Visible = false;
                 
                 // Set Headers
                 if (dgvUser.Columns["Username"] != null) dgvUser.Columns["Username"].HeaderText = "Tên đăng nhập";
@@ -74,7 +68,7 @@ namespace QLTN_LT.GUI.User
         {
             if (e.RowIndex >= 0)
             {
-                var user = dgvUser.Rows[e.RowIndex].DataBoundItem as AppUser;
+                var user = dgvUser.Rows[e.RowIndex].DataBoundItem as UserDTO;
                 if (user != null)
                 {
                     using (var form = new FormUserEdit(user))

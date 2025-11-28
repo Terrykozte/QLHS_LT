@@ -2,39 +2,34 @@ using System;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.DAL;
 
 namespace QLTN_LT.GUI.Seafood
 {
     public partial class FormSeafoodEdit : Form
     {
-        private readonly SeafoodService _seafoodService;
-        private readonly CategoryService _categoryService;
-        private readonly Seafood _seafood;
+        private readonly SeafoodBLL _seafoodBLL;
+        private readonly CategoryBLL _categoryBLL;
+        private readonly SeafoodDTO _seafood;
 
-        public FormSeafoodEdit(Seafood seafood)
+        public FormSeafoodEdit(SeafoodDTO seafood)
         {
             InitializeComponent();
             _seafood = seafood;
+            _seafoodBLL = new SeafoodBLL();
+            _categoryBLL = new CategoryBLL();
             
-            var dbContext = new DatabaseContext();
-            var seafoodRepo = new SeafoodRepository(dbContext);
-            _seafoodService = new SeafoodService(seafoodRepo);
-
-            var categoryRepo = new CategoryRepository(dbContext);
-            _categoryService = new CategoryService(categoryRepo);
-
             LoadCategories();
+            LoadData();
         }
 
-        private async void LoadCategories()
+        private void LoadCategories()
         {
             try
             {
-                var categories = await _categoryService.GetAllAsync();
+                var categories = _categoryBLL.GetAll();
                 cboCategory.DataSource = categories;
                 cboCategory.DisplayMember = "CategoryName";
-                cboCategory.ValueMember = "Id";
+                cboCategory.ValueMember = "CategoryID";
 
                 // Set selected item after loading
                 cboCategory.SelectedValue = _seafood.CategoryID;
@@ -54,7 +49,7 @@ namespace QLTN_LT.GUI.Seafood
             txtDescription.Text = _seafood.Description;
         }
 
-        private async void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtSeafoodName.Text))
             {
@@ -80,17 +75,10 @@ namespace QLTN_LT.GUI.Seafood
 
             try
             {
-                var result = await _seafoodService.UpdateAsync(_seafood);
-                if (result)
-                {
-                    MessageBox.Show("Cập nhật thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    DialogResult = DialogResult.OK;
-                    Close();
-                }
-                else
-                {
-                    MessageBox.Show("Cập nhật thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                _seafoodBLL.Update(_seafood);
+                MessageBox.Show("Cập nhật thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DialogResult = DialogResult.OK;
+                Close();
             }
             catch (Exception ex)
             {

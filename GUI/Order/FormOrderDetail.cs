@@ -2,34 +2,31 @@ using System;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.DAL;
 
 namespace QLTN_LT.GUI.Order
 {
     public partial class FormOrderDetail : Form
     {
         private readonly int _orderId;
-        private readonly OrderService _orderService;
+        private readonly OrderBLL _orderBLL;
 
         public FormOrderDetail(int orderId)
         {
             InitializeComponent();
             _orderId = orderId;
-            
-            var dbContext = new DatabaseContext();
-            _orderService = new OrderService(new OrderRepository(dbContext));
+            _orderBLL = new OrderBLL();
         }
 
-        private async void FormOrderDetail_Load(object sender, EventArgs e)
+        private void FormOrderDetail_Load(object sender, EventArgs e)
         {
-            await LoadOrderDetails();
+            LoadOrderDetails();
         }
 
-        private async System.Threading.Tasks.Task LoadOrderDetails()
+        private void LoadOrderDetails()
         {
             try
             {
-                var order = await _orderService.GetByIdAsync(_orderId);
+                var order = _orderBLL.GetById(_orderId);
 
                 if (order == null)
                 {
@@ -44,7 +41,8 @@ namespace QLTN_LT.GUI.Order
                 lblStatus.Text = $"Trạng thái: {order.Status}";
                 lblTotalAmount.Text = $"Tổng tiền: {order.TotalAmount:N0} VNĐ";
 
-                dgvOrderDetails.DataSource = order.OrderDetails;
+                var details = _orderBLL.GetDetails(_orderId);
+                dgvOrderDetails.DataSource = details;
                 
                 dgvOrderDetails.AutoGenerateColumns = false;
                 dgvOrderDetails.Columns.Clear();

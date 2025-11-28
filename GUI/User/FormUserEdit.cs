@@ -3,24 +3,19 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.DAL;
 
 namespace QLTN_LT.GUI.User
 {
     public partial class FormUserEdit : Form
     {
-        private readonly UserService _userService;
-        private readonly AppUser _user;
+        private readonly UserBLL _userBLL;
+        private readonly UserDTO _user;
 
-        public FormUserEdit(AppUser user)
+        public FormUserEdit(UserDTO user)
         {
             InitializeComponent();
             _user = user;
-            
-            var dbContext = new DatabaseContext();
-            var userRepo = new UserRepository(dbContext);
-            _userService = new UserService(userRepo);
-
+            _userBLL = new UserBLL();
             LoadUserData();
         }
 
@@ -39,7 +34,7 @@ namespace QLTN_LT.GUI.User
             }
         }
 
-        private async void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
             _user.FullName = txtFullName.Text.Trim();
             _user.Email = txtEmail.Text.Trim();
@@ -53,7 +48,7 @@ namespace QLTN_LT.GUI.User
 
             try
             {
-                var result = await _userService.UpdateAsync(_user);
+                var result = _userBLL.Update(_user);
                 if (result)
                 {
                     MessageBox.Show("Cập nhật thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -76,21 +71,21 @@ namespace QLTN_LT.GUI.User
             Close();
         }
 
-        private async void btnResetPassword_Click(object sender, EventArgs e)
+        private void btnResetPassword_Click(object sender, EventArgs e)
         {
             string newPassword = Microsoft.VisualBasic.Interaction.InputBox("Nhập mật khẩu mới:", "Đặt lại mật khẩu", "");
             if (string.IsNullOrWhiteSpace(newPassword)) return;
 
             try
             {
-                var result = await _userService.ChangePasswordAsync(_user.Id, newPassword);
-                if (result.IsSuccess)
+                var result = _userBLL.ChangePassword(_user.UserID, newPassword);
+                if (result)
                 {
                     MessageBox.Show("Đặt lại mật khẩu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    MessageBox.Show("Đặt lại mật khẩu thất bại: " + result.ErrorMessage, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Đặt lại mật khẩu thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)

@@ -1,14 +1,21 @@
+using System;
+using System.Windows.Forms;
+using QLTN_LT.DTO;
+using QLTN_LT.BLL;
+
+namespace QLTN_LT.GUI.Category
+{
+    public partial class FormCategoryAdd : Form
+    {
+        private readonly CategoryBLL _categoryBLL;
 
         public FormCategoryAdd()
         {
             InitializeComponent();
-            
-            var dbContext = new DatabaseContext();
-            var categoryRepo = new CategoryRepository(dbContext);
-            _categoryService = new CategoryService(categoryRepo);
+            _categoryBLL = new CategoryBLL();
         }
 
-        private async void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtCategoryName.Text))
             {
@@ -16,7 +23,7 @@
                 return;
             }
 
-            var newItem = new Category
+            var newItem = new CategoryDTO
             {
                 CategoryName = txtCategoryName.Text.Trim(),
                 Description = txtDescription.Text.Trim(),
@@ -25,17 +32,10 @@
 
             try
             {
-                var result = await _categoryService.CreateAsync(newItem);
-                if (result > 0)
-                {
-                    MessageBox.Show("Thêm thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    DialogResult = DialogResult.OK;
-                    Close();
-                }
-                else
-                {
-                    MessageBox.Show("Thêm thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                _categoryBLL.Insert(newItem);
+                MessageBox.Show("Thêm thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DialogResult = DialogResult.OK;
+                Close();
             }
             catch (Exception ex)
             {

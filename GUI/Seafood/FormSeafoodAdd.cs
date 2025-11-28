@@ -1,39 +1,31 @@
 using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.DAL;
 
 namespace QLTN_LT.GUI.Seafood
 {
     public partial class FormSeafoodAdd : Form
     {
-        private readonly SeafoodService _seafoodService;
-        private readonly CategoryService _categoryService;
+        private readonly SeafoodBLL _seafoodBLL;
+        private readonly CategoryBLL _categoryBLL;
 
         public FormSeafoodAdd()
         {
             InitializeComponent();
-            
-            var dbContext = new DatabaseContext();
-            var seafoodRepo = new SeafoodRepository(dbContext);
-            _seafoodService = new SeafoodService(seafoodRepo);
-
-            var categoryRepo = new CategoryRepository(dbContext);
-            _categoryService = new CategoryService(categoryRepo);
-
+            _seafoodBLL = new SeafoodBLL();
+            _categoryBLL = new CategoryBLL();
             LoadCategories();
         }
 
-        private async void LoadCategories()
+        private void LoadCategories()
         {
             try
             {
-                var categories = await _categoryService.GetAllAsync();
+                var categories = _categoryBLL.GetAll();
                 cboCategory.DataSource = categories;
                 cboCategory.DisplayMember = "CategoryName";
-                cboCategory.ValueMember = "Id";
+                cboCategory.ValueMember = "CategoryID";
             }
             catch (Exception ex)
             {
@@ -41,7 +33,7 @@ namespace QLTN_LT.GUI.Seafood
             }
         }
 
-        private async void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtSeafoodName.Text))
             {
@@ -58,7 +50,7 @@ namespace QLTN_LT.GUI.Seafood
             decimal.TryParse(txtUnitPrice.Text, out decimal price);
             int.TryParse(txtQuantity.Text, out int quantity);
 
-            var newItem = new Seafood
+            var newItem = new SeafoodDTO
             {
                 SeafoodName = txtSeafoodName.Text.Trim(),
                 CategoryID = (int)cboCategory.SelectedValue,
@@ -71,17 +63,10 @@ namespace QLTN_LT.GUI.Seafood
 
             try
             {
-                var result = await _seafoodService.CreateAsync(newItem);
-                if (result > 0)
-                {
-                    MessageBox.Show("Thêm thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    DialogResult = DialogResult.OK;
-                    Close();
-                }
-                else
-                {
-                    MessageBox.Show("Thêm thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                _seafoodBLL.Insert(newItem);
+                MessageBox.Show("Thêm thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DialogResult = DialogResult.OK;
+                Close();
             }
             catch (Exception ex)
             {

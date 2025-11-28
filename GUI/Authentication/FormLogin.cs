@@ -3,152 +3,128 @@ using System.Drawing;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-using QLTN_LT.Infrastructure.Database;
-using QLTN_LT.Infrastructure.Repositories;
-using QLTN_LT.Core.Models;
+using System.IO;
 
 namespace QLTN_LT.GUI.Authentication
 {
     public partial class FormLogin : Form
     {
-        private readonly AuthService _authService;
-        private Timer _fadeTimer;
+        private readonly AuthBLL _authBLL;
 
-        public AppUser LoggedInUser { get; private set; }
+        public UserDTO LoggedInUser { get; private set; }
 
         public FormLogin()
         {
             InitializeComponent();
+            _authBLL = new AuthBLL();
             
-            // Initialize Dependencies
-            var dbContext = new DatabaseContext();
-            var userRepo = new UserRepository(dbContext);
-            _authService = new AuthService(userRepo);
-
-            SetupUI();
+            // Setup UI Events
+            SetupEvents();
+            
+            // Load Assets
+            LoadAssets();
         }
 
-        private void SetupUI()
+        private void SetupEvents()
         {
-            // Center the panel
-            pnlMain.Location = new Point(
-                (this.ClientSize.Width - pnlMain.Width) / 2,
-                (this.ClientSize.Height - pnlMain.Height) / 2
-            );
-
-            // Fade In Animation
-            this.Opacity = 0;
-            _fadeTimer = new Timer();
-            _fadeTimer.Interval = 10;
-            _fadeTimer.Tick += (s, e) =>
-            {
-                if (this.Opacity < 1)
-                    this.Opacity += 0.05;
-                else
-                    _fadeTimer.Stop();
-            };
-            _fadeTimer.Start();
-
-            // Load Logo if exists
-            try
-            {
-                string logoPath = System.IO.Path.Combine(Application.StartupPath, @"..\..\GUI\Resources\logo.png");
-                if (System.IO.File.Exists(logoPath))
-                {
-                    picLogo.Image = Image.FromFile(logoPath);
-                }
-                else
-                {
-                    // Fallback or hide if no logo
-                    picLogo.Visible = false;
-                    lblTitle.Location = new Point(lblTitle.Location.X, lblTitle.Location.Y - 50);
-                }
-            }
-            catch { picLogo.Visible = false; }
-
             // Enter key to login
             txtPassword.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) btnLogin.PerformClick(); };
             txtUsername.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) txtPassword.Focus(); };
         }
 
-        private void txtPassword_IconRightClick(object sender, EventArgs e)
+        private void LoadAssets()
         {
-            if (txtPassword.PasswordChar == '•')
+            try
             {
-                txtPassword.PasswordChar = '\0';
-                txtPassword.IconRight = null; // Or change to 'hide' icon if available
+                string resourcesPath = Path.Combine(Application.StartupPath, @"..\..\GUI\Resources");
+                
+                // Load Logo
+                string logoPath = Path.Combine(resourcesPath, "logo.png");
+                if (File.Exists(logoPath))
+                {
+                    picLogo.Image = Image.FromFile(logoPath);
+                }
+
+                // Load Background
+                string bgPath = Path.Combine(resourcesPath, "login_bg.png");
+                if (File.Exists(bgPath))
+                {
+                    pnlLeft.BackgroundImage = Image.FromFile(bgPath);
+                    pnlLeft.BackgroundImageLayout = ImageLayout.Stretch;
+                }
+
+                // Load Icons
+                string userIconPath = Path.Combine(resourcesPath, "user_icon.png");
+                if (File.Exists(userIconPath))
+                {
+                    txtUsername.IconLeft = Image.FromFile(userIconPath);
+                }
+
+                string passIconPath = Path.Combine(resourcesPath, "pass_icon.png");
+                if (File.Exists(passIconPath))
+                {
+                    txtPassword.IconLeft = Image.FromFile(passIconPath);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                txtPassword.PasswordChar = '•';
-                txtPassword.IconRight = null; // Or change to 'show' icon
+                // Log error or silently fail for assets
+                Console.WriteLine("Error loading assets: " + ex.Message);
             }
         }
 
-        private async void btnLogin_Click(object sender, EventArgs e)
+        private void btnLogin_Click(object sender, EventArgs e)
         {
             lblError.Text = "";
             btnLogin.Enabled = false;
-            btnLogin.Text = "VERIFYING...";
+            btnLogin.Text = "ĐANG XÁC THỰC...";
 
             try
             {
                 if (string.IsNullOrWhiteSpace(txtUsername.Text) || string.IsNullOrWhiteSpace(txtPassword.Text))
                 {
-                    ShowError("Please enter username and password.");
+                    ShowError("Vui lòng nhập tên đăng nhập và mật khẩu.");
                     return;
                 }
 
-                var result = await _authService.LoginAsync(txtUsername.Text, txtPassword.Text);
+                var user = _authBLL.Login(txtUsername.Text, txtPassword.Text);
 
-                if (result.IsSuccess)
+                if (user != null)
                 {
-                    LoggedInUser = result.Data;
+                    LoggedInUser = user;
                     DialogResult = DialogResult.OK;
                     Close();
                 }
                 else
                 {
-                    ShowError(result.ErrorMessage);
+                    ShowError("Tên đăng nhập hoặc mật khẩu không đúng.");
                 }
             }
             catch (Exception ex)
             {
-                ShowError("System Error: " + ex.Message);
+                ShowError("Lỗi hệ thống: " + ex.Message);
             }
             finally
             {
                 btnLogin.Enabled = true;
-                btnLogin.Text = "LOGIN";
+                btnLogin.Text = "ĐĂNG NHẬP";
             }
         }
 
         private void ShowError(string message)
         {
             lblError.Text = message;
-            // lblError.Location logic is removed as Guna2HtmlLabel handles alignment or is docked/autosized differently
-            // If needed, we can set TextAlignment in Designer or here.
             
-            // Shake Animation
-            var originalPos = pnlMain.Location;
+            // Shake Animation for the right panel
+            var originalPos = pnlRight.Location;
             var rnd = new Random();
-            const int shakeAmplitude = 10;
-            for (int i = 0; i < 10; i++)
+            const int shakeAmplitude = 5;
+            for (int i = 0; i < 5; i++)
             {
-                pnlMain.Location = new Point(originalPos.X + rnd.Next(-shakeAmplitude, shakeAmplitude), originalPos.Y);
+                pnlRight.Location = new Point(originalPos.X + rnd.Next(-shakeAmplitude, shakeAmplitude), originalPos.Y);
                 System.Threading.Thread.Sleep(20);
             }
-            pnlMain.Location = originalPos;
-            
-            // Optional: Show dialog for critical errors if needed, but inline label is better for login
-            // messageDialog.Show(message, "Login Error"); 
-        }
-
-        private void lblForgotPassword_Click(object sender, EventArgs e)
-        {
-            messageDialog.Icon = Guna.UI2.WinForms.MessageDialogIcon.Information;
-            messageDialog.Buttons = Guna.UI2.WinForms.MessageDialogButtons.OK;
-            messageDialog.Show("Please contact the administrator to reset your password.", "Forgot Password");
+            pnlRight.Location = originalPos;
         }
     }
 }

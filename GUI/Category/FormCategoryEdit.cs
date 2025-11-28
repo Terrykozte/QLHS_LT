@@ -1,24 +1,30 @@
-        private readonly Category _category;
+using System;
+using System.Windows.Forms;
+using QLTN_LT.BLL;
+using QLTN_LT.DTO;
 
-        public FormCategoryEdit(Category category)
+namespace QLTN_LT.GUI.Category
+{
+    public partial class FormCategoryEdit : Form
+    {
+        private readonly CategoryBLL _categoryBLL;
+        private readonly CategoryDTO _category;
+
+        public FormCategoryEdit(CategoryDTO category)
         {
             InitializeComponent();
             _category = category;
-            
-            var dbContext = new DatabaseContext();
-            var categoryRepo = new CategoryRepository(dbContext);
-            _categoryService = new CategoryService(categoryRepo);
-
+            _categoryBLL = new CategoryBLL();
             LoadData();
         }
 
         private void LoadData()
         {
             txtCategoryName.Text = _category.CategoryName;
-            txtDescription.Text = _category.Description;
+            txtDescription.Text = _category.Description; // Assuming Description exists in DTO, if not remove
         }
 
-        private async void btnSave_Click(object sender, EventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtCategoryName.Text))
             {
@@ -31,17 +37,10 @@
 
             try
             {
-                var result = await _categoryService.UpdateAsync(_category);
-                if (result)
-                {
-                    MessageBox.Show("Cập nhật thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    DialogResult = DialogResult.OK;
-                    Close();
-                }
-                else
-                {
-                    MessageBox.Show("Cập nhật thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                _categoryBLL.Update(_category);
+                MessageBox.Show("Cập nhật thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DialogResult = DialogResult.OK;
+                Close();
             }
             catch (Exception ex)
             {
