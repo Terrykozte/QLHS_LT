@@ -322,3 +322,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+# Local docs (keep out of repo)
+md/
