@@ -13,7 +13,7 @@ namespace QLTN_LT.GUI.Dashboard
         private Guna.UI2.WinForms.Guna2HtmlLabel lblTotalRevenue;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblRevenueTitle;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblTopSellingTitle;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
+        private System.Windows.Forms.TableLayoutPanel tlpMain;
         private Guna.UI2.WinForms.Guna2Panel pnlRevenueCard;
         private Guna.UI2.WinForms.Guna2Panel pnlOrdersCard;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblOrdersCount;
@@ -46,7 +46,7 @@ namespace QLTN_LT.GUI.Dashboard
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormDashboard));
-            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.tlpMain = new System.Windows.Forms.TableLayoutPanel();
             this.pnlRevenueCard = new Guna.UI2.WinForms.Guna2Panel();
             this.picRevenue = new Guna.UI2.WinForms.Guna2PictureBox();
             this.lblTotalRevenue = new Guna.UI2.WinForms.Guna2HtmlLabel();
@@ -64,7 +64,7 @@ namespace QLTN_LT.GUI.Dashboard
             this.dtpEndDate = new Guna.UI2.WinForms.Guna2DateTimePicker();
             this.lblFrom = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.dtpStartDate = new Guna.UI2.WinForms.Guna2DateTimePicker();
-            this.flowLayoutPanel1.SuspendLayout();
+            this.tlpMain.SuspendLayout();
             this.pnlRevenueCard.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picRevenue)).BeginInit();
             this.pnlOrdersCard.SuspendLayout();
@@ -79,41 +79,35 @@ namespace QLTN_LT.GUI.Dashboard
             this.pnlFilterBar.SuspendLayout();
             this.SuspendLayout();
             // 
-            // flowLayoutPanel1
+            // tlpMain
             // 
-            this.flowLayoutPanel1.AutoScroll = true;
-            this.flowLayoutPanel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(249)))), ((int)(((byte)(250)))), ((int)(((byte)(251)))));
-            this.flowLayoutPanel1.Controls.Add(this.pnlRevenueCard);
-            this.flowLayoutPanel1.Controls.Add(this.pnlOrdersCard);
-            this.flowLayoutPanel1.Controls.Add(this.pnlCustomersCard);
-            this.flowLayoutPanel1.Controls.Add(this.pnlRevenueChartCard);
-            this.flowLayoutPanel1.Controls.Add(this.pnlRevenueChartCard);
-            this.flowLayoutPanel1.Controls.Add(this.pnlTopSellingChartCard);
-            this.flowLayoutPanel1.Controls.Add(this.pnlExpirationCard);
-            this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 60);
-            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(15);
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(984, 541);
-            this.flowLayoutPanel1.TabIndex = 0;
+            this.tlpMain.ColumnCount = 3;
+            this.tlpMain.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33F));
+            this.tlpMain.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33F));
+            this.tlpMain.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33F));
+            this.tlpMain.Controls.Add(this.pnlRevenueCard, 0, 0);
+            this.tlpMain.Controls.Add(this.pnlOrdersCard, 1, 0);
+            this.tlpMain.Controls.Add(this.pnlCustomersCard, 2, 0);
+            this.tlpMain.Controls.Add(this.pnlRevenueChartCard, 0, 1);
+            this.tlpMain.SetColumnSpan(this.pnlRevenueChartCard, 2); // Span 2 columns
+            this.tlpMain.Controls.Add(this.pnlTopSellingChartCard, 2, 1);
+            this.tlpMain.Controls.Add(this.pnlExpirationCard, 0, 2);
+            this.tlpMain.SetColumnSpan(this.pnlExpirationCard, 3); // Span 3 columns
+            this.tlpMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tlpMain.Location = new System.Drawing.Point(0, 60);
+            this.tlpMain.Name = "tlpMain";
+            this.tlpMain.RowCount = 3;
+            this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 140F)); // Cards
+            this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F)); // Charts
+            this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 200F)); // List
+            this.tlpMain.Size = new System.Drawing.Size(984, 541);
+            this.tlpMain.TabIndex = 0;
+            this.tlpMain.Padding = new System.Windows.Forms.Padding(10);
             // 
             // pnlRevenueCard
             // 
-            this.pnlRevenueCard.BackColor = System.Drawing.Color.Transparent;
-            this.pnlRevenueCard.BorderRadius = 10;
-            this.pnlRevenueCard.Controls.Add(this.lblRevenueTrend);
-            this.pnlRevenueCard.Controls.Add(this.lblTotalRevenue);
-            this.pnlRevenueCard.Controls.Add(this.lblRevenueTitle);
-            this.pnlRevenueCard.FillColor = System.Drawing.Color.White;
-            this.pnlRevenueCard.Location = new System.Drawing.Point(20, 20);
-            this.pnlRevenueCard.Margin = new System.Windows.Forms.Padding(5);
-            this.pnlRevenueCard.Name = "pnlRevenueCard";
-            this.pnlRevenueCard.ShadowDecoration.BorderRadius = 10;
-            this.pnlRevenueCard.ShadowDecoration.Color = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(200)))), ((int)(((byte)(200)))));
-            this.pnlRevenueCard.ShadowDecoration.Enabled = true;
-            this.pnlRevenueCard.ShadowDecoration.Shadow = new System.Windows.Forms.Padding(0, 0, 5, 5);
-            this.pnlRevenueCard.Size = new System.Drawing.Size(300, 120);
-            this.pnlRevenueCard.TabIndex = 0;
+            this.pnlRevenueCard.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlRevenueCard.Margin = new System.Windows.Forms.Padding(10);
             // 
             // 
             // lblRevenueTrend
@@ -440,13 +434,13 @@ namespace QLTN_LT.GUI.Dashboard
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(984, 601);
-            this.Controls.Add(this.flowLayoutPanel1);
+            this.Controls.Add(this.tlpMain);
             this.Controls.Add(this.pnlFilterBar);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "FormDashboard";
             this.Text = "Dashboard";
             this.Load += new System.EventHandler(this.FormDashboard_Load);
-            this.flowLayoutPanel1.ResumeLayout(false);
+            this.tlpMain.ResumeLayout(false);
             this.pnlRevenueCard.ResumeLayout(false);
             this.pnlRevenueCard.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picRevenue)).EndInit();

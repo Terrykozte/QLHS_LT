@@ -4,7 +4,6 @@ using System.Windows.Forms;
 using Guna.UI2.WinForms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
-
 namespace QLTN_LT.GUI.Main
 {
     public partial class FormMain : Form
@@ -12,17 +11,51 @@ namespace QLTN_LT.GUI.Main
         private readonly UserDTO _currentUser;
         private Guna2Button _currentButton;
         private Form _activeForm;
+        private bool _isSidebarExpanded = true;
+        private Timer _sidebarTimer;
 
         public FormMain(UserDTO user)
         {
             InitializeComponent();
             _currentUser = user;
+            this.Padding = new Padding(0);
+
+            _sidebarTimer = new Timer();
+            _sidebarTimer.Interval = 10;
+            _sidebarTimer.Tick += SidebarTimer_Tick;
         }
 
         private void FormMain_Load(object sender, EventArgs e)
         {
             SetupUserInfo();
             ActivateButton(btnDashboard);
+        }
+
+        private void SidebarTimer_Tick(object sender, EventArgs e)
+        {
+            if (_isSidebarExpanded)
+            {
+                pnlSidebar.Width -= 10;
+                if (pnlSidebar.Width <= 60)
+                {
+                    _isSidebarExpanded = false;
+                    _sidebarTimer.Stop();
+                }
+            }
+            else
+            {
+                pnlSidebar.Width += 10;
+                if (pnlSidebar.Width >= 240)
+                {
+                    _isSidebarExpanded = true;
+                    _sidebarTimer.Stop();
+                }
+            }
+        }
+
+        private void btnToggleSidebar_Click(object sender, EventArgs e)
+        {
+            _sidebarTimer.Start();
         }
 
         private void SetupUserInfo()

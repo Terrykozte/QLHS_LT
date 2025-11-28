@@ -10,12 +10,24 @@ namespace QLTN_LT.DAL
     public static class DatabaseHelper
     {
         private const string DefaultConnName = "DefaultConnection";
+        private static string _cachedConnectionString;
 
         /// <summary>
-        /// Lấy connection string theo tên trong App.config
+        /// Lấy connection string theo tên trong App.config hoặc từ file cấu hình động.
         /// </summary>
         public static string GetConnectionString(string name = DefaultConnName)
         {
+            // 1. Try to load from cached or dynamic config first
+            if (!string.IsNullOrEmpty(_cachedConnectionString)) return _cachedConnectionString;
+
+            var settings = ConnectionSettings.Load();
+            if (settings != null)
+            {
+                _cachedConnectionString = settings.GetConnectionString();
+                return _cachedConnectionString;
+            }
+
+            // 2. Fallback to App.config
             return ConfigurationManager.ConnectionStrings[name]?.ConnectionString;
         }
 
@@ -26,6 +38,14 @@ namespace QLTN_LT.DAL
         {
             var cs = GetConnectionString(name);
             return new SqlConnection(cs);
+        }
+        
+        /// <summary>
+        /// Xóa cache để load lại setting mới
+        /// </summary>
+        public static void ResetConnection()
+        {
+            _cachedConnectionString = null;
         }
     }
 }

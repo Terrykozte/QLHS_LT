@@ -35,10 +35,36 @@ namespace QLTN_LT.GUI.Customer
             chkCol.Width = 40;
             dgvCustomer.Columns.Add(chkCol);
 
-            dgvCustomer.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "CustomerID", HeaderText = "ID", Width = 60 });
-            dgvCustomer.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "CustomerName", HeaderText = "TÊN KHÁCH HÀNG", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvCustomer.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "PhoneNumber", HeaderText = "SỐ ĐIỆN THOẠI", Width = 150 });
-            dgvCustomer.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Address", HeaderText = "ĐỊA CHỈ", Width = 250 });
+            dgvCustomer.Columns.Add(new DataGridViewTextBoxColumn { Name = "CustomerID", DataPropertyName = "CustomerID", HeaderText = "ID", Width = 60 });
+            dgvCustomer.Columns.Add(new DataGridViewTextBoxColumn { Name = "CustomerName", DataPropertyName = "CustomerName", HeaderText = "TÊN KHÁCH HÀNG", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            dgvCustomer.Columns.Add(new DataGridViewTextBoxColumn { Name = "PhoneNumber", DataPropertyName = "PhoneNumber", HeaderText = "SỐ ĐIỆN THOẠI", Width = 150 });
+            dgvCustomer.Columns.Add(new DataGridViewTextBoxColumn { Name = "Address", DataPropertyName = "Address", HeaderText = "ĐỊA CHỈ", Width = 250 });
+
+            // Edit Button Column
+            DataGridViewButtonColumn editBtn = new DataGridViewButtonColumn();
+            editBtn.HeaderText = "THAO TÁC";
+            editBtn.Text = "Sửa";
+            editBtn.UseColumnTextForButtonValue = true;
+            editBtn.Name = "colEdit";
+            editBtn.Width = 80;
+            dgvCustomer.Columns.Add(editBtn);
+
+            dgvCustomer.CellContentClick += DgvCustomer_CellContentClick;
+        }
+
+        private void DgvCustomer_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && dgvCustomer.Columns[e.ColumnIndex].Name == "colEdit")
+            {
+                int customerId = Convert.ToInt32(dgvCustomer.Rows[e.RowIndex].Cells["CustomerID"].Value); // Ensure DataPropertyName matches
+                using (var form = new FormCustomerEdit(customerId))
+                {
+                    if (form.ShowDialog() == DialogResult.OK)
+                    {
+                        LoadData();
+                    }
+                }
+            }
         }
 
         private void LoadData()

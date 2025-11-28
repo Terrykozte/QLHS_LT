@@ -12,7 +12,9 @@ namespace QLTN_LT.GUI.Main
         // Top Bar Controls
         private Guna.UI2.WinForms.Guna2ControlBox btnMinimize;
         private Guna.UI2.WinForms.Guna2ControlBox btnMaximize;
+
         private Guna.UI2.WinForms.Guna2ControlBox btnClose;
+        private Guna.UI2.WinForms.Guna2Button btnToggleSidebar; // Added field
         private Guna.UI2.WinForms.Guna2DragControl dragControl;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblPageTitle; // Title in TopBar
 
@@ -60,6 +62,7 @@ namespace QLTN_LT.GUI.Main
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.pnlTopBar = new Guna.UI2.WinForms.Guna2Panel();
+            this.btnToggleSidebar = new Guna.UI2.WinForms.Guna2Button(); // Added instantiation
             this.lblPageTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.btnMinimize = new Guna.UI2.WinForms.Guna2ControlBox();
             this.btnMaximize = new Guna.UI2.WinForms.Guna2ControlBox();
@@ -114,6 +117,24 @@ namespace QLTN_LT.GUI.Main
             this.pnlTopBar.ShadowDecoration.Shadow = new System.Windows.Forms.Padding(0, 0, 0, 3);
             this.pnlTopBar.Size = new System.Drawing.Size(1040, 50);
             this.pnlTopBar.TabIndex = 1;
+            this.pnlTopBar.Controls.Add(this.btnToggleSidebar);
+
+            // 
+            // btnToggleSidebar
+            // 
+            this.btnToggleSidebar.CheckedState.Parent = this.btnToggleSidebar;
+            this.btnToggleSidebar.CustomImages.Parent = this.btnToggleSidebar;
+            this.btnToggleSidebar.FillColor = System.Drawing.Color.Transparent;
+            this.btnToggleSidebar.Font = new System.Drawing.Font("Segoe UI", 16F); // Larger font for icon
+            this.btnToggleSidebar.ForeColor = System.Drawing.Color.Black; // Dark color for light theme
+            this.btnToggleSidebar.HoverState.Parent = this.btnToggleSidebar;
+            this.btnToggleSidebar.Text = "☰"; // Hamburger icon
+            this.btnToggleSidebar.Location = new System.Drawing.Point(10, 5);
+            this.btnToggleSidebar.Name = "btnToggleSidebar";
+            this.btnToggleSidebar.ShadowDecoration.Parent = this.btnToggleSidebar;
+            this.btnToggleSidebar.Size = new System.Drawing.Size(40, 40);
+            this.btnToggleSidebar.TabIndex = 5;
+            this.btnToggleSidebar.Click += new System.EventHandler(this.btnToggleSidebar_Click);
             // 
             // lblPageTitle
             // 
