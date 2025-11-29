@@ -323,4 +323,8 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Local docs (keep out of repo)
-
+md/
+*.md
+*.txt
+*.bat
+!/README.md
