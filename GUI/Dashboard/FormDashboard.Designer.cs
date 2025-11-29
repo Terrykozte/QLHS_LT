@@ -277,6 +277,7 @@ namespace QLTN_LT.GUI.Dashboard
             this.pnlTopSellingChartCard.BackColor = System.Drawing.Color.Transparent;
             this.pnlTopSellingChartCard.BorderRadius = 10;
 
+            this.pnlTopSellingChartCard.Controls.Add(this.flowTopSelling);
             this.pnlTopSellingChartCard.Controls.Add(this.lblTopSellingTitle);
             this.pnlTopSellingChartCard.FillColor = System.Drawing.Color.White;
             this.pnlTopSellingChartCard.Location = new System.Drawing.Point(640, 150);

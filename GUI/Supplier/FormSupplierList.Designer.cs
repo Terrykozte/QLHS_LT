@@ -118,6 +118,9 @@ namespace QLTN_LT.GUI.Supplier
             this.pnlHeader.Controls.Add(this.btnExport);
             this.pnlHeader.Controls.Add(this.btnAdd);
             this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlHeader.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(246)))), ((int)(((byte)(255)))));
+            this.pnlHeader.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(191)))), ((int)(((byte)(219)))), ((int)(((byte)(254)))));
+            this.pnlHeader.BorderThickness = 0;
             this.pnlHeader.Location = new System.Drawing.Point(0, 0);
             this.pnlHeader.Name = "pnlHeader";
             this.pnlHeader.Size = new System.Drawing.Size(984, 120);

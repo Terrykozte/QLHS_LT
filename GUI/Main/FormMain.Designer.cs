@@ -5,18 +5,11 @@ namespace QLTN_LT.GUI.Main
         private System.ComponentModel.IContainer components = null;
 
         // Layout Panels
-        private Guna.UI2.WinForms.Guna2Panel pnlTopBar;
         private Guna.UI2.WinForms.Guna2Panel pnlSidebar;
         private Guna.UI2.WinForms.Guna2Panel pnlContent;
 
-        // Top Bar Controls
-        private Guna.UI2.WinForms.Guna2ControlBox btnMinimize;
-        private Guna.UI2.WinForms.Guna2ControlBox btnMaximize;
-
-        private Guna.UI2.WinForms.Guna2ControlBox btnClose;
-        private Guna.UI2.WinForms.Guna2Button btnToggleSidebar; // Added field
-        private Guna.UI2.WinForms.Guna2DragControl dragControl;
-        private Guna.UI2.WinForms.Guna2HtmlLabel lblPageTitle; // Title in TopBar
+        // Sidebar Controls
+        private Guna.UI2.WinForms.Guna2Button btnToggleSidebar;
 
         // Sidebar Controls
         private Guna.UI2.WinForms.Guna2PictureBox picLogo;
@@ -43,7 +36,15 @@ namespace QLTN_LT.GUI.Main
         private Guna.UI2.WinForms.Guna2CirclePictureBox picUserAvatar;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblUserName;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblUserRole;
+
+        // Custom Title Bar
+        private Guna.UI2.WinForms.Guna2Panel pnlTitleBar;
+        private Guna.UI2.WinForms.Guna2Button btnMinimize;
+        private Guna.UI2.WinForms.Guna2Button btnMaximize;
+        private Guna.UI2.WinForms.Guna2Button btnClose;
         private Guna.UI2.WinForms.Guna2Button btnSettings;
+        private Guna.UI2.WinForms.Guna2HtmlLabel lblTitle;
+        private Guna.UI2.WinForms.Guna2DragControl dragControl;
 
         // Advanced
         private Guna.UI2.WinForms.Guna2ShadowForm shadowForm;
@@ -61,12 +62,7 @@ namespace QLTN_LT.GUI.Main
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
-            this.pnlTopBar = new Guna.UI2.WinForms.Guna2Panel();
-            this.btnToggleSidebar = new Guna.UI2.WinForms.Guna2Button(); // Added instantiation
-            this.lblPageTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
-            this.btnMinimize = new Guna.UI2.WinForms.Guna2ControlBox();
-            this.btnMaximize = new Guna.UI2.WinForms.Guna2ControlBox();
-            this.btnClose = new Guna.UI2.WinForms.Guna2ControlBox();
+            this.btnToggleSidebar = new Guna.UI2.WinForms.Guna2Button();
             this.pnlSidebar = new Guna.UI2.WinForms.Guna2Panel();
             this.separatorSidebar = new Guna.UI2.WinForms.Guna2Separator();
             this.picLogo = new Guna.UI2.WinForms.Guna2PictureBox();
@@ -88,12 +84,16 @@ namespace QLTN_LT.GUI.Main
             this.picUserAvatar = new Guna.UI2.WinForms.Guna2CirclePictureBox();
             this.lblUserName = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblUserRole = new Guna.UI2.WinForms.Guna2HtmlLabel();
-            this.btnSettings = new Guna.UI2.WinForms.Guna2Button();
             this.pnlContent = new Guna.UI2.WinForms.Guna2Panel();
-            this.dragControl = new Guna.UI2.WinForms.Guna2DragControl(this.components);
+            this.pnlTitleBar = new Guna.UI2.WinForms.Guna2Panel();
+            this.btnSettings = new Guna.UI2.WinForms.Guna2Button();
+            this.btnMinimize = new Guna.UI2.WinForms.Guna2Button();
+            this.btnMaximize = new Guna.UI2.WinForms.Guna2Button();
+            this.btnClose = new Guna.UI2.WinForms.Guna2Button();
+            this.lblTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.dragControl = new Guna.UI2.WinForms.Guna2DragControl();
             this.shadowForm = new Guna.UI2.WinForms.Guna2ShadowForm(this.components);
 
-            this.pnlTopBar.SuspendLayout();
             this.pnlSidebar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
             this.flowSidebar.SuspendLayout();
@@ -102,104 +102,45 @@ namespace QLTN_LT.GUI.Main
             this.SuspendLayout();
 
             // 
-            // pnlTopBar
-            // 
-            this.pnlTopBar.BackColor = System.Drawing.Color.White;
-            this.pnlTopBar.Controls.Add(this.lblPageTitle);
-            this.pnlTopBar.Controls.Add(this.btnClose);
-            this.pnlTopBar.Controls.Add(this.btnMaximize);
-            this.pnlTopBar.Controls.Add(this.btnMinimize);
-            this.pnlTopBar.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlTopBar.Location = new System.Drawing.Point(240, 0); // Offset by Sidebar
-            this.pnlTopBar.Name = "pnlTopBar";
-            this.pnlTopBar.ShadowDecoration.Color = System.Drawing.Color.LightGray;
-            this.pnlTopBar.ShadowDecoration.Enabled = true;
-            this.pnlTopBar.ShadowDecoration.Shadow = new System.Windows.Forms.Padding(0, 0, 0, 3);
-            this.pnlTopBar.Size = new System.Drawing.Size(1040, 50);
-            this.pnlTopBar.TabIndex = 1;
-            this.pnlTopBar.Controls.Add(this.btnToggleSidebar);
-
-            // 
-            // btnToggleSidebar
+            // btnToggleSidebar - Trong sidebar, bên cạnh logo
             // 
             this.btnToggleSidebar.CheckedState.Parent = this.btnToggleSidebar;
             this.btnToggleSidebar.CustomImages.Parent = this.btnToggleSidebar;
             this.btnToggleSidebar.FillColor = System.Drawing.Color.Transparent;
-            this.btnToggleSidebar.Font = new System.Drawing.Font("Segoe UI", 16F); // Larger font for icon
-            this.btnToggleSidebar.ForeColor = System.Drawing.Color.Black; // Dark color for light theme
+            this.btnToggleSidebar.Font = new System.Drawing.Font("Segoe UI", 16F);
+            this.btnToggleSidebar.ForeColor = System.Drawing.Color.White;
             this.btnToggleSidebar.HoverState.Parent = this.btnToggleSidebar;
-            this.btnToggleSidebar.Text = "☰"; // Hamburger icon
-            this.btnToggleSidebar.Location = new System.Drawing.Point(10, 5);
+            this.btnToggleSidebar.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(41)))), ((int)(((byte)(55)))));
+            this.btnToggleSidebar.HoverState.ForeColor = System.Drawing.Color.White;
+            this.btnToggleSidebar.Text = "☰";
+            this.btnToggleSidebar.Location = new System.Drawing.Point(10, 20);
             this.btnToggleSidebar.Name = "btnToggleSidebar";
             this.btnToggleSidebar.ShadowDecoration.Parent = this.btnToggleSidebar;
-            this.btnToggleSidebar.Size = new System.Drawing.Size(40, 40);
+            this.btnToggleSidebar.Size = new System.Drawing.Size(35, 35);
             this.btnToggleSidebar.TabIndex = 5;
             this.btnToggleSidebar.Click += new System.EventHandler(this.btnToggleSidebar_Click);
             // 
-            // lblPageTitle
-            // 
-            this.lblPageTitle.BackColor = System.Drawing.Color.Transparent;
-            this.lblPageTitle.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            this.lblPageTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
-            this.lblPageTitle.Location = new System.Drawing.Point(20, 15);
-            this.lblPageTitle.Name = "lblPageTitle";
-            this.lblPageTitle.Size = new System.Drawing.Size(80, 23);
-            this.lblPageTitle.TabIndex = 4;
-            this.lblPageTitle.Text = "Dashboard";
-            // 
-            // btnClose
-            // 
-            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClose.FillColor = System.Drawing.Color.Transparent;
-            this.btnClose.IconColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(114)))), ((int)(((byte)(128)))));
-            this.btnClose.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(68)))), ((int)(((byte)(68)))));
-            this.btnClose.HoverState.IconColor = System.Drawing.Color.White;
-            this.btnClose.Location = new System.Drawing.Point(995, 0);
-            this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(45, 50);
-            this.btnClose.TabIndex = 3;
-            // 
-            // btnMaximize
-            // 
-            this.btnMaximize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnMaximize.ControlBoxType = Guna.UI2.WinForms.Enums.ControlBoxType.MaximizeBox;
-            this.btnMaximize.FillColor = System.Drawing.Color.Transparent;
-            this.btnMaximize.IconColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(114)))), ((int)(((byte)(128)))));
-            this.btnMaximize.Location = new System.Drawing.Point(950, 0);
-            this.btnMaximize.Name = "btnMaximize";
-            this.btnMaximize.Size = new System.Drawing.Size(45, 50);
-            this.btnMaximize.TabIndex = 2;
-            // 
-            // btnMinimize
-            // 
-            this.btnMinimize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnMinimize.ControlBoxType = Guna.UI2.WinForms.Enums.ControlBoxType.MinimizeBox;
-            this.btnMinimize.FillColor = System.Drawing.Color.Transparent;
-            this.btnMinimize.IconColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(114)))), ((int)(((byte)(128)))));
-            this.btnMinimize.Location = new System.Drawing.Point(905, 0);
-            this.btnMinimize.Name = "btnMinimize";
-            this.btnMinimize.Size = new System.Drawing.Size(45, 50);
-            this.btnMinimize.TabIndex = 1;
-            // 
-            // pnlSidebar
+            // pnlSidebar - Dock từ top (dùng thanh tiêu đề Windows)
             // 
             this.pnlSidebar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39))))); // Dark Theme
+            this.pnlSidebar.BorderRadius = 0;
             this.pnlSidebar.Controls.Add(this.pnlUserInfo);
             this.pnlSidebar.Controls.Add(this.flowSidebar);
             this.pnlSidebar.Controls.Add(this.separatorSidebar);
             this.pnlSidebar.Controls.Add(this.lblBrand);
             this.pnlSidebar.Controls.Add(this.picLogo);
+            this.pnlSidebar.Controls.Add(this.btnToggleSidebar);
             this.pnlSidebar.Dock = System.Windows.Forms.DockStyle.Left;
             this.pnlSidebar.Location = new System.Drawing.Point(0, 0);
             this.pnlSidebar.Name = "pnlSidebar";
-            this.pnlSidebar.Size = new System.Drawing.Size(240, 720);
-            this.pnlSidebar.TabIndex = 0;
+            this.pnlSidebar.Size = new System.Drawing.Size(240, 576);
+            this.pnlSidebar.TabIndex = 1;
             // 
-            // picLogo
+            // picLogo - Điều chỉnh vị trí để có chỗ cho btnToggleSidebar
             // 
             this.picLogo.Image = ((System.Drawing.Image)(resources.GetObject("picLogo.Image")));
             this.picLogo.ImageRotate = 0F;
-            this.picLogo.Location = new System.Drawing.Point(20, 20);
+            this.picLogo.Location = new System.Drawing.Point(55, 20);
             this.picLogo.Name = "picLogo";
             this.picLogo.Size = new System.Drawing.Size(35, 35);
             this.picLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -211,7 +152,7 @@ namespace QLTN_LT.GUI.Main
             this.lblBrand.BackColor = System.Drawing.Color.Transparent;
             this.lblBrand.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
             this.lblBrand.ForeColor = System.Drawing.Color.White;
-            this.lblBrand.Location = new System.Drawing.Point(65, 23);
+            this.lblBrand.Location = new System.Drawing.Point(100, 23);
             this.lblBrand.Name = "lblBrand";
             this.lblBrand.Size = new System.Drawing.Size(85, 27);
             this.lblBrand.TabIndex = 1;
@@ -531,7 +472,6 @@ namespace QLTN_LT.GUI.Main
             // 
             // pnlUserInfo
             // 
-            this.pnlUserInfo.Controls.Add(this.btnSettings);
             this.pnlUserInfo.Controls.Add(this.lblUserRole);
             this.pnlUserInfo.Controls.Add(this.lblUserName);
             this.pnlUserInfo.Controls.Add(this.picUserAvatar);
@@ -575,56 +515,155 @@ namespace QLTN_LT.GUI.Main
             this.lblUserRole.Size = new System.Drawing.Size(35, 15);
             this.lblUserRole.TabIndex = 2;
             this.lblUserRole.Text = "Role";
+
+            // 
+            // pnlContent - Panel chính bên phải, chứa các form con
+            // 
+            this.pnlContent.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(249)))), ((int)(((byte)(250)))), ((int)(((byte)(251))))); // Gray-50
+            this.pnlContent.BorderRadius = 0;
+            this.pnlContent.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlContent.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(249)))), ((int)(((byte)(250)))), ((int)(((byte)(251)))));
+            this.pnlContent.Location = new System.Drawing.Point(240, 40);
+            this.pnlContent.Name = "pnlContent";
+            this.pnlContent.Padding = new System.Windows.Forms.Padding(15); // Padding cho đẹp
+            this.pnlContent.Size = new System.Drawing.Size(784, 536);
+            this.pnlContent.TabIndex = 2;
+            // 
+            // pnlTitleBar - Custom Title Bar với Guna UI2 (màu xanh nhạt đẹp)
+            // 
+            this.pnlTitleBar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(246)))), ((int)(((byte)(255)))));
+            this.pnlTitleBar.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(191)))), ((int)(((byte)(219)))), ((int)(((byte)(254)))));
+            this.pnlTitleBar.BorderThickness = 1;
+            this.pnlTitleBar.Controls.Add(this.lblTitle);
+            this.pnlTitleBar.Controls.Add(this.btnSettings);
+            this.pnlTitleBar.Controls.Add(this.btnMinimize);
+            this.pnlTitleBar.Controls.Add(this.btnMaximize);
+            this.pnlTitleBar.Controls.Add(this.btnClose);
+            this.pnlTitleBar.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlTitleBar.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(246)))), ((int)(((byte)(255)))));
+            this.pnlTitleBar.Location = new System.Drawing.Point(240, 0);
+            this.pnlTitleBar.Name = "pnlTitleBar";
+            this.pnlTitleBar.Size = new System.Drawing.Size(784, 40);
+            this.pnlTitleBar.TabIndex = 3;
+            // 
+            // lblTitle
+            // 
+            this.lblTitle.BackColor = System.Drawing.Color.Transparent;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(58)))), ((int)(((byte)(138)))));
+            this.lblTitle.Location = new System.Drawing.Point(15, 10);
+            this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(300, 20);
+            this.lblTitle.TabIndex = 0;
+            this.lblTitle.Text = "Quản lý cửa hàng";
             // 
             // btnSettings
             // 
-            this.btnSettings.BorderRadius = 8;
+            this.btnSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSettings.BorderRadius = 0;
+            this.btnSettings.CheckedState.Parent = this.btnSettings;
+            this.btnSettings.CustomImages.Parent = this.btnSettings;
             this.btnSettings.FillColor = System.Drawing.Color.Transparent;
-            this.btnSettings.Font = new System.Drawing.Font("Segoe UI", 14F);
-            this.btnSettings.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(156)))), ((int)(((byte)(163)))), ((int)(((byte)(175)))));
-            this.btnSettings.HoverState.ForeColor = System.Drawing.Color.White;
-            this.btnSettings.Location = new System.Drawing.Point(190, 15);
+            this.btnSettings.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.btnSettings.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(58)))), ((int)(((byte)(138)))));
+            this.btnSettings.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
+            this.btnSettings.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
+            this.btnSettings.HoverState.Parent = this.btnSettings;
+            this.btnSettings.Location = new System.Drawing.Point(644, 0);
             this.btnSettings.Name = "btnSettings";
+            this.btnSettings.ShadowDecoration.Parent = this.btnSettings;
             this.btnSettings.Size = new System.Drawing.Size(40, 40);
-            this.btnSettings.TabIndex = 3;
+            this.btnSettings.TabIndex = 1;
             this.btnSettings.Text = "⚙";
-            this.btnSettings.Click += new System.EventHandler(this.btnSettings_Click);
-
+            this.btnSettings.Click += new System.EventHandler(this.BtnSettings_Click);
             // 
-            // pnlContent
+            // btnMinimize
             // 
-            this.pnlContent.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(243)))), ((int)(((byte)(244)))), ((int)(((byte)(246))))); // Light Gray
-            this.pnlContent.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlContent.Location = new System.Drawing.Point(240, 50);
-            this.pnlContent.Name = "pnlContent";
-            this.pnlContent.Size = new System.Drawing.Size(1040, 670);
-            this.pnlContent.TabIndex = 2;
+            this.btnMinimize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnMinimize.BorderRadius = 0;
+            this.btnMinimize.CheckedState.Parent = this.btnMinimize;
+            this.btnMinimize.CustomImages.Parent = this.btnMinimize;
+            this.btnMinimize.FillColor = System.Drawing.Color.Transparent;
+            this.btnMinimize.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.btnMinimize.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(58)))), ((int)(((byte)(138)))));
+            this.btnMinimize.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
+            this.btnMinimize.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
+            this.btnMinimize.HoverState.Parent = this.btnMinimize;
+            this.btnMinimize.Location = new System.Drawing.Point(684, 0);
+            this.btnMinimize.Name = "btnMinimize";
+            this.btnMinimize.ShadowDecoration.Parent = this.btnMinimize;
+            this.btnMinimize.Size = new System.Drawing.Size(40, 40);
+            this.btnMinimize.TabIndex = 2;
+            this.btnMinimize.Text = "─";
+            this.btnMinimize.Click += new System.EventHandler(this.BtnMinimize_Click);
+            // 
+            // btnMaximize
+            // 
+            this.btnMaximize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnMaximize.BorderRadius = 0;
+            this.btnMaximize.CheckedState.Parent = this.btnMaximize;
+            this.btnMaximize.CustomImages.Parent = this.btnMaximize;
+            this.btnMaximize.FillColor = System.Drawing.Color.Transparent;
+            this.btnMaximize.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.btnMaximize.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(58)))), ((int)(((byte)(138)))));
+            this.btnMaximize.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
+            this.btnMaximize.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
+            this.btnMaximize.HoverState.Parent = this.btnMaximize;
+            this.btnMaximize.Location = new System.Drawing.Point(724, 0);
+            this.btnMaximize.Name = "btnMaximize";
+            this.btnMaximize.ShadowDecoration.Parent = this.btnMaximize;
+            this.btnMaximize.Size = new System.Drawing.Size(40, 40);
+            this.btnMaximize.TabIndex = 3;
+            this.btnMaximize.Text = "□";
+            this.btnMaximize.Click += new System.EventHandler(this.BtnMaximize_Click);
+            // 
+            // btnClose
+            // 
+            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClose.BorderRadius = 0;
+            this.btnClose.CheckedState.Parent = this.btnClose;
+            this.btnClose.CustomImages.Parent = this.btnClose;
+            this.btnClose.FillColor = System.Drawing.Color.Transparent;
+            this.btnClose.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.btnClose.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(58)))), ((int)(((byte)(138)))));
+            this.btnClose.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(68)))), ((int)(((byte)(68)))));
+            this.btnClose.HoverState.ForeColor = System.Drawing.Color.White;
+            this.btnClose.HoverState.Parent = this.btnClose;
+            this.btnClose.Location = new System.Drawing.Point(764, 0);
+            this.btnClose.Name = "btnClose";
+            this.btnClose.ShadowDecoration.Parent = this.btnClose;
+            this.btnClose.Size = new System.Drawing.Size(40, 40);
+            this.btnClose.TabIndex = 4;
+            this.btnClose.Text = "✕";
+            this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
             // 
             // dragControl
             // 
             this.dragControl.DockIndicatorTransparencyValue = 0.6D;
-            this.dragControl.TargetControl = this.pnlTopBar;
-            this.dragControl.UseTransparentDrag = true;
+            this.dragControl.TargetControl = this.pnlTitleBar;
+            this.dragControl.TransparentWhileDrag = false;
             // 
             // shadowForm
             // 
+            this.shadowForm.ShadowColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(23)))), ((int)(((byte)(42)))));
             this.shadowForm.TargetForm = this;
             // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(1280, 720);
+            this.ClientSize = new System.Drawing.Size(1024, 576);
             this.Controls.Add(this.pnlContent);
-            this.Controls.Add(this.pnlTopBar);
+            this.Controls.Add(this.pnlTitleBar);
             this.Controls.Add(this.pnlSidebar);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            // Cho phép resize - không cố định kích thước
+            this.MinimumSize = new System.Drawing.Size(800, 500); // Kích thước tối thiểu hợp lý
             this.Name = "FormMain";
+            this.Padding = new System.Windows.Forms.Padding(0);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Quản lý cửa hàng";
             this.Load += new System.EventHandler(this.FormMain_Load);
-            this.pnlTopBar.ResumeLayout(false);
-            this.pnlTopBar.PerformLayout();
             this.pnlSidebar.ResumeLayout(false);
             this.pnlSidebar.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).EndInit();
@@ -632,6 +671,8 @@ namespace QLTN_LT.GUI.Main
             this.pnlUserInfo.ResumeLayout(false);
             this.pnlUserInfo.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picUserAvatar)).EndInit();
+            this.pnlTitleBar.ResumeLayout(false);
+            this.pnlTitleBar.PerformLayout();
             this.ResumeLayout(false);
         }
     }
