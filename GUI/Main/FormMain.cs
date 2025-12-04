@@ -125,7 +125,8 @@ namespace QLTN_LT.GUI.Main
 
         private void btnToggleSidebar_Click(object sender, EventArgs e)
         {
-            _sidebarTimer.Start();
+            // Sidebar animation/toggle disabled per requirement
+            // Keep fixed width and no sliding animation
         }
 
         private void SetupUserInfo()
@@ -498,43 +499,72 @@ namespace QLTN_LT.GUI.Main
         }
 
         /// <summary>
-        /// Setup animations cho các button
+        /// Setup hover phóng to/thu nhỏ chữ cho các nút sidebar (không dùng animation slide)
         /// </summary>
+        private readonly Dictionary<Guna2Button, Timer> _hoverTimers = new Dictionary<Guna2Button, Timer>();
         private void SetupAnimations()
         {
             try
             {
-                var buttons = new[] { btnDashboard, btnSeafood, btnOrders, btnCustomer, 
-                    btnTable, btnMenu, btnInventory, btnReports, btnSupplier, 
+                var buttons = new[] { btnDashboard, btnSeafood, btnOrders, btnCustomer,
+                    btnTable, btnMenu, btnInventory, btnReports, btnSupplier,
                     btnCategory, btnUser, btnMenuQR, btnLogout };
 
                 foreach (var btn in buttons)
                 {
                     if (btn == null) continue;
 
-                    // Hover effect
-                    btn.MouseEnter += (s, e) =>
-                    {
-                        if (btn != _currentButton)
-                        {
-                            btn.FillColor = Color.FromArgb(31, 41, 55);
-                            AnimationHelper.ScaleIn(btn, 150);
-                        }
-                    };
+                    // store base font size
+                    if (btn.Tag == null && btn.Font != null)
+                        btn.Tag = btn.Font.Size;
 
-                    btn.MouseLeave += (s, e) =>
-                    {
-                        if (btn != _currentButton)
-                        {
-                            btn.FillColor = Color.Transparent;
-                        }
-                    };
+                    btn.MouseEnter += (s, e) => StartSmoothFont(btn, enlarge:true);
+                    btn.MouseLeave += (s, e) => StartSmoothFont(btn, enlarge:false);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error setting up animations: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error setting up hover effects: {ex.Message}");
             }
+        }
+
+        private void StartSmoothFont(Guna2Button btn, bool enlarge)
+        {
+            try
+            {
+                float baseSize = btn.Tag is float f ? f : btn.Font.Size;
+                float target = enlarge ? baseSize + 1.5f : baseSize;
+                float step = 0.3f * (enlarge ? 1 : -1);
+
+                if (_hoverTimers.TryGetValue(btn, out var t)) { t.Stop(); t.Dispose(); }
+                var timer = new Timer { Interval = 15 };
+                _hoverTimers[btn] = timer;
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        float current = btn.Font.Size;
+                        bool done = enlarge ? current >= target : current <= target;
+                        if (done)
+                        {
+                            btn.Font = new Font(btn.Font.FontFamily, target, btn.Font.Style);
+                            timer.Stop(); timer.Dispose(); _hoverTimers.Remove(btn);
+                            btn.Cursor = enlarge ? Cursors.Hand : Cursors.Default;
+                            return;
+                        }
+                        float next = current + step;
+                        if (enlarge && next > target) next = target;
+                        if (!enlarge && next < target) next = target;
+                        btn.Font = new Font(btn.Font.FontFamily, next, btn.Font.Style);
+                    }
+                    catch
+                    {
+                        timer.Stop(); timer.Dispose(); _hoverTimers.Remove(btn);
+                    }
+                };
+                timer.Start();
+            }
+            catch { }
         }
 
         /// <summary>
@@ -553,12 +583,12 @@ namespace QLTN_LT.GUI.Main
                     pnlSidebar.Width = sidebarWidth;
                 }
 
-                // Adjust font sizes
-                if (lblBrand != null)
-                {
-                    lblBrand.Font = new Font(lblBrand.Font.FontFamily, 
-                        ResponsiveHelper.GetResponsiveFontSize(12, this));
-                }
+                // Adjust font sizes (skip to avoid font fallback issues)
+                // if (lblBrand != null)
+                // {
+                //     lblBrand.Font = new Font(lblBrand.Font.FontFamily,
+                //         ResponsiveHelper.GetResponsiveFontSize(12, this));
+                // }
 
                 // Adjust button sizes
                 var buttons = new[] { btnDashboard, btnSeafood, btnOrders, btnCustomer, 

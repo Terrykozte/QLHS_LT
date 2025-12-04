@@ -98,7 +98,7 @@ namespace QLTN_LT.GUI.Utilities
                             e.Location.X - radius / 2,
                             e.Location.Y - radius / 2
                         );
-                        ripple.Opacity = 1f - progress;
+                        // Opacity not supported on Panel; skipping alpha fade
                     }
                 };
 
@@ -442,7 +442,7 @@ namespace QLTN_LT.GUI.Utilities
             if (control == null) return;
 
             control.Enabled = !disabled;
-            control.Opacity = disabled ? 0.5f : 1f;
+            // Opacity not supported on Control; simulate with cursor only or grayscale if needed
             control.Cursor = disabled ? Cursors.No : Cursors.Default;
         }
     }

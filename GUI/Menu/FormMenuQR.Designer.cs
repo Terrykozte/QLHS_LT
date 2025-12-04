@@ -77,6 +77,23 @@ namespace QLTN_LT.GUI.Menu
             this.pnlRight.Controls.Add(this.picQR);
             this.pnlRight.Controls.Add(this.btnGenerateQR);
             this.pnlRight.Controls.Add(this.lblTotal);
+            this.pnlRight.Controls.Add(this.btnCreateOrder);
+            this.pnlRight.Controls.Add(this.lblTable);
+            this.pnlRight.Controls.Add(this.nudTableNo);
+            this.pnlRight.Controls.Add(this.lblBranch);
+            this.pnlRight.Controls.Add(this.txtBranchCode);
+            this.pnlRight.Controls.Add(this.lblReserve);
+            this.pnlRight.Controls.Add(this.chkReserve);
+            this.pnlRight.Controls.Add(this.lblReserveTime);
+            this.pnlRight.Controls.Add(this.dtpReserveTime);
+            this.pnlRight.Controls.Add(this.lblGuests);
+            this.pnlRight.Controls.Add(this.nudGuests);
+            this.pnlRight.Controls.Add(this.lblContactName);
+            this.pnlRight.Controls.Add(this.txtContactName);
+            this.pnlRight.Controls.Add(this.lblContactPhone);
+            this.pnlRight.Controls.Add(this.txtContactPhone);
+            this.pnlRight.Controls.Add(this.lblContactNote);
+            this.pnlRight.Controls.Add(this.txtContactNote);
             this.pnlRight.Controls.Add(this.btnAddToCart);
             this.pnlRight.Controls.Add(this.nudQty);
             this.pnlRight.Controls.Add(this.dgvCart);
@@ -112,10 +129,113 @@ namespace QLTN_LT.GUI.Menu
             this.lblTotal.Location = new System.Drawing.Point(10, 380);
             this.lblTotal.Text = "Tổng: 0 VNĐ";
 
+            // lblReserve
+            this.lblReserve = new System.Windows.Forms.Label();
+            this.lblReserve.AutoSize = true;
+            this.lblReserve.Location = new System.Drawing.Point(10, 410);
+            this.lblReserve.Text = "Đặt trước:";
+
+            // chkReserve
+            this.chkReserve = new Guna.UI2.WinForms.Guna2CheckBox();
+            this.chkReserve.Location = new System.Drawing.Point(80, 410);
+            this.chkReserve.Size = new System.Drawing.Size(60, 20);
+
+            // lblReserveTime
+            this.lblReserveTime = new System.Windows.Forms.Label();
+            this.lblReserveTime.AutoSize = true;
+            this.lblReserveTime.Location = new System.Drawing.Point(150, 410);
+            this.lblReserveTime.Text = "Thời gian:";
+
+            // dtpReserveTime
+            this.dtpReserveTime = new Guna.UI2.WinForms.Guna2DateTimePicker();
+            this.dtpReserveTime.Location = new System.Drawing.Point(150, 430);
+            this.dtpReserveTime.Size = new System.Drawing.Size(180, 36);
+
+            // lblGuests
+            this.lblGuests = new System.Windows.Forms.Label();
+            this.lblGuests.AutoSize = true;
+            this.lblGuests.Location = new System.Drawing.Point(340, 410);
+            this.lblGuests.Text = "Số khách:";
+
+            // nudGuests
+            this.nudGuests = new Guna.UI2.WinForms.Guna2NumericUpDown();
+            this.nudGuests.Location = new System.Drawing.Point(340, 430);
+            this.nudGuests.Minimum = new decimal(new int[] {0,0,0,0});
+            this.nudGuests.Maximum = new decimal(new int[] {999,0,0,0});
+            this.nudGuests.Value = new decimal(new int[] {0,0,0,0});
+            this.nudGuests.Size = new System.Drawing.Size(60, 36);
+
+            // lblContactName
+            this.lblContactName = new System.Windows.Forms.Label();
+            this.lblContactName.AutoSize = true;
+            this.lblContactName.Location = new System.Drawing.Point(10, 470);
+            this.lblContactName.Text = "Tên liên hệ:";
+
+            // txtContactName
+            this.txtContactName = new Guna.UI2.WinForms.Guna2TextBox();
+            this.txtContactName.Location = new System.Drawing.Point(10, 490);
+            this.txtContactName.Size = new System.Drawing.Size(140, 36);
+
+            // lblContactPhone
+            this.lblContactPhone = new System.Windows.Forms.Label();
+            this.lblContactPhone.AutoSize = true;
+            this.lblContactPhone.Location = new System.Drawing.Point(160, 470);
+            this.lblContactPhone.Text = "SĐT liên hệ:";
+
+            // txtContactPhone
+            this.txtContactPhone = new Guna.UI2.WinForms.Guna2TextBox();
+            this.txtContactPhone.Location = new System.Drawing.Point(160, 490);
+            this.txtContactPhone.Size = new System.Drawing.Size(140, 36);
+
+            // lblContactNote
+            this.lblContactNote = new System.Windows.Forms.Label();
+            this.lblContactNote.AutoSize = true;
+            this.lblContactNote.Location = new System.Drawing.Point(10, 530);
+            this.lblContactNote.Text = "Ghi chú:";
+
+            // txtContactNote
+            this.txtContactNote = new Guna.UI2.WinForms.Guna2TextBox();
+            this.txtContactNote.Location = new System.Drawing.Point(10, 550);
+            this.txtContactNote.Multiline = true;
+            this.txtContactNote.Size = new System.Drawing.Size(290, 60);
+
+            // lblBranch
+            this.lblBranch = new System.Windows.Forms.Label();
+            this.lblBranch.AutoSize = true;
+            this.lblBranch.Location = new System.Drawing.Point(310, 470);
+            this.lblBranch.Text = "BranchCode";
+
+            // txtBranchCode
+            this.txtBranchCode = new Guna.UI2.WinForms.Guna2TextBox();
+            this.txtBranchCode.Location = new System.Drawing.Point(310, 490);
+            this.txtBranchCode.Size = new System.Drawing.Size(80, 36);
+            this.txtBranchCode.PlaceholderText = "BR01";
+
+            // lblTable
+            this.lblTable = new System.Windows.Forms.Label();
+            this.lblTable.AutoSize = true;
+            this.lblTable.Location = new System.Drawing.Point(400, 470);
+            this.lblTable.Text = "Số bàn";
+
+            // nudTableNo
+            this.nudTableNo = new Guna.UI2.WinForms.Guna2NumericUpDown();
+            this.nudTableNo.Location = new System.Drawing.Point(400, 490);
+            this.nudTableNo.Minimum = new decimal(new int[] {0,0,0,0});
+            this.nudTableNo.Maximum = new decimal(new int[] {999,0,0,0});
+            this.nudTableNo.Value = new decimal(new int[] {0,0,0,0});
+            this.nudTableNo.Size = new System.Drawing.Size(80, 36);
+
+            // btnCreateOrder
+            this.btnCreateOrder = new Guna.UI2.WinForms.Guna2Button();
+            this.btnCreateOrder.Text = "Tạo đơn hàng";
+            this.btnCreateOrder.Location = new System.Drawing.Point(310, 550);
+            this.btnCreateOrder.Size = new System.Drawing.Size(120, 36);
+            this.btnCreateOrder.Click += new System.EventHandler(this.btnCreateOrder_Click);
+
             // btnGenerateQR
             this.btnGenerateQR.Text = "Tạo mã QR";
-            this.btnGenerateQR.Location = new System.Drawing.Point(300, 370);
-            this.btnGenerateQR.Size = new System.Drawing.Size(140, 40);
+            this.btnGenerateQR.Location = new System.Drawing.Point(400, 550);
+            this.btnGenerateQR.Size = new System.Drawing.Size(140, 36);
             this.btnGenerateQR.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnGenerateQR.Click += new System.EventHandler(this.btnGenerateQR_Click);
 
@@ -168,9 +288,26 @@ namespace QLTN_LT.GUI.Menu
         private Guna.UI2.WinForms.Guna2NumericUpDown nudQty;
         private Guna.UI2.WinForms.Guna2Button btnAddToCart;
         private System.Windows.Forms.Label lblTotal;
+        private System.Windows.Forms.Label lblBranch;
+        private System.Windows.Forms.Label lblTable;
+        private Guna.UI2.WinForms.Guna2TextBox txtBranchCode;
+        private Guna.UI2.WinForms.Guna2NumericUpDown nudTableNo;
+        private Guna.UI2.WinForms.Guna2Button btnCreateOrder;
         private Guna.UI2.WinForms.Guna2Button btnGenerateQR;
         private System.Windows.Forms.PictureBox picQR;
         private Guna.UI2.WinForms.Guna2TextBox txtQRInfo;
+        private System.Windows.Forms.Label lblReserve;
+        private Guna.UI2.WinForms.Guna2CheckBox chkReserve;
+        private System.Windows.Forms.Label lblReserveTime;
+        private Guna.UI2.WinForms.Guna2DateTimePicker dtpReserveTime;
+        private System.Windows.Forms.Label lblGuests;
+        private Guna.UI2.WinForms.Guna2NumericUpDown nudGuests;
+        private System.Windows.Forms.Label lblContactName;
+        private Guna.UI2.WinForms.Guna2TextBox txtContactName;
+        private System.Windows.Forms.Label lblContactPhone;
+        private Guna.UI2.WinForms.Guna2TextBox txtContactPhone;
+        private System.Windows.Forms.Label lblContactNote;
+        private Guna.UI2.WinForms.Guna2TextBox txtContactNote;
     }
 }
 

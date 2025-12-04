@@ -152,7 +152,8 @@ namespace QLTN_LT.GUI.Order
             cmbPaymentMethod.SelectedIndexChanged += CmbPaymentMethod_SelectedIndexChanged;
 
             // Setup hover effects
-            if (btnConfirmPayment is Guna2Button confirmBtn)
+            var _btnOkObj = (object)btnConfirmPayment;
+            if (_btnOkObj is Guna2Button confirmBtn)
             {
                 UXInteractionHelper.AddHoverEffect(confirmBtn,
                     Color.FromArgb(34, 197, 94),
@@ -160,7 +161,8 @@ namespace QLTN_LT.GUI.Order
                 UXInteractionHelper.AddClickEffect(confirmBtn);
             }
 
-            if (btnCancel is Guna2Button cancelBtn)
+            var _btnCancelObj = (object)btnCancel;
+            if (_btnCancelObj is Guna2Button cancelBtn)
             {
                 UXInteractionHelper.AddHoverEffect(cancelBtn,
                     Color.FromArgb(107, 114, 128),
@@ -312,8 +314,11 @@ namespace QLTN_LT.GUI.Order
 
                 _isProcessing = true;
                 
-                // Show loading state
-                UXInteractionHelper.ShowLoadingState(btnConfirmPayment as Guna2Button, "Đang xử lý...");
+                // Show loading state (generic)
+                var _origText = btnConfirmPayment.Text;
+                btnConfirmPayment.Enabled = false;
+                btnConfirmPayment.Text = "Đang xử lý...";
+                btnConfirmPayment.Cursor = Cursors.WaitCursor;
 
                 var selectedMethod = (PaymentMethodDTO)cmbPaymentMethod.SelectedItem;
                 decimal paymentAmount = decimal.Parse(txtPaymentAmount.Text.Replace(",", "").Replace(" VNĐ", ""));
@@ -365,8 +370,13 @@ namespace QLTN_LT.GUI.Order
             finally
             {
                 _isProcessing = false;
-                if (btnConfirmPayment is Guna2Button btn)
-                    UXInteractionHelper.HideLoadingState(btn, "Xác Nhận Thanh Toán");
+                try
+                {
+                    btnConfirmPayment.Enabled = true;
+                    btnConfirmPayment.Text = "Xác Nhận Thanh Toán";
+                    btnConfirmPayment.Cursor = Cursors.Hand;
+                }
+                catch { }
             }
         }
 
@@ -382,7 +392,7 @@ namespace QLTN_LT.GUI.Order
             if (!decimal.TryParse(txtPaymentAmount.Text.Replace(",", "").Replace(" VNĐ", ""), out decimal amount))
             {
                 UXInteractionHelper.ShowWarning("Cảnh báo", "Số tiền không hợp lệ");
-                UXInteractionHelper.AddValidationFeedback(txtPaymentAmount as Guna2TextBox, false);
+                // Skipping Guna2TextBox-specific validation feedback for compatibility with standard TextBox
                 AnimationHelper.Shake(txtPaymentAmount, 300);
                 return false;
             }
@@ -403,7 +413,6 @@ namespace QLTN_LT.GUI.Order
             }
 
             // Validation success
-            UXInteractionHelper.AddValidationFeedback(txtPaymentAmount as Guna2TextBox, true);
             return true;
         }
 

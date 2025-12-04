@@ -418,9 +418,6 @@ namespace QLTN_LT.GUI.Dashboard
             this.pnlFilterBar.Controls.Add(this.dtpEndDate);
             this.pnlFilterBar.Controls.Add(this.lblFrom);
             this.pnlFilterBar.Controls.Add(this.dtpStartDate);
-            this.pnlFilterBar.Controls.Add(this.btnToday);
-            this.pnlFilterBar.Controls.Add(this.btn7Days);
-            this.pnlFilterBar.Controls.Add(this.btn30Days);
             this.pnlFilterBar.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlFilterBar.Location = new System.Drawing.Point(0, 0);
             this.pnlFilterBar.Name = "pnlFilterBar";

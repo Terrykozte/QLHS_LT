@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Guna.UI2.WinForms;
+using QLTN_LT.GUI.Utilities;
 
 namespace QLTN_LT.GUI.Controls
 {

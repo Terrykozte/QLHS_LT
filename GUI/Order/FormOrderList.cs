@@ -61,10 +61,24 @@ namespace QLTN_LT.GUI.Order
         {
             try
             {
+                // Setup keyboard navigation
+                KeyboardNavigationHelper.RegisterForm(this, new List<Control>
+                {
+                    txtSearch, dtpFromDate, dtpToDate, cmbStatus, btnReload, btnCreate, dgvOrders
+                });
+
+                // Setup animations
+                AnimationHelper.FadeIn(this, 300);
+
+                // Setup responsive
+                ApplyResponsiveDesign();
+
                 SetupControls();
                 ConfigureGrid();
                 LoadData();
-                if (dgvOrders != null) dgvOrders.CellDoubleClick += dgvOrders_CellDoubleClick;
+                
+                if (dgvOrders != null) 
+                    dgvOrders.CellDoubleClick += dgvOrders_CellDoubleClick;
             }
             catch (Exception ex)
             {
@@ -87,17 +101,67 @@ namespace QLTN_LT.GUI.Order
                     cmbStatus.Items.Add("Processing");
                     cmbStatus.Items.Add("Completed");
                     cmbStatus.Items.Add("Cancelled");
+                    cmbStatus.Items.Add("Reserved");
                     cmbStatus.SelectedIndex = 0;
-                    cmbStatus.SelectedIndexChanged += (s, e) => LoadData();
+                    cmbStatus.SelectedIndexChanged += (s, e) => 
+                    {
+                        _searchDebounceTimer.Stop();
+                        _searchDebounceTimer.Start();
+                    };
                 }
 
-                if (dtpFromDate != null) dtpFromDate.ValueChanged += (s, e) => LoadData();
-                if (dtpToDate != null) dtpToDate.ValueChanged += (s, e) => LoadData();
+                if (dtpFromDate != null) dtpFromDate.ValueChanged += (s, e) => 
+                {
+                    _searchDebounceTimer.Stop();
+                    _searchDebounceTimer.Start();
+                };
+                
+                if (dtpToDate != null) dtpToDate.ValueChanged += (s, e) => 
+                {
+                    _searchDebounceTimer.Stop();
+                    _searchDebounceTimer.Start();
+                };
+
+                // Setup button hover effects
+                if (btnCreate is Guna2Button createBtn)
+                {
+                    UXInteractionHelper.AddHoverEffect(createBtn,
+                        Color.FromArgb(34, 197, 94),
+                        Color.FromArgb(22, 163, 74));
+                    UXInteractionHelper.AddClickEffect(createBtn);
+                }
+
+                if (btnReload is Guna2Button reloadBtn)
+                {
+                    UXInteractionHelper.AddHoverEffect(reloadBtn,
+                        Color.FromArgb(59, 130, 246),
+                        Color.FromArgb(37, 99, 235));
+                    UXInteractionHelper.AddClickEffect(reloadBtn);
+                }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error setting up controls: {ex.Message}");
             }
+        }
+
+        private void ApplyResponsiveDesign()
+        {
+            try
+            {
+                // Adjust grid row height
+                if (dgvOrders != null)
+                {
+                    dgvOrders.RowTemplate.Height = ResponsiveHelper.GetResponsiveRowHeight(this, 30);
+                    ResponsiveHelper.AdjustDataGridViewColumns(dgvOrders, this);
+                }
+
+                // Adjust font sizes
+                if (lblPageInfo != null)
+                    lblPageInfo.Font = new Font(lblPageInfo.Font.FontFamily,
+                        ResponsiveHelper.GetResponsiveFontSize(10, this));
+            }
+            catch { }
         }
 
         private void ConfigureGrid()
@@ -133,19 +197,38 @@ namespace QLTN_LT.GUI.Order
                 var status = cmbStatus?.SelectedItem?.ToString() == "Tất cả" ? null : cmbStatus?.SelectedItem?.ToString();
                 var keyword = txtSearch?.Text ?? string.Empty;
 
-                var data = _orderBLL.GetAll(fromDate, toDate, status, keyword)?.ToList() ?? new List<OrderDTO>();
+                // Check cache first
+                string cacheKey = $"orders_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}_{status}_{keyword}";
+                var cachedData = DataBindingHelper.GetCachedData<List<OrderDTO>>(cacheKey);
+                
+                List<OrderDTO> data;
+                if (cachedData != null)
+                {
+                    data = cachedData;
+                }
+                else
+                {
+                    data = _orderBLL.GetAll(fromDate, toDate, status, keyword)?.ToList() ?? new List<OrderDTO>();
+                    DataBindingHelper.CacheData(cacheKey, data);
+                }
+
                 _allData = data;
 
                 if (dgvOrders != null)
+                {
                     dgvOrders.DataSource = data;
+                    AnimationHelper.FadeIn(dgvOrders, 300);
+                }
 
                 if (lblPageInfo != null)
+                {
                     lblPageInfo.Text = $"Tổng: {data.Count} đơn";
+                }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error loading data: {ex.Message}");
-                MessageBox.Show($"Không thể tải dữ liệu. Chi tiết: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UXInteractionHelper.ShowError("Lỗi", $"Không thể tải dữ liệu. Chi tiết: {ex.Message}");
             }
             finally
             {
@@ -366,6 +449,14 @@ namespace QLTN_LT.GUI.Order
             var sb = new System.Text.StringBuilder(input);
             sb.Replace("&", "&amp;"); sb.Replace("<", "&lt;"); sb.Replace(">", "&gt;"); sb.Replace("\"", "&quot;"); sb.Replace("'", "&#39;");
             return sb.ToString();
+        }
+
+        private void FormOrderList_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _searchDebounceTimer?.Stop();
+            _searchDebounceTimer?.Dispose();
+            KeyboardNavigationHelper.UnregisterForm(this);
+            DataBindingHelper.ClearCache();
         }
 
         protected override void CleanupResources()

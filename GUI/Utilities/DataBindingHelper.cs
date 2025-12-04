@@ -366,7 +366,7 @@ namespace QLTN_LT.GUI.Utilities
             try
             {
                 dgv.Refresh();
-                dgv.InvalidateRect(dgv.DisplayRectangle);
+                dgv.Invalidate();
             }
             catch { }
         }

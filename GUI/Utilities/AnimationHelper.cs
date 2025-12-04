@@ -32,23 +32,15 @@ namespace QLTN_LT.GUI.Utilities
         {
             if (control == null) return;
             
-            control.Opacity = 0;
-            var timer = new Timer { Interval = 15 };
-            int elapsed = 0;
-            
+            // Simple fade-in substitute: delay before making visible to avoid flicker
+            control.Visible = false;
+            var timer = new Timer { Interval = duration };
             timer.Tick += (s, e) =>
             {
-                elapsed += timer.Interval;
-                float progress = Math.Min(1f, (float)elapsed / duration);
-                control.Opacity = progress;
-                
-                if (progress >= 1f)
-                {
-                    timer.Stop();
-                    timer.Dispose();
-                }
+                timer.Stop();
+                timer.Dispose();
+                control.Visible = true;
             };
-            
             timer.Start();
         }
 
@@ -58,25 +50,15 @@ namespace QLTN_LT.GUI.Utilities
         public static void FadeOut(Control control, int duration = 300, Action onComplete = null)
         {
             if (control == null) return;
-            
-            control.Opacity = 1;
-            var timer = new Timer { Interval = 15 };
-            int elapsed = 0;
-            
+
+            var timer = new Timer { Interval = duration };
             timer.Tick += (s, e) =>
             {
-                elapsed += timer.Interval;
-                float progress = Math.Min(1f, (float)elapsed / duration);
-                control.Opacity = 1f - progress;
-                
-                if (progress >= 1f)
-                {
-                    timer.Stop();
-                    timer.Dispose();
-                    onComplete?.Invoke();
-                }
+                timer.Stop();
+                timer.Dispose();
+                control.Visible = false;
+                onComplete?.Invoke();
             };
-            
             timer.Start();
         }
 
@@ -282,7 +264,7 @@ namespace QLTN_LT.GUI.Utilities
                 {
                     timer.Stop();
                     timer.Dispose();
-                    control.Opacity = 1f;
+                    // end pulse; no opacity control on Control
                 }
             };
             

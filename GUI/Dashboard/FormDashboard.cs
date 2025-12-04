@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Windows.Media;
+using System.Collections.Generic;
 using LiveCharts;
 using LiveCharts.Wpf;
 using QLTN_LT.BLL;
@@ -10,6 +11,7 @@ using QLTN_LT.DTO;
 using Guna.UI2.WinForms;
 using QLTN_LT.GUI.Base;
 using QLTN_LT.GUI.Helper;
+using QLTN_LT.GUI.Utilities;
 
 namespace QLTN_LT.GUI.Dashboard
 {
@@ -47,6 +49,18 @@ namespace QLTN_LT.GUI.Dashboard
         {
             try
             {
+                // Setup keyboard navigation
+                KeyboardNavigationHelper.RegisterForm(this, new List<Control>
+                {
+                    dtpStartDate, dtpEndDate, btnApplyFilter
+                });
+
+                // Setup animations
+                AnimationHelper.FadeIn(this, 300);
+
+                // Setup responsive
+                ApplyResponsiveDesign();
+
                 // Debounce for filters
                 _debounceTimer = new Timer { Interval = 350 };
                 _debounceTimer.Tick += (s, e2) => { _debounceTimer.Stop(); LoadAllDashboardData(); };
@@ -65,9 +79,32 @@ namespace QLTN_LT.GUI.Dashboard
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi tải bảng điều khiển: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UXInteractionHelper.ShowError("Lỗi", $"Lỗi tải bảng điều khiển: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"FormDashboard_Load error: {ex}");
             }
+        }
+
+        private void ApplyResponsiveDesign()
+        {
+            try
+            {
+                // Adjust font sizes
+                if (lblOrdersCount != null)
+                    lblOrdersCount.Font = new Font(lblOrdersCount.Font.FontFamily,
+                        ResponsiveHelper.GetResponsiveFontSize(16, this), FontStyle.Bold);
+
+                if (lblTotalRevenue != null)
+                    lblTotalRevenue.Font = new Font(lblTotalRevenue.Font.FontFamily,
+                        ResponsiveHelper.GetResponsiveFontSize(16, this), FontStyle.Bold);
+
+                // Adjust grid row height
+                if (dgvExpiration != null)
+                {
+                    dgvExpiration.RowTemplate.Height = ResponsiveHelper.GetResponsiveRowHeight(this, 30);
+                    ResponsiveHelper.AdjustDataGridViewColumns(dgvExpiration, this);
+                }
+            }
+            catch { }
         }
 
         private void btnApplyFilter_Click(object sender, EventArgs e)
@@ -102,6 +139,14 @@ namespace QLTN_LT.GUI.Dashboard
             {
                 System.Diagnostics.Debug.WriteLine($"FormDashboard_KeyDown error: {ex.Message}");
             }
+        }
+
+        private void FormDashboard_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _debounceTimer?.Stop();
+            _debounceTimer?.Dispose();
+            KeyboardNavigationHelper.UnregisterForm(this);
+            DataBindingHelper.ClearCache();
         }
 
         protected override void CleanupResources()
@@ -140,7 +185,7 @@ namespace QLTN_LT.GUI.Dashboard
 
                 if (startDate > endDate)
                 {
-                    MessageBox.Show("Ngày bắt đầu không được lớn hơn ngày kết thúc.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    UXInteractionHelper.ShowWarning("Cảnh báo", "Ngày bắt đầu không được lớn hơn ngày kết thúc.");
                     return;
                 }
 
@@ -149,10 +194,25 @@ namespace QLTN_LT.GUI.Dashboard
 
                 try
                 {
-                    LoadStatCards(startDate, endDate);
-                    LoadRevenueChart(startDate, endDate);
-                    LoadTopSellingList(startDate, endDate);
-                    LoadLowStockList();
+                    // Check cache first
+                    string cacheKey = $"dashboard_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}";
+                    var cachedData = DataBindingHelper.GetCachedData<object>(cacheKey);
+
+                    if (cachedData == null)
+                    {
+                        LoadStatCards(startDate, endDate);
+                        LoadRevenueChart(startDate, endDate);
+                        LoadTopSellingList(startDate, endDate);
+                        LoadLowStockList();
+                    }
+                    else
+                    {
+                        // Use cached data
+                        LoadStatCards(startDate, endDate);
+                    }
+
+                    // Animate cards
+                    AnimationHelper.FadeIn(this, 300);
                 }
                 finally
                 {
@@ -161,7 +221,7 @@ namespace QLTN_LT.GUI.Dashboard
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi tải dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UXInteractionHelper.ShowError("Lỗi", $"Lỗi tải dữ liệu: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"LoadAllDashboardData error: {ex}");
             }
         }

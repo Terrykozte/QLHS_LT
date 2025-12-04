@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using Guna.UI2.WinForms;
+using QLTN_LT.GUI.Utilities;
 
 namespace QLTN_LT.GUI.Controls
 {
@@ -66,14 +67,15 @@ namespace QLTN_LT.GUI.Controls
                 Dock = DockStyle.Fill,
                 FillColor = Color.FromArgb(31, 41, 55),
                 BorderRadius = 10,
-                Padding = new Padding(15),
-                ShadowDecoration = new Guna.UI2.WinForms.Guna2ShadowDecoration
-                {
-                    Enabled = true,
-                    Color = Color.FromArgb(0, 0, 0, 50),
-                    Parent = this
-                }
+                Padding = new Padding(15)
             };
+            // Enable shadow decoration if available
+            try
+            {
+                pnlCard.ShadowDecoration.Enabled = true;
+                pnlCard.ShadowDecoration.Color = Color.FromArgb(50, 0, 0, 0);
+            }
+            catch { }
 
             // Icon
             picIcon = new PictureBox

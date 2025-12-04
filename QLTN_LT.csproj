@@ -66,6 +66,7 @@
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsFormsIntegration" />
     <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <!-- BLL -->
@@ -137,6 +138,20 @@
     <Compile Include="GUI\Utilities\AuthorizationHelper.cs" />
     <Compile Include="GUI\Utilities\Rbac.cs" />
     <Compile Include="GUI\Utilities\Roles.cs" />
+    <Compile Include="GUI\Utilities\AnimationHelper.cs" />
+    <Compile Include="GUI\Utilities\ResponsiveHelper.cs" />
+    <Compile Include="GUI\Utilities\KeyboardNavigationHelper.cs" />
+    <Compile Include="GUI\Utilities\UXInteractionHelper.cs" />
+    <Compile Include="GUI\Utilities\DataBindingHelper.cs" />
+    <Compile Include="GUI\Controls\CardItemControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Controls\DataListItemControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\Controls\TabNavigationControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="GUI\Authentication\FormLogin.cs">
       <SubType>Form</SubType>
     </Compile>
