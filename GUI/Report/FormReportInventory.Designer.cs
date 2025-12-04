@@ -2,6 +2,7 @@ namespace QLTN_LT.GUI.Report
 {
     partial class FormReportInventory
     {
+        // #giao diện của FormReportInventory
         private System.ComponentModel.IContainer components = null;
         private Guna.UI2.WinForms.Guna2Panel pnlHeader;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblTitle;

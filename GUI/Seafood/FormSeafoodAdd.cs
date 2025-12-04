@@ -2,26 +2,29 @@ using System;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
+using QLTN_LT.GUI.Helper;
+using QLTN_LT.GUI.Base;
 
 namespace QLTN_LT.GUI.Seafood
 {
-    public partial class FormSeafoodAdd : Form
+    public partial class FormSeafoodAdd : FormTemplate
     {
-        private readonly SeafoodBLL _seafoodBLL;
-        private readonly CategoryBLL _categoryBLL;
+        private SeafoodBLL _seafoodBLL;
+        private CategoryBLL _categoryBLL;
 
         public FormSeafoodAdd()
         {
             InitializeComponent();
             _seafoodBLL = new SeafoodBLL();
             _categoryBLL = new CategoryBLL();
-            LoadCategories();
+            this.Load += (s, e) => { try { LoadCategories(); } catch (Exception ex) { ExceptionHandler.Handle(ex, "LoadCategories"); } };
         }
 
         private void LoadCategories()
         {
             try
             {
+                Wait(true);
                 var categories = _categoryBLL.GetAll();
                 cboCategory.DataSource = categories;
                 cboCategory.DisplayMember = "CategoryName";
@@ -29,24 +32,56 @@ namespace QLTN_LT.GUI.Seafood
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải danh mục: " + ex.Message);
+                ExceptionHandler.Handle(ex, "FormSeafoodAdd.LoadCategories");
             }
+            finally { Wait(false); }
         }
 
+        // Designer wired event - delegate to base template handler
         private void btnSave_Click(object sender, EventArgs e)
+        {
+            BtnSave_Click(sender, e);
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            BtnCancel_Click(sender, e);
+        }
+
+        protected override bool ValidateInputs()
         {
             if (string.IsNullOrWhiteSpace(txtSeafoodName.Text))
             {
-                MessageBox.Show("Vui lòng nhập tên hải sản.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                UIHelper.ShowValidationError(txtSeafoodName, "Vui lòng nhập tên hải sản");
+                return false;
             }
+            UIHelper.ClearValidationError(txtSeafoodName);
 
             if (cboCategory.SelectedValue == null)
             {
                 MessageBox.Show("Vui lòng chọn danh mục.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                return false;
             }
 
+            if (!decimal.TryParse(txtUnitPrice.Text, out var price) || price < 0)
+            {
+                UIHelper.ShowValidationError(txtUnitPrice, "Giá phải là số không âm");
+                return false;
+            }
+            UIHelper.ClearValidationError(txtUnitPrice);
+
+            if (!int.TryParse(txtQuantity.Text, out var quantity) || quantity < 0)
+            {
+                UIHelper.ShowValidationError(txtQuantity, "Số lượng phải là số không âm");
+                return false;
+            }
+            UIHelper.ClearValidationError(txtQuantity);
+
+            return true;
+        }
+
+        protected override void SaveData()
+        {
             decimal.TryParse(txtUnitPrice.Text, out decimal price);
             int.TryParse(txtQuantity.Text, out int quantity);
 
@@ -56,27 +91,26 @@ namespace QLTN_LT.GUI.Seafood
                 CategoryID = (int)cboCategory.SelectedValue,
                 UnitPrice = price,
                 Quantity = quantity,
-                Unit = txtUnit.Text.Trim(),
-                Description = txtDescription.Text.Trim(),
+                Unit = txtUnit.Text?.Trim(),
+                Description = txtDescription.Text?.Trim(),
                 Status = "Active"
             };
 
-            try
-            {
-                _seafoodBLL.Insert(newItem);
-                MessageBox.Show("Thêm thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            _seafoodBLL.Insert(newItem);
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
+        protected override void CleanupResources()
         {
-            Close();
+            try
+            {
+                _seafoodBLL = null;
+                _categoryBLL = null;
+            }
+            catch { }
+            finally
+            {
+                base.CleanupResources();
+            }
         }
     }
 }

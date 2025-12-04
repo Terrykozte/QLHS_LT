@@ -5,11 +5,15 @@ using System.Windows.Forms;
 using LiveCharts;
 using LiveCharts.Wpf;
 using QLTN_LT.BLL;
+using QLTN_LT.GUI.Base;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Report
 {
-    public partial class FormReportSales : Form
+    public partial class FormReportSales : BaseForm
     {
+        private Label lblRecordCount = new Label();
+        // #hàm xử lí logic của FormReportSales
         private readonly ReportBLL _bll = new ReportBLL();
         private LiveCharts.Wpf.CartesianChart _wpfSalesChart;
         private DataTable _currentData;
@@ -19,13 +23,60 @@ namespace QLTN_LT.GUI.Report
             InitializeComponent();
             _wpfSalesChart = new LiveCharts.Wpf.CartesianChart();
             salesChart.Child = _wpfSalesChart;
+
+            // UX & Styling
+            try
+            {
+                UIHelper.ApplyFormStyle(this);
+                if (dgvSales != null) UIHelper.ApplyGridStyle(dgvSales);
+            }
+            catch { }
+
+            this.KeyPreview = true;
+            this.KeyDown += FormReportSales_KeyDown;
+        }
+
+        private Timer _debounceTimer;
+        private void EnsureRecordCountLabel()
+        {
+            if (lblRecordCount == null)
+            {
+                lblRecordCount = new Label();
+                lblRecordCount.AutoSize = true;
+                lblRecordCount.Text = "Tổng: 0 dòng";
+                lblRecordCount.Location = new System.Drawing.Point(24, this.ClientSize.Height - 24);
+                lblRecordCount.Anchor = AnchorStyles.Left | AnchorStyles.Bottom;
+                this.Controls.Add(lblRecordCount);
+            }
+        }
+
+        private void FormReportSales_KeyDown(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.KeyCode == Keys.F5)
+                {
+                    btnGenerate_Click(sender, EventArgs.Empty);
+                    e.Handled = true;
+                }
+            }
+            catch { }
         }
 
         private void FormReportSales_Load(object sender, EventArgs e)
         {
-            dtpFromDate.Value = DateTime.Today.AddDays(-30);
-            dtpToDate.Value = DateTime.Today;
+            if (dtpFromDate != null) dtpFromDate.Value = DateTime.Today.AddDays(-30);
+            if (dtpToDate != null) dtpToDate.Value = DateTime.Today;
             ConfigureGrid();
+            EnsureRecordCountLabel();
+
+            // Debounce for filters
+            _debounceTimer = new Timer { Interval = 350 };
+            _debounceTimer.Tick += (s, e2) => { _debounceTimer.Stop(); btnGenerate_Click(sender, e2); };
+
+            if (dtpFromDate != null) dtpFromDate.ValueChanged += (s, e2) => { _debounceTimer.Stop(); _debounceTimer.Start(); };
+            if (dtpToDate != null) dtpToDate.ValueChanged += (s, e2) => { _debounceTimer.Stop(); _debounceTimer.Start(); };
+
             btnGenerate_Click(sender, e); // Load initial data
         }
 
@@ -66,7 +117,7 @@ namespace QLTN_LT.GUI.Report
                 var revenueData = _bll.GetDailyRevenue(fromDate, toDate);
                 _currentData = ConvertToDataTable(revenueData);
 
-                // Chart configuration
+
                 _wpfSalesChart.Series.Clear();
                 _wpfSalesChart.AxisX.Clear();
                 _wpfSalesChart.AxisY.Clear();
@@ -128,14 +179,21 @@ namespace QLTN_LT.GUI.Report
 
         private void UpdateRecordCount()
         {
-            if (dgvSales.DataSource is System.Collections.IList list)
+            try
             {
-                // For generic list
+                int count = 0;
+                if (dgvSales.DataSource is System.Collections.IList list)
+                {
+                    count = list.Count;
+                }
+                else if (dgvSales.DataSource is DataTable dt)
+                {
+                    count = dt.Rows.Count;
+                }
+                if (lblRecordCount != null)
+                    lblRecordCount.Text = $"Tổng: {count} dòng";
             }
-            else if (dgvSales.DataSource is DataTable dt)
-            {
-                // For DataTable
-            }
+            catch { }
         }
 
         private void ExportToCSV(string filePath)

@@ -6,6 +6,7 @@ namespace QLTN_LT.DTO
     public class OrderDTO
     {
         public int OrderID { get; set; }
+        public int OrderId { get; set; }
         public string OrderNumber { get; set; }
         public int? CustomerID { get; set; }
         public string CustomerName { get; set; }
@@ -13,6 +14,7 @@ namespace QLTN_LT.DTO
         public DateTime OrderDate { get; set; }
         public decimal TotalAmount { get; set; }
         public string Status { get; set; }
+        public string Notes { get; set; }
         public List<OrderDetailDTO> OrderDetails { get; set; }
     }
 }

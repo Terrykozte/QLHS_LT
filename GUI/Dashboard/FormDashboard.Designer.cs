@@ -35,6 +35,7 @@ namespace QLTN_LT.GUI.Dashboard
         private Guna.UI2.WinForms.Guna2PictureBox picRevenue;
         private Guna.UI2.WinForms.Guna2PictureBox picOrders;
         private Guna.UI2.WinForms.Guna2PictureBox picCustomers;
+        private Guna.UI2.WinForms.Guna2ProgressIndicator progressIndicator;
 
         protected override void Dispose(bool disposing)
         {
@@ -459,6 +460,18 @@ namespace QLTN_LT.GUI.Dashboard
             ((System.ComponentModel.ISupportInitialize)(this.dgvExpiration)).EndInit();
             this.pnlFilterBar.ResumeLayout(false);
             this.pnlFilterBar.PerformLayout();
+
+            // 
+            // progressIndicator
+            // 
+            this.progressIndicator.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.progressIndicator.Location = new System.Drawing.Point(472, 280);
+            this.progressIndicator.Name = "progressIndicator";
+            this.progressIndicator.ProgressColor = System.Drawing.Color.FromArgb(((int)(((byte)(14)))), ((int)(((byte)(165)))), ((int)(((byte)(233)))));
+            this.progressIndicator.Size = new System.Drawing.Size(40, 40);
+            this.progressIndicator.TabIndex = 2;
+            this.progressIndicator.Visible = false;
+
             this.ResumeLayout(false);
         }
     }

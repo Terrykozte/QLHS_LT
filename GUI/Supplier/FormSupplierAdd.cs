@@ -2,78 +2,86 @@ using System;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
+using QLTN_LT.GUI.Base;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Supplier
 {
-    public partial class FormSupplierAdd : Form
+    public partial class FormSupplierAdd : FormTemplate
     {
-        private readonly SupplierBLL _bll = new SupplierBLL();
+        private SupplierBLL _bll;
 
         public FormSupplierAdd()
         {
             InitializeComponent();
+            _bll = new SupplierBLL();
+            try
+            {
+                UIHelper.ApplyFormStyle(this);
+            }
+            catch { }
+        }
+
+        // Designer-bound handlers (stubs)
+        private void txtName_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is Control c) UIHelper.ClearValidationError(c);
+        }
+        private void txtPhone_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is Control c) UIHelper.ClearValidationError(c);
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            try
-            {
-                bool isValid = true;
-                lblNameError.Visible = false;
-                lblPhoneError.Visible = false;
-
-                if (string.IsNullOrWhiteSpace(txtName.Text))
-        {
-                    lblNameError.Text = "Tên nhà cung cấp không được để trống.";
-                    lblNameError.Visible = true;
-                    isValid = false;
-                }
-
-                if (string.IsNullOrWhiteSpace(txtPhone.Text))
-                {
-                    lblPhoneError.Text = "Số điện thoại không được để trống.";
-                    lblPhoneError.Visible = true;
-                    isValid = false;
-                }
-
-                if (!isValid) return;
-
-                var newSupplier = new SupplierDTO
-                {
-                    SupplierName = txtName.Text.Trim(),
-                    ContactPerson = txtContactPerson.Text.Trim(),
-                    PhoneNumber = txtPhone.Text.Trim(),
-                    Email = txtEmail.Text.Trim(),
-                    Address = txtAddress.Text.Trim(),
-                    IsActive = chkIsActive.Checked
-                };
-
-                _bll.Insert(newSupplier);
-
-                MessageBox.Show("Thêm nhà cung cấp thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.DialogResult = DialogResult.OK;
-                this.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi khi lưu nhà cung cấp: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            BtnSave_Click(sender, e);
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
+            BtnCancel_Click(sender, e);
         }
 
-        private void txtName_TextChanged(object sender, EventArgs e)
+        protected override bool ValidateInputs()
         {
-            lblNameError.Visible = false;
+            bool valid = true;
+
+            if (string.IsNullOrWhiteSpace(txtName.Text))
+            {
+                UIHelper.ShowValidationError(txtName, "Tên nhà cung cấp không được để trống");
+                valid = false;
+            }
+            else UIHelper.ClearValidationError(txtName);
+
+            if (string.IsNullOrWhiteSpace(txtPhone.Text))
+            {
+                UIHelper.ShowValidationError(txtPhone, "Số điện thoại không được để trống");
+                valid = false;
+            }
+            else UIHelper.ClearValidationError(txtPhone);
+
+            return valid;
         }
 
-        private void txtPhone_TextChanged(object sender, EventArgs e)
+        protected override void SaveData()
         {
-            lblPhoneError.Visible = false;
+            var newSupplier = new SupplierDTO
+            {
+                SupplierName = txtName.Text?.Trim(),
+                ContactPerson = txtContactPerson.Text?.Trim(),
+                PhoneNumber = txtPhone.Text?.Trim(),
+                Email = txtEmail.Text?.Trim(),
+                Address = txtAddress.Text?.Trim(),
+                IsActive = chkIsActive.Checked
+            };
+
+            _bll.Insert(newSupplier);
+        }
+
+        protected override void CleanupResources()
+        {
+            try { _bll = null; } catch { }
+            finally { base.CleanupResources(); }
         }
     }
 }

@@ -2,22 +2,39 @@ using System;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
+using QLTN_LT.GUI.Base;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Inventory
 {
-    public partial class FormStockIn : Form
+    public partial class FormStockIn : BaseForm
     {
-        private readonly InventoryBLL _inventoryBll = new InventoryBLL();
-        private readonly SeafoodBLL _seafoodBll = new SeafoodBLL();
+        private InventoryBLL _inventoryBll = new InventoryBLL();
+        private SeafoodBLL _seafoodBll = new SeafoodBLL();
 
         public FormStockIn()
         {
             InitializeComponent();
+            try { UIHelper.ApplyFormStyle(this); } catch { }
         }
 
         private void FormStockIn_Load(object sender, EventArgs e)
         {
             LoadSeafoodData();
+            this.KeyPreview = true;
+            this.KeyDown += (s, ev) =>
+            {
+                if (ev.KeyCode == System.Windows.Forms.Keys.Enter)
+                {
+                    btnSave_Click(s, EventArgs.Empty);
+                    ev.Handled = true;
+                }
+                else if (ev.KeyCode == System.Windows.Forms.Keys.Escape)
+                {
+                    this.Close();
+                    ev.Handled = true;
+                }
+            };
         }
 
         private void LoadSeafoodData()
@@ -58,18 +75,15 @@ namespace QLTN_LT.GUI.Inventory
 
                 if (!isValid) return;
 
-                var transaction = new InventoryTransactionDTO
+                // Map seafood -> inventory
+                var inv = _inventoryBll.GetBySeafoodId((int)cmbProduct.SelectedValue);
+                if (inv == null)
                 {
-                    ItemID = (int)cmbProduct.SelectedValue,
-                    QuantityIn = (int)nudQuantity.Value,
-                    QuantityOut = 0,
-                    TransactionType = "In",
-                    TransactionDate = DateTime.Now,
-                    Notes = txtNotes.Text.Trim(),
-                    ProcessedBy = "CurrentUser" // Placeholder, will be replaced with actual user later
-                };
+                    MessageBox.Show("Không tìm thấy tồn kho cho sản phẩm này.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
-                _inventoryBll.AddTransaction(transaction);
+                _inventoryBll.StockIn(inv.InventoryID, (int)nudQuantity.Value, null, txtNotes.Text?.Trim());
 
                 MessageBox.Show("Nhập kho thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.DialogResult = DialogResult.OK;
@@ -95,6 +109,13 @@ namespace QLTN_LT.GUI.Inventory
         private void nudQuantity_ValueChanged(object sender, EventArgs e)
         {
             lblQuantityError.Visible = false;
+        }
+
+        protected override void CleanupResources()
+        {
+            try { _inventoryBll = null; _seafoodBll = null; }
+            catch { }
+            finally { base.CleanupResources(); }
         }
     }
 }

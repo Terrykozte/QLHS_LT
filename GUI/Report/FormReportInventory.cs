@@ -2,22 +2,44 @@ using System;
 using System.Data;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
+using QLTN_LT.GUI.Base;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Report
 {
-    public partial class FormReportInventory : Form
+    public partial class FormReportInventory : BaseForm
     {
+        // #hàm xử lí logic của FormReportInventory
         private readonly ReportBLL _bll = new ReportBLL();
         private DataTable _originalData;
+        private Timer _debounceTimer;
 
         public FormReportInventory()
         {
             InitializeComponent();
+            try
+            {
+                UIHelper.ApplyFormStyle(this);
+                if (dgvInventory != null) UIHelper.ApplyGridStyle(dgvInventory);
+            }
+            catch { }
+            this.KeyPreview = true;
+            this.KeyDown += FormReportInventory_KeyDown;
         }
 
         private void FormReportInventory_Load(object sender, EventArgs e)
         {
+            _debounceTimer = new Timer { Interval = 350 };
+            _debounceTimer.Tick += (s, e2) => { _debounceTimer.Stop(); ApplySearchFilter(); };
+            if (txtSearch != null) txtSearch.TextChanged += (s, e2) => { _debounceTimer.Stop(); _debounceTimer.Start(); };
             LoadData();
+        }
+
+        // Designer-bound handler
+        private void txtSearch_TextChanged(object sender, EventArgs e)
+        {
+            _debounceTimer?.Stop();
+            _debounceTimer?.Start();
         }
 
         private void LoadData()
@@ -27,8 +49,7 @@ namespace QLTN_LT.GUI.Report
                 var inventoryList = _bll.GetInventoryStatusReport();
                 _originalData = ConvertToDataTable(inventoryList);
                 dgvInventory.DataSource = _originalData;
-                
-                // Configure columns
+
                 ConfigureColumns();
                 UpdateRecordCount();
             }
@@ -74,6 +95,8 @@ namespace QLTN_LT.GUI.Report
                 dgvInventory.Columns["SeafoodName"].HeaderText = "TÊN SẢN PHẨM";
             if (dgvInventory.Columns["StockQuantity"] != null) 
                 dgvInventory.Columns["StockQuantity"].HeaderText = "TỒN KHO";
+            if (dgvInventory.Columns["QuantityRemaining"] != null) 
+                dgvInventory.Columns["QuantityRemaining"].HeaderText = "TỒN KHO";
             if (dgvInventory.Columns["Unit"] != null) 
                 dgvInventory.Columns["Unit"].HeaderText = "ĐƠN VỊ";
             if (dgvInventory.Columns["LastUpdated"] != null) 
@@ -91,11 +114,11 @@ namespace QLTN_LT.GUI.Report
             LoadData();
         }
 
-        private void txtSearch_TextChanged(object sender, EventArgs e)
+        private void ApplySearchFilter()
         {
             if (_originalData == null) return;
 
-            string searchText = txtSearch.Text.Trim().ToLower();
+            string searchText = txtSearch?.Text?.Trim().ToLower() ?? string.Empty;
 
             if (string.IsNullOrEmpty(searchText))
             {
@@ -199,7 +222,6 @@ namespace QLTN_LT.GUI.Report
                         for (int i = 0; i < dgvInventory.Columns.Count; i++)
                         {
                             string value = row.Cells[i].Value?.ToString() ?? "";
-                            // Escape quotes and wrap in quotes if contains comma
                             if (value.Contains(",") || value.Contains("\""))
                                 value = "\"" + value.Replace("\"", "\"\"") + "\"";
                             writer.Write(value);
@@ -214,6 +236,35 @@ namespace QLTN_LT.GUI.Report
             {
                 throw new Exception($"Lỗi khi xuất CSV: {ex.Message}");
             }
+        }
+
+        private void FormReportInventory_KeyDown(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.KeyCode == Keys.F5)
+                {
+                    LoadData();
+                    e.Handled = true;
+                }
+                else if (e.KeyCode == Keys.Enter)
+                {
+                    ApplySearchFilter();
+                    e.Handled = true;
+                }
+            }
+            catch { }
+        }
+
+        protected override void CleanupResources()
+        {
+            try
+            {
+                _debounceTimer?.Stop();
+                _debounceTimer?.Dispose();
+            }
+            catch { }
+            finally { base.CleanupResources(); }
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -11,12 +12,11 @@ namespace QLTN_LT.DAL
         public List<SupplierDTO> GetAll()
         {
             var list = new List<SupplierDTO>();
-            const string sql = "hs.sp_GetAllSuppliers";
+            const string sql = @"SELECT SupplierID, SupplierName, ContactPerson, PhoneNumber, Email, Address, IsActive FROM dbo.Suppliers ORDER BY SupplierName";
 
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
                 conn.Open();
                 using (var rd = cmd.ExecuteReader())
                 {
@@ -26,11 +26,11 @@ namespace QLTN_LT.DAL
                         {
                             SupplierID = (int)rd["SupplierID"],
                             SupplierName = rd["SupplierName"].ToString(),
-                            ContactPerson = rd["ContactPerson"].ToString(),
-                            PhoneNumber = rd["PhoneNumber"].ToString(),
-                            Email = rd["Email"].ToString(),
-                            Address = rd["Address"].ToString(),
-                            IsActive = rd["Status"].ToString() == "Active"
+                            ContactPerson = rd.IsDBNull(rd.GetOrdinal("ContactPerson")) ? null : rd["ContactPerson"].ToString(),
+                            PhoneNumber = rd.IsDBNull(rd.GetOrdinal("PhoneNumber")) ? null : rd["PhoneNumber"].ToString(),
+                            Email = rd.IsDBNull(rd.GetOrdinal("Email")) ? null : rd["Email"].ToString(),
+                            Address = rd.IsDBNull(rd.GetOrdinal("Address")) ? null : rd["Address"].ToString(),
+                            IsActive = (bool)rd["IsActive"]
                         });
                     }
                 }
@@ -41,12 +41,11 @@ namespace QLTN_LT.DAL
         public SupplierDTO GetById(int id)
         {
             SupplierDTO supplier = null;
-            const string sql = "hs.sp_GetSupplierById";
+            const string sql = @"SELECT SupplierID, SupplierName, ContactPerson, PhoneNumber, Email, Address, IsActive FROM dbo.Suppliers WHERE SupplierID = @SupplierID";
 
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@SupplierID", id);
                 conn.Open();
                 using (var rd = cmd.ExecuteReader())
@@ -57,11 +56,11 @@ namespace QLTN_LT.DAL
                         {
                             SupplierID = (int)rd["SupplierID"],
                             SupplierName = rd["SupplierName"].ToString(),
-                            ContactPerson = rd["ContactPerson"].ToString(),
-                            PhoneNumber = rd["PhoneNumber"].ToString(),
-                            Email = rd["Email"].ToString(),
-                            Address = rd["Address"].ToString(),
-                            IsActive = rd["Status"].ToString() == "Active"
+                            ContactPerson = rd.IsDBNull(rd.GetOrdinal("ContactPerson")) ? null : rd["ContactPerson"].ToString(),
+                            PhoneNumber = rd.IsDBNull(rd.GetOrdinal("PhoneNumber")) ? null : rd["PhoneNumber"].ToString(),
+                            Email = rd.IsDBNull(rd.GetOrdinal("Email")) ? null : rd["Email"].ToString(),
+                            Address = rd.IsDBNull(rd.GetOrdinal("Address")) ? null : rd["Address"].ToString(),
+                            IsActive = (bool)rd["IsActive"]
                         };
                     }
                 }
@@ -71,17 +70,17 @@ namespace QLTN_LT.DAL
 
         public void Insert(SupplierDTO supplier)
         {
-            const string sql = "hs.sp_InsertSupplier";
+            const string sql = @"INSERT INTO dbo.Suppliers (SupplierName, ContactPerson, PhoneNumber, Email, Address, IsActive) 
+                                 VALUES (@SupplierName, @ContactPerson, @PhoneNumber, @Email, @Address, @IsActive)";
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@SupplierName", supplier.SupplierName);
-                cmd.Parameters.AddWithValue("@ContactPerson", supplier.ContactPerson);
-                cmd.Parameters.AddWithValue("@PhoneNumber", supplier.PhoneNumber);
-                cmd.Parameters.AddWithValue("@Email", supplier.Email);
-                cmd.Parameters.AddWithValue("@Address", supplier.Address);
-                cmd.Parameters.AddWithValue("@Status", supplier.IsActive ? "Active" : "Inactive");
+                cmd.Parameters.AddWithValue("@ContactPerson", (object)supplier.ContactPerson ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@PhoneNumber", (object)supplier.PhoneNumber ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Email", (object)supplier.Email ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Address", (object)supplier.Address ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@IsActive", supplier.IsActive);
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
@@ -89,18 +88,20 @@ namespace QLTN_LT.DAL
 
         public void Update(SupplierDTO supplier)
         {
-            const string sql = "hs.sp_UpdateSupplier";
+            const string sql = @"UPDATE dbo.Suppliers 
+                                 SET SupplierName = @SupplierName, ContactPerson = @ContactPerson, PhoneNumber = @PhoneNumber, 
+                                     Email = @Email, Address = @Address, IsActive = @IsActive 
+                                 WHERE SupplierID = @SupplierID";
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@SupplierID", supplier.SupplierID);
                 cmd.Parameters.AddWithValue("@SupplierName", supplier.SupplierName);
-                cmd.Parameters.AddWithValue("@ContactPerson", supplier.ContactPerson);
-                cmd.Parameters.AddWithValue("@PhoneNumber", supplier.PhoneNumber);
-                cmd.Parameters.AddWithValue("@Email", supplier.Email);
-                cmd.Parameters.AddWithValue("@Address", supplier.Address);
-                cmd.Parameters.AddWithValue("@Status", supplier.IsActive ? "Active" : "Inactive");
+                cmd.Parameters.AddWithValue("@ContactPerson", (object)supplier.ContactPerson ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@PhoneNumber", (object)supplier.PhoneNumber ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Email", (object)supplier.Email ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Address", (object)supplier.Address ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@IsActive", supplier.IsActive);
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
@@ -108,11 +109,10 @@ namespace QLTN_LT.DAL
 
         public void Delete(int id)
         {
-            const string sql = "hs.sp_DeleteSupplier";
+            const string sql = "DELETE FROM dbo.Suppliers WHERE SupplierID = @SupplierID";
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@SupplierID", id);
                 conn.Open();
                 cmd.ExecuteNonQuery();
@@ -122,13 +122,15 @@ namespace QLTN_LT.DAL
         public List<SupplierDTO> Search(string keyword)
         {
             var list = new List<SupplierDTO>();
-            const string sql = "hs.sp_SearchSuppliers";
+            const string sql = @"SELECT SupplierID, SupplierName, ContactPerson, PhoneNumber, Email, Address, IsActive 
+                                 FROM dbo.Suppliers 
+                                 WHERE SupplierName LIKE '%' + @Keyword + '%' OR PhoneNumber LIKE '%' + @Keyword + '%' OR ContactPerson LIKE '%' + @Keyword + '%' 
+                                 ORDER BY SupplierName";
 
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@Keyword", keyword);
+                cmd.Parameters.AddWithValue("@Keyword", keyword ?? string.Empty);
                 conn.Open();
                 using (var rd = cmd.ExecuteReader())
                 {
@@ -138,11 +140,11 @@ namespace QLTN_LT.DAL
                         {
                             SupplierID = (int)rd["SupplierID"],
                             SupplierName = rd["SupplierName"].ToString(),
-                            ContactPerson = rd["ContactPerson"].ToString(),
-                            PhoneNumber = rd["PhoneNumber"].ToString(),
-                            Email = rd["Email"].ToString(),
-                            Address = rd["Address"].ToString(),
-                            IsActive = rd["Status"].ToString() == "Active"
+                            ContactPerson = rd.IsDBNull(rd.GetOrdinal("ContactPerson")) ? null : rd["ContactPerson"].ToString(),
+                            PhoneNumber = rd.IsDBNull(rd.GetOrdinal("PhoneNumber")) ? null : rd["PhoneNumber"].ToString(),
+                            Email = rd.IsDBNull(rd.GetOrdinal("Email")) ? null : rd["Email"].ToString(),
+                            Address = rd.IsDBNull(rd.GetOrdinal("Address")) ? null : rd["Address"].ToString(),
+                            IsActive = (bool)rd["IsActive"]
                         });
                     }
                 }
@@ -151,4 +153,3 @@ namespace QLTN_LT.DAL
         }
     }
 }
-

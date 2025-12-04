@@ -12,6 +12,7 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -59,6 +60,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Xaml" />
@@ -78,15 +80,24 @@
     <Compile Include="BLL\SupplierBLL.cs" />
     <Compile Include="BLL\TableBLL.cs" />
     <Compile Include="BLL\UserBLL.cs" />
+    <Compile Include="BLL\CartService.cs" />
+    <Compile Include="BLL\PaymentBLL.cs" />
+    <Compile Include="BLL\PaymentConfirmationService.cs" />
+    <Compile Include="BLL\VietQRService.cs" />
+    <Compile Include="BLL\MonthlyReportService.cs" />
+    <Compile Include="BLL\InvoiceExportService.cs" />
+    <Compile Include="BLL\OrderStatusUpdater.cs" />
     <Compile Include="BLL\Interfaces\ISeafoodService.cs" />
     <!-- DAL -->
     <Compile Include="DAL\CategoryDAL.cs" />
     <Compile Include="DAL\CustomerDAL.cs" />
     <Compile Include="DAL\DatabaseHelper.cs" />
+    <Compile Include="DAL\ClientSettings.cs" />
     <Compile Include="DAL\ConnectionSettings.cs" />
     <Compile Include="DAL\InventoryDAL.cs" />
     <Compile Include="DAL\MenuDAL.cs" />
     <Compile Include="DAL\OrderDAL.cs" />
+    <Compile Include="DAL\PaymentDAL.cs" />
     <Compile Include="DAL\ReportDAL.cs" />
     <Compile Include="DAL\SeafoodDAL.cs" />
     <Compile Include="DAL\SupplierDAL.cs" />
@@ -97,6 +108,7 @@
     <Compile Include="DAL\Interfaces\ICustomerRepository.cs" />
     <Compile Include="DAL\Interfaces\IInventoryRepository.cs" />
     <Compile Include="DAL\Interfaces\IOrderRepository.cs" />
+    <Compile Include="DAL\Interfaces\IPaymentRepository.cs" />
     <Compile Include="DAL\Interfaces\ISeafoodRepository.cs" />
     <Compile Include="DAL\Interfaces\ISupplierRepository.cs" />
     <Compile Include="DAL\Interfaces\ITableRepository.cs" />
@@ -106,12 +118,15 @@
     <Compile Include="DTO\CategoryDTO.cs" />
     <Compile Include="DTO\CustomerDTO.cs" />
     <Compile Include="DTO\DailyRevenueDTO.cs" />
+    <Compile Include="DTO\InventoryDTO.cs" />
     <Compile Include="DTO\InventoryStatusDTO.cs" />
     <Compile Include="DTO\InventoryTransactionDTO.cs" />
     <Compile Include="DTO\MenuCategoryDTO.cs" />
     <Compile Include="DTO\MenuItemDTO.cs" />
     <Compile Include="DTO\OrderDTO.cs" />
     <Compile Include="DTO\OrderDetailDTO.cs" />
+    <Compile Include="DTO\PaymentDTO.cs" />
+    <Compile Include="DTO\PaymentMethodDTO.cs" />
     <Compile Include="DTO\SeafoodDTO.cs" />
     <Compile Include="DTO\SupplierDTO.cs" />
     <Compile Include="DTO\TableDTO.cs" />
@@ -119,6 +134,9 @@
     <Compile Include="DTO\UserDTO.cs" />
     <Compile Include="DTO\Result.cs" />
     <!-- GUI -->
+    <Compile Include="GUI\Utilities\AuthorizationHelper.cs" />
+    <Compile Include="GUI\Utilities\Rbac.cs" />
+    <Compile Include="GUI\Utilities\Roles.cs" />
     <Compile Include="GUI\Authentication\FormLogin.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -187,6 +205,18 @@
     </Compile>
     <Compile Include="GUI\Inventory\FormStockOut.Designer.cs">
       <DependentUpon>FormStockOut.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormInventoryManagement.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormInventoryManagement.Designer.cs">
+      <DependentUpon>FormInventoryManagement.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormInventoryTransaction.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Inventory\FormInventoryTransaction.Designer.cs">
+      <DependentUpon>FormInventoryTransaction.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\Main\FormMain.cs">
       <SubType>Form</SubType>
@@ -314,6 +344,15 @@
     <Compile Include="GUI\User\FormUserEdit.Designer.cs">
       <DependentUpon>FormUserEdit.cs</DependentUpon>
     </Compile>
+    <!-- Base & Helpers -->
+    <Compile Include="GUI\Base\BaseForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Helper\ExceptionHandler.cs" />
+    <Compile Include="GUI\Helper\UIHelper.cs" />
+    <Compile Include="GUI\Helper\FormTemplate.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -355,6 +394,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\User\FormUserEdit.resx">
       <DependentUpon>FormUserEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\Main\FormMain.resx">
+      <DependentUpon>FormMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

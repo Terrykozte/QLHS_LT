@@ -17,6 +17,7 @@ namespace QLTN_LT.BLL
 
         public MenuItemDTO GetItemById(int itemId)
         {
+            if (itemId <= 0) throw new ArgumentException("ItemID không hợp lệ.");
             return _dal.GetItemById(itemId);
         }
 
@@ -34,7 +35,7 @@ namespace QLTN_LT.BLL
 
         public void DeleteItem(int itemId)
         {
-            if (itemId <= 0) throw new ArgumentException("ItemID khA_ng h_p l_.");
+            if (itemId <= 0) throw new ArgumentException("ItemID không hợp lệ.");
             _dal.DeleteItem(itemId);
         }
 
@@ -46,13 +47,18 @@ namespace QLTN_LT.BLL
                 .ToDictionary(g => g.Key, g => g.ToList());
         }
 
+        public List<MenuCategoryDTO> GetAllCategories()
+        {
+            return _dal.GetAllCategories();
+        }
+
         private static void ValidateItem(MenuItemDTO item, bool requireId)
         {
             if (item == null) throw new ArgumentNullException(nameof(item));
-            if (requireId && item.ItemID <= 0) throw new ArgumentException("ItemID khA_ng h_p l_.");
-            if (item.CategoryID <= 0) throw new ArgumentException("Danh m_c khA_ng h_p l_.");
-            if (string.IsNullOrWhiteSpace(item.ItemName)) throw new ArgumentException("TA_n m_n khA_ng _A_c _A_nh.");
-            if (item.UnitPrice < 0) throw new ArgumentException("GiA_khA_ng h_p l_.");
+            if (requireId && item.ItemID <= 0) throw new ArgumentException("ItemID không hợp lệ.");
+            if (item.CategoryID <= 0) throw new ArgumentException("Danh mục không hợp lệ.");
+            if (string.IsNullOrWhiteSpace(item.ItemName)) throw new ArgumentException("Tên món không được để trống.");
+            if (item.UnitPrice < 0) throw new ArgumentException("Giá không hợp lệ.");
         }
     }
 }

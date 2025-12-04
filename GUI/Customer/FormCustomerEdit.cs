@@ -2,33 +2,61 @@ using System;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
+using QLTN_LT.GUI.Base;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Customer
 {
-    public partial class FormCustomerEdit : Form
+    public partial class FormCustomerEdit : FormTemplate
     {
-        private readonly int _customerId;
-        private readonly CustomerBLL _bll = new CustomerBLL();
+        private int _customerId;
+        private CustomerBLL _bll;
 
         public FormCustomerEdit(int customerId)
         {
             InitializeComponent();
             _customerId = customerId;
+            _bll = new CustomerBLL();
+            try { UIHelper.ApplyFormStyle(this); } catch { }
+
+            this.Load += (s, e) =>
+            {
+                try
+                {
+                    InitializeEditMode();
+                    LoadData();
+                }
+                catch (Exception ex)
+                {
+                    ExceptionHandler.Handle(ex, "FormCustomerEdit_Load");
+                    this.Close();
+                }
+            };
         }
 
+        // Designer-bound handlers (stubs)
+        private void txtName_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is Control c) UIHelper.ClearValidationError(c);
+        }
+        private void txtPhone_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is Control c) UIHelper.ClearValidationError(c);
+        }
         private void FormCustomerEdit_Load(object sender, EventArgs e)
         {
-            LoadCustomerData();
+            InitializeEditMode();
+            LoadData();
         }
 
-        private void LoadCustomerData()
+        protected override void LoadData()
         {
             try
             {
                 var customer = _bll.GetById(_customerId);
                 if (customer == null)
                 {
-                    MessageBox.Show("Không tìm thấy khách hàng này.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowError("Không tìm thấy khách hàng.");
                     this.Close();
                     return;
                 }
@@ -38,72 +66,59 @@ namespace QLTN_LT.GUI.Customer
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi tải thông tin khách hàng: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ExceptionHandler.Handle(ex, "LoadCustomerData");
             }
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            try
-            {
-                bool isValid = true;
-                lblNameError.Visible = false;
-                lblPhoneError.Visible = false;
-
-                if (string.IsNullOrWhiteSpace(txtName.Text))
-                {
-                    lblNameError.Text = "Tên khách hàng không được để trống.";
-                    lblNameError.Visible = true;
-                    isValid = false;
-                }
-
-                if (string.IsNullOrWhiteSpace(txtPhone.Text))
-                {
-                    lblPhoneError.Text = "Số điện thoại không được để trống.";
-                    lblPhoneError.Visible = true;
-                    isValid = false;
-                }
-
-                if (!isValid)
-                {
-                    return;
-                }
-
-                var updatedCustomer = new CustomerDTO
-                {
-                    CustomerID = _customerId,
-                    CustomerName = txtName.Text.Trim(),
-                    PhoneNumber = txtPhone.Text.Trim(),
-                    Address = txtAddress.Text.Trim()
-                };
-
-                _bll.Update(updatedCustomer);
-
-                MessageBox.Show("Cập nhật khách hàng thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.DialogResult = DialogResult.OK;
-                this.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi khi cập nhật: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            BtnSave_Click(sender, e);
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
+            BtnCancel_Click(sender, e);
         }
 
-        private void txtName_TextChanged(object sender, EventArgs e)
+        protected override bool ValidateInputs()
         {
-            lblNameError.Visible = false;
+            bool valid = true;
+
+            if (string.IsNullOrWhiteSpace(txtName.Text))
+            {
+                UIHelper.ShowValidationError(txtName, "Tên khách hàng không được để trống");
+                valid = false;
+            }
+            else UIHelper.ClearValidationError(txtName);
+
+            if (string.IsNullOrWhiteSpace(txtPhone.Text))
+            {
+                UIHelper.ShowValidationError(txtPhone, "Số điện thoại không được để trống");
+                valid = false;
+            }
+            else UIHelper.ClearValidationError(txtPhone);
+
+            return valid;
         }
 
-        private void txtPhone_TextChanged(object sender, EventArgs e)
+        protected override void SaveData()
         {
-            lblPhoneError.Visible = false;
+            var updatedCustomer = new CustomerDTO
+            {
+                CustomerID = _customerId,
+                CustomerName = txtName.Text?.Trim(),
+                PhoneNumber = txtPhone.Text?.Trim(),
+                Address = txtAddress.Text?.Trim(),
+                // Email field not present on this form; leave as-is or handle elsewhere
+            };
+
+            _bll.Update(updatedCustomer);
+        }
+
+        protected override void CleanupResources()
+        {
+            try { _bll = null; } catch { }
+            finally { base.CleanupResources(); }
         }
     }
 }
-

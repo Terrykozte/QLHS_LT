@@ -2,55 +2,89 @@ using System;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
+using QLTN_LT.GUI.Base;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Category
 {
-    public partial class FormCategoryEdit : Form
+    public partial class FormCategoryEdit : FormTemplate
     {
-        private readonly CategoryBLL _categoryBLL;
-        private readonly CategoryDTO _category;
+        private CategoryBLL _categoryBLL;
+        private CategoryDTO _category;
 
         public FormCategoryEdit(CategoryDTO category)
         {
             InitializeComponent();
-            _category = category;
+            _category = category ?? throw new ArgumentNullException(nameof(category));
             _categoryBLL = new CategoryBLL();
-            LoadData();
+
+            this.Load += (s, e) =>
+            {
+                try
+                {
+                    InitializeEditMode();
+                    LoadData();
+                }
+                catch (Exception ex)
+                {
+                    ExceptionHandler.Handle(ex, "FormCategoryEdit_Load");
+                    this.Close();
+                }
+            };
         }
 
-        private void LoadData()
+        protected override void LoadData()
         {
-            txtCategoryName.Text = _category.CategoryName;
-            txtDescription.Text = _category.Description; // Assuming Description exists in DTO, if not remove
+            try
+            {
+                txtCategoryName.Text = _category.CategoryName ?? string.Empty;
+                txtDescription.Text = _category.Description ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Handle(ex, "FormCategoryEdit.LoadData");
+            }
+        }
+
+        protected override bool ValidateInputs()
+        {
+            if (string.IsNullOrWhiteSpace(txtCategoryName.Text))
+            {
+                UIHelper.ShowValidationError(txtCategoryName, "Vui lòng nhập tên danh mục");
+                return false;
+            }
+            UIHelper.ClearValidationError(txtCategoryName);
+            return true;
+        }
+
+        protected override void SaveData()
+        {
+            if (_category == null) throw new InvalidOperationException("Dữ liệu danh mục không hợp lệ.");
+
+            _category.CategoryName = txtCategoryName.Text.Trim();
+            _category.Description = txtDescription.Text?.Trim();
+            _categoryBLL.Update(_category);
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtCategoryName.Text))
-            {
-                MessageBox.Show("Vui lòng nhập tên danh mục.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            _category.CategoryName = txtCategoryName.Text.Trim();
-            _category.Description = txtDescription.Text.Trim();
-
-            try
-            {
-                _categoryBLL.Update(_category);
-                MessageBox.Show("Cập nhật thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            BtnSave_Click(sender, e);
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            Close();
+            BtnCancel_Click(sender, e);
+        }
+
+        protected override void CleanupResources()
+        {
+            try
+            {
+                _categoryBLL = null;
+                _category = null;
+            }
+            catch { }
+            finally { base.CleanupResources(); }
         }
     }
 }

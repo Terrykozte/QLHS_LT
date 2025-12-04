@@ -20,19 +20,130 @@ namespace QLTN_LT.BLL
             _repo = repo;
         }
 
-        public List<InventoryTransactionDTO> GetTransactions(DateTime fromDate, DateTime toDate, string type, string keyword)
+        public List<InventoryStatusDTO> GetInventoryStatus()
         {
-            return _repo.GetAll(fromDate, toDate, type, keyword).OrderByDescending(t => t.TransactionDate).ToList();
+            return _repo.GetInventoryStatus();
         }
 
-        public void AddTransaction(InventoryTransactionDTO transaction)
+        public InventoryDTO GetBySeafoodId(int seafoodId)
         {
-            if (transaction.ItemID <= 0 || (transaction.QuantityIn <= 0 && transaction.QuantityOut <= 0))
+            if (seafoodId <= 0)
+                throw new ArgumentException("SeafoodID phải lớn hơn 0");
+
+            return _repo.GetBySeafoodId(seafoodId);
+        }
+
+        public InventoryDTO GetByInventoryId(int inventoryId)
+        {
+            if (inventoryId <= 0)
+                throw new ArgumentException("InventoryID phải lớn hơn 0");
+
+            return _repo.GetByInventoryId(inventoryId);
+        }
+
+        public int StockIn(int inventoryId, int quantity, int? supplierId = null, string reason = null, int? createdBy = null)
+        {
+            if (inventoryId <= 0)
+                throw new ArgumentException("InventoryID phải lớn hơn 0");
+
+            if (quantity <= 0)
+                throw new ArgumentException("Số lượng nhập phải lớn hơn 0");
+
+            var transaction = new InventoryTransactionDTO
             {
-                throw new ArgumentException("Sản phẩm và số lượng phải hợp lệ.");
+                InventoryID = inventoryId,
+                TransactionType = "In",
+                Quantity = quantity,
+                Reason = reason ?? "Nhập hàng",
+                SupplierID = supplierId,
+                CreatedBy = createdBy
+            };
+
+            return _repo.InsertTransaction(transaction);
+        }
+
+        public int StockOut(int inventoryId, int quantity, string reason = null, int? createdBy = null)
+        {
+            if (inventoryId <= 0)
+                throw new ArgumentException("InventoryID phải lớn hơn 0");
+
+            if (quantity <= 0)
+                throw new ArgumentException("Số lượng xuất phải lớn hơn 0");
+
+            var transaction = new InventoryTransactionDTO
+            {
+                InventoryID = inventoryId,
+                TransactionType = "Out",
+                Quantity = quantity,
+                Reason = reason ?? "Xuất hàng",
+                CreatedBy = createdBy
+            };
+
+            return _repo.InsertTransaction(transaction);
+        }
+
+        public int AdjustInventory(int inventoryId, int newQuantity, string reason = null, int? createdBy = null)
+        {
+            if (inventoryId <= 0)
+                throw new ArgumentException("InventoryID phải lớn hơn 0");
+
+            if (newQuantity < 0)
+                throw new ArgumentException("Số lượng không được âm");
+
+            var transaction = new InventoryTransactionDTO
+            {
+                InventoryID = inventoryId,
+                TransactionType = "Adjustment",
+                Quantity = newQuantity,
+                Reason = reason ?? "Điều chỉnh kho",
+                CreatedBy = createdBy
+            };
+
+            return _repo.InsertTransaction(transaction);
+        }
+
+        public List<InventoryTransactionDTO> GetTransactions(int inventoryId, int pageNumber = 1, int pageSize = 50)
+        {
+            if (inventoryId <= 0)
+                throw new ArgumentException("InventoryID phải lớn hơn 0");
+
+            if (pageNumber < 1)
+                pageNumber = 1;
+
+            if (pageSize < 1 || pageSize > 500)
+                pageSize = 50;
+
+            return _repo.GetTransactions(inventoryId, pageNumber, pageSize);
+        }
+
+        public List<InventoryTransactionDTO> GetTransactionsByDateRange(DateTime fromDate, DateTime toDate)
+        {
+            if (fromDate > toDate)
+                throw new ArgumentException("Ngày bắt đầu không được lớn hơn ngày kết thúc");
+
+            return _repo.GetTransactionsByDateRange(fromDate, toDate);
+        }
+
+        public int GetTotalTransactionCount(int inventoryId)
+        {
+            if (inventoryId <= 0)
+                throw new ArgumentException("InventoryID phải lớn hơn 0");
+
+            return _repo.GetTotalTransactionCount(inventoryId);
+        }
+
+        public List<InventoryStatusDTO> GetLowStockItems()
+        {
+            var allItems = GetInventoryStatus();
+            var lowStockItems = new List<InventoryStatusDTO>();
+
+            foreach (var item in allItems)
+            {
+                if (item.Status == "Cần nhập" || item.Status == "Thấp")
+                    lowStockItems.Add(item);
             }
-            _repo.Insert(transaction);
+
+            return lowStockItems;
         }
     }
 }
-

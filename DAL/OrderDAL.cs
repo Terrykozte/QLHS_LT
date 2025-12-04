@@ -12,7 +12,7 @@ namespace QLTN_LT.DAL
         public List<OrderDTO> GetAll(DateTime fromDate, DateTime toDate, string status, string keyword)
         {
             var list = new List<OrderDTO>();
-            const string sql = "hs.sp_GetOrders";
+            const string sql = "dbo.sp_GetOrders";
 
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
@@ -31,7 +31,7 @@ namespace QLTN_LT.DAL
                         {
                             OrderID = rd.GetInt32(0),
                             OrderNumber = rd.GetString(1),
-                            CustomerName = rd.GetString(2),
+                            CustomerName = rd.IsDBNull(2) ? null : rd.GetString(2),
                             OrderDate = rd.GetDateTime(3),
                             TotalAmount = rd.GetDecimal(4),
                             Status = rd.GetString(5)
@@ -42,10 +42,10 @@ namespace QLTN_LT.DAL
             return list;
         }
 
-                public OrderDTO GetById(int id)
+        public OrderDTO GetById(int id)
         {
             OrderDTO order = null;
-            const string sql = "hs.sp_GetOrderById";
+            const string sql = "dbo.sp_GetOrderById";
 
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
@@ -61,7 +61,7 @@ namespace QLTN_LT.DAL
                         {
                             OrderID = rd.GetInt32(0),
                             OrderNumber = rd.GetString(1),
-                            CustomerName = rd.GetString(2),
+                            CustomerName = rd.IsDBNull(2) ? null : rd.GetString(2),
                             OrderDate = rd.GetDateTime(3),
                             TotalAmount = rd.GetDecimal(4),
                             Status = rd.GetString(5)
@@ -74,23 +74,24 @@ namespace QLTN_LT.DAL
 
         public int Insert(OrderDTO order)
         {
-            const string sql = "hs.sp_InsertOrder";
+            const string sql = "dbo.sp_InsertOrder";
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@CustomerID", order.CustomerID);
-                cmd.Parameters.AddWithValue("@TableID", order.TableID);
+                cmd.Parameters.AddWithValue("@CustomerID", (object)order.CustomerID ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@TableID", (object)order.TableID ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@TotalAmount", order.TotalAmount);
-                cmd.Parameters.AddWithValue("@Status", order.Status);
+                cmd.Parameters.AddWithValue("@Status", order.Status ?? "Pending");
                 conn.Open();
-                return (int)cmd.ExecuteScalar(); // Returns the new OrderID
+                var result = cmd.ExecuteScalar();
+                return Convert.ToInt32(result);
             }
         }
 
         public void UpdateStatus(int id, string status)
         {
-            const string sql = "hs.sp_UpdateOrderStatus";
+            const string sql = "dbo.sp_UpdateOrderStatus";
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
@@ -104,7 +105,7 @@ namespace QLTN_LT.DAL
 
         public void AddDetail(OrderDetailDTO detail)
         {
-            const string sql = "hs.sp_InsertOrderDetail";
+            const string sql = "dbo.sp_InsertOrderDetail";
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
@@ -118,10 +119,10 @@ namespace QLTN_LT.DAL
             }
         }
 
-                public List<OrderDetailDTO> GetDetails(int orderId)
+        public List<OrderDetailDTO> GetDetails(int orderId)
         {
             var list = new List<OrderDetailDTO>();
-            const string sql = "hs.sp_GetOrderDetails";
+            const string sql = "dbo.sp_GetOrderDetails";
 
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
@@ -148,4 +149,3 @@ namespace QLTN_LT.DAL
         }
     }
 }
-

@@ -3,9 +3,11 @@ using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
 
+using QLTN_LT.GUI.Base;
+
 namespace QLTN_LT.GUI.Order
 {
-    public partial class FormOrderDetail : Form
+    public partial class FormOrderDetail : BaseForm
     {
         private readonly int _orderId;
         private readonly OrderBLL _orderBLL;

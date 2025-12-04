@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
@@ -52,7 +53,15 @@ namespace QLTN_LT.GUI.Inventory
                 var type = cmbType.SelectedItem.ToString() == "Tất cả" ? null : cmbType.SelectedItem.ToString();
                 var keyword = txtSearch.Text;
 
-                var data = _bll.GetTransactions(fromDate, toDate, type, keyword);
+                var data = _bll.GetTransactionsByDateRange(fromDate, toDate);
+                if (!string.IsNullOrEmpty(type))
+                {
+                    data = data.Where(t => string.Equals(t.Type, type, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+                if (!string.IsNullOrWhiteSpace(keyword))
+                {
+                    data = data.Where(t => (t.ProductName ?? "").IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+                }
                 
                 _totalRecords = data.Count;
                 // Implement client-side paging for now

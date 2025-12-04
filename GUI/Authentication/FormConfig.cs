@@ -173,16 +173,44 @@ namespace QLTN_LT.GUI.Authentication
         {
             try
             {
-                var settings = GetSettingsFromUI();
-                using (var conn = new SqlConnection(settings.GetConnectionString()))
+                // Validate inputs first
+                if (!ValidateSettings())
                 {
-                    conn.Open();
-                    MessageBox.Show("Connection Successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
                 }
+
+                var settings = GetSettingsFromUI();
+                
+                // Show loading state
+                btnTest.Enabled = false;
+                string originalText = btnTest.Text;
+                btnTest.Text = "Đang kiểm tra...";
+
+                try
+                {
+                    // Use a short timeout for test connection
+                    var csb = new SqlConnectionStringBuilder(settings.GetConnectionString()) { ConnectTimeout = 5 };
+                    using (var conn = new SqlConnection(csb.ConnectionString))
+                    {
+                        conn.Open();
+                        
+                        MessageBox.Show("✓ Kết nối thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                finally
+                {
+                    btnTest.Enabled = true;
+                    btnTest.Text = originalText;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                MessageBox.Show($"Lỗi kết nối SQL:\n{sqlEx.Message}\n\nVui lòng kiểm tra:\n- Tên server\n- Tên database\n- Thông tin xác thực", 
+                    "Lỗi kết nối", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Connection Failed: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -190,16 +218,83 @@ namespace QLTN_LT.GUI.Authentication
         {
             try
             {
+                // Validate inputs first
+                if (!ValidateSettings())
+                {
+                    return;
+                }
+
                 var settings = GetSettingsFromUI();
+                
+                // Test connection before saving
+                try
+                {
+                    var csb = new SqlConnectionStringBuilder(settings.GetConnectionString()) { ConnectTimeout = 5 };
+                    using (var conn = new SqlConnection(csb.ConnectionString))
+                    {
+                        conn.Open();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (MessageBox.Show(
+                        $"Không thể kết nối với cài đặt này:\n{ex.Message}\n\nBạn có muốn lưu dù sao không?",
+                        "Cảnh báo", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                    {
+                        return;
+                    }
+                }
+
+                // Save settings
                 ConnectionSettings.Save(settings);
                 DatabaseHelper.ResetConnection(); // Clear cache
-                MessageBox.Show("Settings Saved Successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                
+                MessageBox.Show("✓ Cài đặt đã được lưu thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error Saving Settings: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi lưu cài đặt: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private bool ValidateSettings()
+        {
+            // Validate Server
+            if (string.IsNullOrWhiteSpace(txtServer.Text))
+            {
+                MessageBox.Show("Vui lòng nhập tên server.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtServer.Focus();
+                return false;
+            }
+
+            // Validate Database
+            if (string.IsNullOrWhiteSpace(txtDatabase.Text))
+            {
+                MessageBox.Show("Vui lòng nhập tên database.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtDatabase.Focus();
+                return false;
+            }
+
+            // Validate SQL Auth credentials if selected
+            if (cboAuth.SelectedIndex == 1) // SQL Server Authentication
+            {
+                if (string.IsNullOrWhiteSpace(txtUsername.Text))
+                {
+                    MessageBox.Show("Vui lòng nhập tên người dùng cho SQL Server Authentication.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtUsername.Focus();
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(txtPassword.Text))
+                {
+                    MessageBox.Show("Vui lòng nhập mật khẩu cho SQL Server Authentication.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtPassword.Focus();
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private ConnectionSettings GetSettingsFromUI()

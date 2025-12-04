@@ -2,12 +2,14 @@ using System;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
+using QLTN_LT.GUI.Base;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Category
 {
-    public partial class FormCategoryAdd : Form
+    public partial class FormCategoryAdd : FormTemplate
     {
-        private readonly CategoryBLL _categoryBLL;
+        private CategoryBLL _categoryBLL;
 
         public FormCategoryAdd()
         {
@@ -17,35 +19,41 @@ namespace QLTN_LT.GUI.Category
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtCategoryName.Text))
-            {
-                MessageBox.Show("Vui lòng nhập tên danh mục.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            var newItem = new CategoryDTO
-            {
-                CategoryName = txtCategoryName.Text.Trim(),
-                Description = txtDescription.Text.Trim(),
-                Status = "Active"
-            };
-
-            try
-            {
-                _categoryBLL.Insert(newItem);
-                MessageBox.Show("Thêm thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            BtnSave_Click(sender, e);
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            Close();
+            BtnCancel_Click(sender, e);
+        }
+
+        protected override bool ValidateInputs()
+        {
+            if (string.IsNullOrWhiteSpace(txtCategoryName.Text))
+            {
+                UIHelper.ShowValidationError(txtCategoryName, "Vui lòng nhập tên danh mục");
+                return false;
+            }
+            UIHelper.ClearValidationError(txtCategoryName);
+            return true;
+        }
+
+        protected override void SaveData()
+        {
+            var newItem = new CategoryDTO
+            {
+                CategoryName = txtCategoryName.Text.Trim(),
+                Description = txtDescription.Text?.Trim(),
+                Status = "Active"
+            };
+            _categoryBLL.Insert(newItem);
+        }
+
+        protected override void CleanupResources()
+        {
+            try { _categoryBLL = null; }
+            catch { }
+            finally { base.CleanupResources(); }
         }
     }
 }

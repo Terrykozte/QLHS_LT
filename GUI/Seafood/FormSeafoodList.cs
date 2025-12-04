@@ -1,97 +1,244 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
+using System.Diagnostics;
+using QLTN_LT.GUI.Base;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Seafood
 {
-    public partial class FormSeafoodList : Form
+    public partial class FormSeafoodList : BaseForm
     {
-        private readonly SeafoodBLL _seafoodBLL;
+        private SeafoodBLL _seafoodBLL;
+        private Timer _searchDebounceTimer;
+        private List<SeafoodDTO> _allData = new List<SeafoodDTO>();
 
         public FormSeafoodList()
         {
             InitializeComponent();
+
+            // Init services
             _seafoodBLL = new SeafoodBLL();
-            LoadData();
+
+            // Improve UX
+            this.KeyPreview = true;
+            this.KeyDown += FormSeafoodList_KeyDown;
+
+            // Debounce search timer
+            _searchDebounceTimer = new Timer { Interval = 400 };
+            _searchDebounceTimer.Tick += (s, e) =>
+            {
+                _searchDebounceTimer.Stop();
+                ApplyFilters();
+            };
+
+            // Styling
+            try
+            {
+                UIHelper.ApplyFormStyle(this);
+                if (dgvSeafood != null) UIHelper.ApplyGridStyle(dgvSeafood);
+                if (btnAdd != null) UIHelper.ApplyGunaButtonStyle(btnAdd, isPrimary: true);
+            }
+            catch { }
+
+            // Events
+            this.Load += FormSeafoodList_Load;
+            this.Shown += (s, e) => { try { txtSearch?.Focus(); } catch { } };
+            if (txtSearch != null) txtSearch.TextChanged += txtSearch_TextChanged;
+            if (dgvSeafood != null) dgvSeafood.CellDoubleClick += dgvSeafood_CellDoubleClick;
+        }
+
+        private void FormSeafoodList_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                LoadData();
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Handle(ex, "FormSeafoodList_Load");
+            }
         }
 
         private void LoadData()
         {
             try
             {
-                var list = _seafoodBLL.GetAll();
-                
-                string keyword = txtSearch.Text.ToLower();
-                if (!string.IsNullOrEmpty(keyword))
-                {
-                    list = list.Where(s => 
-                        s.SeafoodName.ToLower().Contains(keyword) || 
-                        s.CategoryName.ToLower().Contains(keyword)
-                    ).ToList();
-                }
+                Wait(true);
 
-                dgvSeafood.DataSource = list;
-                
-                // Configure Columns
-                if (dgvSeafood.Columns["CategoryID"] != null) dgvSeafood.Columns["CategoryID"].Visible = false;
-                if (dgvSeafood.Columns["Description"] != null) dgvSeafood.Columns["Description"].Visible = false;
-                if (dgvSeafood.Columns["ImagePath"] != null) dgvSeafood.Columns["ImagePath"].Visible = false;
-                if (dgvSeafood.Columns["IsDeleted"] != null) dgvSeafood.Columns["IsDeleted"].Visible = false;
-                if (dgvSeafood.Columns["CreatedDate"] != null) dgvSeafood.Columns["CreatedDate"].Visible = false;
-                if (dgvSeafood.Columns["UpdatedDate"] != null) dgvSeafood.Columns["UpdatedDate"].Visible = false;
-                if (dgvSeafood.Columns["Price"] != null) dgvSeafood.Columns["Price"].Visible = false; // Hide duplicate Price property
-
-                if (dgvSeafood.Columns["SeafoodName"] != null) dgvSeafood.Columns["SeafoodName"].HeaderText = "Tên hải sản";
-                if (dgvSeafood.Columns["CategoryName"] != null) dgvSeafood.Columns["CategoryName"].HeaderText = "Danh mục";
-                if (dgvSeafood.Columns["UnitPrice"] != null) 
-                {
-                    dgvSeafood.Columns["UnitPrice"].HeaderText = "Đơn giá";
-                    dgvSeafood.Columns["UnitPrice"].DefaultCellStyle.Format = "N0";
-                }
-                if (dgvSeafood.Columns["Quantity"] != null) dgvSeafood.Columns["Quantity"].HeaderText = "Số lượng";
-                if (dgvSeafood.Columns["Unit"] != null) dgvSeafood.Columns["Unit"].HeaderText = "Đơn vị";
-                if (dgvSeafood.Columns["Status"] != null) dgvSeafood.Columns["Status"].HeaderText = "Trạng thái";
+                _allData = _seafoodBLL.GetAll() ?? new List<SeafoodDTO>();
+                ApplyFilters();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
+                Debug.WriteLine($"Error loading seafood data: {ex.Message}");
+                MessageBox.Show($"Lỗi tải dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                Wait(false);
+            }
+        }
+
+        private void ApplyFilters()
+        {
+            try
+            {
+                var list = _allData;
+
+                // Apply search filter
+                string keyword = txtSearch?.Text?.Trim().ToLower() ?? string.Empty;
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    list = list.Where(s =>
+                        (s.SeafoodName?.ToLower().Contains(keyword) ?? false) ||
+                        (s.CategoryName?.ToLower().Contains(keyword) ?? false) ||
+                        (s.Unit?.ToLower().Contains(keyword) ?? false)
+                    ).ToList();
+                }
+
+                if (dgvSeafood != null)
+                {
+                    dgvSeafood.DataSource = list;
+                    ConfigureColumns();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error applying filters: {ex.Message}");
+            }
+        }
+
+        private void ConfigureColumns()
+        {
+            try
+            {
+                if (dgvSeafood == null) return;
+
+                // Auto-generate off when we control columns
+                if (dgvSeafood.AutoGenerateColumns)
+                {
+                    dgvSeafood.AutoGenerateColumns = false;
+                    dgvSeafood.Columns.Clear();
+                    dgvSeafood.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "SeafoodID", HeaderText = "ID", Width = 60 });
+                    dgvSeafood.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "SeafoodName", HeaderText = "Tên hải sản", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+                    dgvSeafood.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "CategoryName", HeaderText = "Danh mục", Width = 160 });
+                    dgvSeafood.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Unit", HeaderText = "Đơn vị", Width = 80 });
+                    dgvSeafood.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Quantity", HeaderText = "Số lượng", Width = 90, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight } });
+                    dgvSeafood.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "UnitPrice", HeaderText = "Đơn giá", Width = 120, DefaultCellStyle = new DataGridViewCellStyle { Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight } });
+                    dgvSeafood.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Status", HeaderText = "Trạng thái", Width = 120 });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error configuring columns: {ex.Message}");
             }
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            using (var form = new FormSeafoodAdd())
+            try
             {
-                if (form.ShowDialog() == DialogResult.OK)
+                using (var form = new FormSeafoodAdd())
                 {
-                    LoadData();
+                    if (form.ShowDialog(this) == DialogResult.OK)
+                    {
+                        LoadData();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error opening add form: {ex.Message}");
+                MessageBox.Show($"Lỗi mở form thêm: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void dgvSeafood_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            try
             {
-                var item = dgvSeafood.Rows[e.RowIndex].DataBoundItem as SeafoodDTO;
-                if (item != null)
+                if (e.RowIndex >= 0 && dgvSeafood?.Rows.Count > e.RowIndex)
                 {
-                    using (var form = new FormSeafoodEdit(item))
+                    var item = dgvSeafood.Rows[e.RowIndex].DataBoundItem as SeafoodDTO;
+                    if (item != null)
                     {
-                        if (form.ShowDialog() == DialogResult.OK)
+                        using (var form = new FormSeafoodEdit(item))
                         {
-                            LoadData();
+                            if (form.ShowDialog(this) == DialogResult.OK)
+                            {
+                                LoadData();
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error opening edit form: {ex.Message}");
+                MessageBox.Show($"Lỗi mở form sửa: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
-            LoadData();
+            // Debounce search to avoid excessive filtering
+            _searchDebounceTimer.Stop();
+            _searchDebounceTimer.Start();
+        }
+
+        private void FormSeafoodList_KeyDown(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.KeyCode == Keys.F5)
+                {
+                    LoadData();
+                    e.Handled = true;
+                }
+                else if (e.KeyCode == Keys.Enter && dgvSeafood?.CurrentRow != null)
+                {
+                    // Quick open edit
+                    var item = dgvSeafood.CurrentRow.DataBoundItem as SeafoodDTO;
+                    if (item != null)
+                    {
+                        using (var form = new FormSeafoodEdit(item))
+                        {
+                            if (form.ShowDialog(this) == DialogResult.OK)
+                                LoadData();
+                        }
+                        e.Handled = true;
+                    }
+                }
+                else if (e.Control && e.KeyCode == Keys.N)
+                {
+                    btnAdd_Click(sender, EventArgs.Empty);
+                    e.Handled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"KeyDown error: {ex.Message}");
+            }
+        }
+
+        protected override void CleanupResources()
+        {
+            try
+            {
+                _searchDebounceTimer?.Stop();
+                _searchDebounceTimer?.Dispose();
+                _allData?.Clear();
+                _seafoodBLL = null;
+            }
+            catch { }
+            finally
+            {
+                base.CleanupResources();
+            }
         }
     }
 }

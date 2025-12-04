@@ -2,15 +2,10 @@ namespace QLTN_LT.GUI.Authentication
 {
     partial class FormLogin
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
+        // #giao diện của FormLogin: biến components do Designer tạo
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        // #giao diện của FormLogin: giải phóng tài nguyên
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -22,10 +17,7 @@ namespace QLTN_LT.GUI.Authentication
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
+        // #giao diện của FormLogin: hàm khởi tạo giao diện (InitializeComponent)
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
@@ -38,12 +30,12 @@ namespace QLTN_LT.GUI.Authentication
             this.btnClose = new Guna.UI2.WinForms.Guna2Button();
             this.dragControl = new Guna.UI2.WinForms.Guna2DragControl();
             
-            // Left Panel
+
             this.pnlLeft = new Guna.UI2.WinForms.Guna2Panel();
             this.lblBrand = new System.Windows.Forms.Label();
             this.picLogo = new Guna.UI2.WinForms.Guna2PictureBox();
             
-            // Right Panel
+
             this.pnlRight = new Guna.UI2.WinForms.Guna2Panel();
             this.lblTitle = new System.Windows.Forms.Label();
             this.txtUsername = new Guna.UI2.WinForms.Guna2TextBox();
@@ -56,24 +48,25 @@ namespace QLTN_LT.GUI.Authentication
             
             this.pnlTitleBar.SuspendLayout();
             this.pnlLeft.SuspendLayout();
-            this.pnlRight.SuspendLayout();
+                        this.pnlRight.SuspendLayout();
+            this.pnlLoginContainer = new Guna.UI2.WinForms.Guna2Panel();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
             this.SuspendLayout();
             
             // 
-            // guna2Elipse1 - Border radius cho form
+            // #giao diện của FormLogin
             // 
             this.guna2Elipse1.BorderRadius = 15;
             this.guna2Elipse1.TargetControl = this;
             
             // 
-            // guna2ShadowForm1 - Shadow form cho login
+            
             // 
             this.guna2ShadowForm1.ShadowColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(23)))), ((int)(((byte)(42)))));
             this.guna2ShadowForm1.TargetForm = this;
             
             // 
-            // pnlTitleBar - Custom Title Bar với Guna UI2 (màu xanh nhạt đẹp, hài hòa)
+            // #giao diện của FormLogin: Title Bar
             // 
             this.pnlTitleBar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(246)))), ((int)(((byte)(255)))));
             this.pnlTitleBar.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(191)))), ((int)(((byte)(219)))), ((int)(((byte)(254)))));
@@ -89,7 +82,7 @@ namespace QLTN_LT.GUI.Authentication
             this.pnlTitleBar.Size = new System.Drawing.Size(1024, 40);
             this.pnlTitleBar.TabIndex = 0;
             // 
-            // btnSettings - Nút Settings với icon hiện đại
+            
             // 
             this.btnSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSettings.BorderRadius = 0;
@@ -176,7 +169,7 @@ namespace QLTN_LT.GUI.Authentication
             this.dragControl.TargetControl = this.pnlTitleBar;
             this.dragControl.TransparentWhileDrag = false;
             // 
-            // pnlLeft - Dock từ dưới title bar (sẽ có gradient trong Paint event)
+            // #giao diện của FormLogin: khu vực trái
             // 
             this.pnlLeft.Controls.Add(this.lblBrand);
             this.pnlLeft.Controls.Add(this.picLogo);
@@ -191,11 +184,11 @@ namespace QLTN_LT.GUI.Authentication
             // lblBrand
             // 
             this.lblBrand.BackColor = System.Drawing.Color.Transparent;
-            this.lblBrand.Font = new System.Drawing.Font("Segoe UI", 28F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblBrand.Font = new System.Drawing.Font("Segoe UI", 26F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblBrand.ForeColor = System.Drawing.Color.White;
-            this.lblBrand.Location = new System.Drawing.Point(50, 400);
+            this.lblBrand.Location = new System.Drawing.Point(30, 420);
             this.lblBrand.Name = "lblBrand";
-            this.lblBrand.Size = new System.Drawing.Size(412, 60);
+            this.lblBrand.Size = new System.Drawing.Size(452, 80);
             this.lblBrand.TabIndex = 1;
             this.lblBrand.Text = "Quản Lý Hải Sản";
             this.lblBrand.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -213,17 +206,27 @@ namespace QLTN_LT.GUI.Authentication
             this.picLogo.TabStop = false;
             
             // 
-            // pnlRight - Panel trắng tinh tế
+            
             // 
             this.pnlRight.BackColor = System.Drawing.Color.White;
-            this.pnlRight.Controls.Add(this.lblError);
-            this.pnlRight.Controls.Add(this.btnLogin);
-            this.pnlRight.Controls.Add(this.lblCapsLock);
-            this.pnlRight.Controls.Add(this.lblPasswordError);
-            this.pnlRight.Controls.Add(this.txtPassword);
-            this.pnlRight.Controls.Add(this.lblUsernameError);
-            this.pnlRight.Controls.Add(this.txtUsername);
-            this.pnlRight.Controls.Add(this.lblTitle);
+            this.pnlRight.Controls.Add(this.pnlLoginContainer);
+                        // 
+            // pnlLoginContainer
+            // 
+            this.pnlLoginContainer.BackColor = System.Drawing.Color.Transparent;
+            this.pnlLoginContainer.FillColor = System.Drawing.Color.Transparent;
+            this.pnlLoginContainer.Location = new System.Drawing.Point(0, 0);
+            this.pnlLoginContainer.Name = "pnlLoginContainer";
+            this.pnlLoginContainer.Size = new System.Drawing.Size(450, 500);
+            this.pnlLoginContainer.TabIndex = 10;
+            this.pnlLoginContainer.Controls.Add(this.lblTitle);
+            this.pnlLoginContainer.Controls.Add(this.txtUsername);
+            this.pnlLoginContainer.Controls.Add(this.lblUsernameError);
+            this.pnlLoginContainer.Controls.Add(this.txtPassword);
+            this.pnlLoginContainer.Controls.Add(this.lblPasswordError);
+            this.pnlLoginContainer.Controls.Add(this.lblCapsLock);
+            this.pnlLoginContainer.Controls.Add(this.btnLogin);
+            this.pnlLoginContainer.Controls.Add(this.lblError);
             this.pnlRight.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlRight.FillColor = System.Drawing.Color.White;
             this.pnlRight.Location = new System.Drawing.Point(512, 40);
@@ -234,14 +237,17 @@ namespace QLTN_LT.GUI.Authentication
             // 
             // lblTitle
             // 
-            this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 32F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
-            this.lblTitle.Location = new System.Drawing.Point(120, 100);
+            this.lblTitle.AutoSize = false;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(58)))), ((int)(((byte)(138)))));
+                        
+            this.lblTitle.Location = new System.Drawing.Point(84, 80);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(310, 59);
+            this.lblTitle.Size = new System.Drawing.Size(392, 70);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "Đăng Nhập";
+            this.lblTitle.Padding = new System.Windows.Forms.Padding(12, 0, 0, 0);
+            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             
             // 
             // txtUsername
@@ -253,14 +259,15 @@ namespace QLTN_LT.GUI.Authentication
             this.txtUsername.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(226)))), ((int)(((byte)(226)))), ((int)(((byte)(226)))));
             this.txtUsername.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(138)))), ((int)(((byte)(138)))), ((int)(((byte)(138)))));
             this.txtUsername.DisabledState.PlaceholderForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(138)))), ((int)(((byte)(138)))), ((int)(((byte)(138)))));
-            this.txtUsername.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.txtUsername.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(114)))), ((int)(((byte)(128)))));
             this.txtUsername.BorderThickness = 2;
             this.txtUsername.FillColor = System.Drawing.Color.White;
             this.txtUsername.FocusedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
             this.txtUsername.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular);
             this.txtUsername.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
             this.txtUsername.HoverState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
-            this.txtUsername.Location = new System.Drawing.Point(60, 200);
+                        
+            this.txtUsername.Location = new System.Drawing.Point(60, 170);
             this.txtUsername.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtUsername.Name = "txtUsername";
             this.txtUsername.PasswordChar = '\0';
@@ -276,7 +283,8 @@ namespace QLTN_LT.GUI.Authentication
             this.lblUsernameError.AutoSize = true;
             this.lblUsernameError.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblUsernameError.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(68)))), ((int)(((byte)(68)))));
-            this.lblUsernameError.Location = new System.Drawing.Point(60, 274);
+                        
+            this.lblUsernameError.Location = new System.Drawing.Point(60, 225);
             this.lblUsernameError.Name = "lblUsernameError";
             this.lblUsernameError.Size = new System.Drawing.Size(0, 15);
             this.lblUsernameError.TabIndex = 2;
@@ -291,14 +299,15 @@ namespace QLTN_LT.GUI.Authentication
             this.txtPassword.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(226)))), ((int)(((byte)(226)))), ((int)(((byte)(226)))));
             this.txtPassword.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(138)))), ((int)(((byte)(138)))), ((int)(((byte)(138)))));
             this.txtPassword.DisabledState.PlaceholderForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(138)))), ((int)(((byte)(138)))), ((int)(((byte)(138)))));
-            this.txtPassword.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.txtPassword.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(114)))), ((int)(((byte)(128)))));
             this.txtPassword.BorderThickness = 2;
             this.txtPassword.FillColor = System.Drawing.Color.White;
             this.txtPassword.FocusedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
             this.txtPassword.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Regular);
             this.txtPassword.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
             this.txtPassword.HoverState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
-            this.txtPassword.Location = new System.Drawing.Point(60, 300);
+                        
+            this.txtPassword.Location = new System.Drawing.Point(60, 260);
             this.txtPassword.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.PasswordChar = '●';
@@ -315,7 +324,8 @@ namespace QLTN_LT.GUI.Authentication
             this.lblPasswordError.AutoSize = true;
             this.lblPasswordError.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblPasswordError.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(68)))), ((int)(((byte)(68)))));
-            this.lblPasswordError.Location = new System.Drawing.Point(60, 374);
+                        
+            this.lblPasswordError.Location = new System.Drawing.Point(60, 315);
             this.lblPasswordError.Name = "lblPasswordError";
             this.lblPasswordError.Size = new System.Drawing.Size(0, 15);
             this.lblPasswordError.TabIndex = 4;
@@ -326,7 +336,8 @@ namespace QLTN_LT.GUI.Authentication
             this.lblCapsLock.AutoSize = true;
             this.lblCapsLock.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblCapsLock.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(251)))), ((int)(((byte)(146)))), ((int)(((byte)(60)))));
-            this.lblCapsLock.Location = new System.Drawing.Point(60, 395);
+            
+            this.lblCapsLock.Location = new System.Drawing.Point(60, 330);
             this.lblCapsLock.Name = "lblCapsLock";
             this.lblCapsLock.Size = new System.Drawing.Size(130, 15);
             this.lblCapsLock.TabIndex = 5;
@@ -334,9 +345,9 @@ namespace QLTN_LT.GUI.Authentication
             this.lblCapsLock.Visible = false;
             
             // 
-            // btnLogin - Modern gradient button với viền đen
+            
             // 
-            this.btnLogin.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.btnLogin.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(114)))), ((int)(((byte)(128)))));
             this.btnLogin.BorderRadius = 12;
             this.btnLogin.BorderThickness = 2;
             this.btnLogin.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
@@ -348,11 +359,14 @@ namespace QLTN_LT.GUI.Authentication
             this.btnLogin.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
             this.btnLogin.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnLogin.ForeColor = System.Drawing.Color.White;
-            this.btnLogin.Location = new System.Drawing.Point(60, 420);
+            this.btnLogin.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
+            this.btnLogin.HoverState.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(29)))), ((int)(((byte)(78)))), ((int)(((byte)(216)))));
+                        
+            this.btnLogin.Location = new System.Drawing.Point(60, 360);
             this.btnLogin.Name = "btnLogin";
             this.btnLogin.AutoRoundedCorners = true;
             this.btnLogin.BorderRadius = 27;
-            this.btnLogin.GradientMode = System.Drawing.Drawing2D.LinearGradientMode.Horizontal;
+
             this.btnLogin.Size = new System.Drawing.Size(392, 55);
             this.btnLogin.TabIndex = 6;
             this.btnLogin.Text = "Đăng Nhập";
@@ -367,7 +381,8 @@ namespace QLTN_LT.GUI.Authentication
             this.lblError.AutoSize = true;
             this.lblError.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblError.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(68)))), ((int)(((byte)(68)))));
-            this.lblError.Location = new System.Drawing.Point(60, 505);
+                        
+            this.lblError.Location = new System.Drawing.Point(60, 430);
             this.lblError.Name = "lblError";
             this.lblError.Size = new System.Drawing.Size(0, 19);
             this.lblError.TabIndex = 7;
@@ -382,7 +397,7 @@ namespace QLTN_LT.GUI.Authentication
             this.Controls.Add(this.pnlLeft);
             this.Controls.Add(this.pnlTitleBar);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            // Cho phép resize và maximize - không cố định kích thước
+            
             this.MinimumSize = new System.Drawing.Size(800, 500); // Kích thước tối thiểu hợp lý
             this.Name = "FormLogin";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -407,13 +422,14 @@ namespace QLTN_LT.GUI.Authentication
         private Guna.UI2.WinForms.Guna2Button btnClose;
         private Guna.UI2.WinForms.Guna2DragControl dragControl;
         
-        // Left Panel
+        // #giao diện của FormLogin: khu vực trái
         private Guna.UI2.WinForms.Guna2Panel pnlLeft;
         private Guna.UI2.WinForms.Guna2PictureBox picLogo;
         private System.Windows.Forms.Label lblBrand;
         
         // Right Panel
-        private Guna.UI2.WinForms.Guna2Panel pnlRight;
+                private Guna.UI2.WinForms.Guna2Panel pnlRight;
+        private Guna.UI2.WinForms.Guna2Panel pnlLoginContainer;
         private System.Windows.Forms.Label lblTitle;
         private Guna.UI2.WinForms.Guna2TextBox txtUsername;
         private System.Windows.Forms.Label lblUsernameError;

@@ -10,42 +10,45 @@ namespace QLTN_LT.DAL
     {
         public List<DailyRevenueDTO> GetDailyRevenue(DateTime fromDate, DateTime toDate)
         {
-            {
-                var list = new List<DailyRevenueDTO>();
-                const string sql = "hs.sp_GetDailyRevenue";
-
-                using (var conn = DatabaseHelper.CreateConnection())
-                using (var cmd = new SqlCommand(sql, conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@FromDate", fromDate);
-                    cmd.Parameters.AddWithValue("@ToDate", toDate);
-                    conn.Open();
-                    using (var rd = cmd.ExecuteReader())
-                    {
-                        while (rd.Read())
-                        {
-                            list.Add(new DailyRevenueDTO
-                            {
-                                OrderDate = (DateTime)rd["OrderDate"],
-                                OrderCount = (int)rd["OrderCount"],
-                                TotalRevenue = (decimal)rd["TotalRevenue"]
-                            });
-                        }
-                    }
-                }
-                return list;
-            }
-        }
-
-        public int GetOrderCount(DateTime fromDate, DateTime toDate)
-        {
-            const string sql = "hs.sp_GetOrderCountByDateRange";
+            var list = new List<DailyRevenueDTO>();
+            const string sql = @"
+                SELECT CAST(o.OrderDate AS DATE) AS OrderDate,
+                       COUNT(*) AS OrderCount,
+                       SUM(o.TotalAmount) AS TotalRevenue
+                FROM dbo.Orders o
+                WHERE o.OrderDate >= @FromDate AND o.OrderDate < @ToDate
+                  AND o.Status = 'Completed'
+                GROUP BY CAST(o.OrderDate AS DATE)
+                ORDER BY CAST(o.OrderDate AS DATE)";
 
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@FromDate", fromDate);
+                cmd.Parameters.AddWithValue("@ToDate", toDate);
+                conn.Open();
+                using (var rd = cmd.ExecuteReader())
+                {
+                    while (rd.Read())
+                    {
+                        list.Add(new DailyRevenueDTO
+                        {
+                            OrderDate = rd.GetDateTime(0),
+                            OrderCount = rd.GetInt32(1),
+                            TotalRevenue = rd.GetDecimal(2)
+                        });
+                    }
+                }
+            }
+            return list;
+        }
+
+        public int GetOrderCount(DateTime fromDate, DateTime toDate)
+        {
+            const string sql = @"SELECT COUNT(*) FROM dbo.Orders WHERE OrderDate >= @FromDate AND OrderDate < @ToDate";
+            using (var conn = DatabaseHelper.CreateConnection())
+            using (var cmd = new SqlCommand(sql, conn))
+            {
                 cmd.Parameters.AddWithValue("@FromDate", fromDate);
                 cmd.Parameters.AddWithValue("@ToDate", toDate);
                 conn.Open();
@@ -56,12 +59,10 @@ namespace QLTN_LT.DAL
 
         public int GetNewCustomersCount(DateTime fromDate, DateTime toDate)
         {
-            const string sql = "hs.sp_GetNewCustomersCountByDateRange";
-
+            const string sql = @"SELECT COUNT(*) FROM dbo.Customers WHERE CreatedDate >= @FromDate AND CreatedDate < @ToDate";
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@FromDate", fromDate);
                 cmd.Parameters.AddWithValue("@ToDate", toDate);
                 conn.Open();
@@ -70,15 +71,18 @@ namespace QLTN_LT.DAL
             }
         }
 
-                public List<InventoryStatusDTO> GetInventoryStatusReport()
+        public List<InventoryStatusDTO> GetInventoryStatusReport()
         {
             var list = new List<InventoryStatusDTO>();
-            const string sql = "hs.sp_GetInventoryStatusReport";
+            const string sql = @"
+                SELECT i.InventoryID AS ItemID, s.SeafoodName AS ItemName, i.Quantity AS QuantityRemaining
+                FROM dbo.Inventory i
+                INNER JOIN dbo.Seafoods s ON i.SeafoodID = s.SeafoodID
+                ORDER BY i.Quantity ASC";
 
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
                 conn.Open();
                 using (var rd = cmd.ExecuteReader())
                 {
@@ -99,12 +103,24 @@ namespace QLTN_LT.DAL
         public List<TopSellingItemDTO> GetTopSellingItems(int topCount, DateTime fromDate, DateTime toDate)
         {
             var list = new List<TopSellingItemDTO>();
-            const string sql = "hs.sp_GetTopSellingSeafood";
+            const string sql = @"
+                SELECT TOP (@TopCount)
+                       s.SeafoodID AS ItemID,
+                       s.SeafoodName AS ItemName,
+                       c.CategoryName,
+                       SUM(od.Quantity) AS TotalQuantitySold,
+                       SUM(od.Quantity * od.UnitPrice) AS TotalRevenue
+                FROM dbo.OrderDetails od
+                INNER JOIN dbo.Orders o ON od.OrderID = o.OrderID
+                INNER JOIN dbo.Seafoods s ON od.SeafoodID = s.SeafoodID
+                LEFT JOIN dbo.Categories c ON s.CategoryID = c.CategoryID
+                WHERE o.OrderDate >= @FromDate AND o.OrderDate < @ToDate AND o.Status = 'Completed'
+                GROUP BY s.SeafoodID, s.SeafoodName, c.CategoryName
+                ORDER BY TotalQuantitySold DESC, TotalRevenue DESC";
 
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@TopCount", topCount);
                 cmd.Parameters.AddWithValue("@FromDate", fromDate);
                 cmd.Parameters.AddWithValue("@ToDate", toDate);
@@ -115,11 +131,11 @@ namespace QLTN_LT.DAL
                     {
                         list.Add(new TopSellingItemDTO
                         {
-                            ItemID = (int)rd["SeafoodID"],
-                            ItemName = rd["SeafoodName"].ToString(),
-                            CategoryName = rd["CategoryName"].ToString(),
-                            TotalQuantitySold = (int)rd["TotalQuantitySold"],
-                            TotalRevenue = (decimal)rd["TotalRevenue"]
+                            ItemID = rd.GetInt32(0),
+                            ItemName = rd.GetString(1),
+                            CategoryName = rd.IsDBNull(2) ? null : rd.GetString(2),
+                            TotalQuantitySold = rd.GetInt32(3),
+                            TotalRevenue = rd.GetDecimal(4)
                         });
                     }
                 }
@@ -128,4 +144,3 @@ namespace QLTN_LT.DAL
         }
     }
 }
-

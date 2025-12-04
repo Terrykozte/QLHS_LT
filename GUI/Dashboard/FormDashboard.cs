@@ -8,10 +8,12 @@ using LiveCharts.Wpf;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
 using Guna.UI2.WinForms;
+using QLTN_LT.GUI.Base;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Dashboard
 {
-    public partial class FormDashboard : Form
+    public partial class FormDashboard : BaseForm
     {
         private readonly ReportBLL _bll = new ReportBLL();
 
@@ -22,46 +24,172 @@ namespace QLTN_LT.GUI.Dashboard
             InitializeComponent();
             _wpfRevenueChart = new LiveCharts.Wpf.CartesianChart();
             revenueChart.Child = _wpfRevenueChart;
+
+            // UX & Styling
+            try
+            {
+                UIHelper.ApplyFormStyle(this);
+                if (dgvExpiration != null) UIHelper.ApplyGridStyle(dgvExpiration);
+            }
+            catch { }
+
+            this.KeyPreview = true;
+            this.KeyDown += FormDashboard_KeyDown;
         }
+
+        private Timer _debounceTimer;
 
         private void FormDashboard_Load(object sender, EventArgs e)
         {
-            // Set default date range (e.g., last 7 days)
-            dtpEndDate.Value = DateTime.Today;
-            dtpStartDate.Value = DateTime.Today.AddDays(-6);
+            try
+            {
+                // Debounce for filters
+                _debounceTimer = new Timer { Interval = 350 };
+                _debounceTimer.Tick += (s, e2) => { _debounceTimer.Stop(); LoadAllDashboardData(); };
 
-            // Load initial data
-            LoadAllDashboardData();
+                // Set default date range (e.g., last 7 days)
+                if (dtpEndDate != null) dtpEndDate.Value = DateTime.Today;
+                if (dtpStartDate != null) dtpStartDate.Value = DateTime.Today.AddDays(-6);
+
+                // Wire quick filter changes
+                if (dtpStartDate != null) dtpStartDate.ValueChanged += (s, e2) => { _debounceTimer.Stop(); _debounceTimer.Start(); };
+                if (dtpEndDate != null) dtpEndDate.ValueChanged += (s, e2) => { _debounceTimer.Stop(); _debounceTimer.Start(); };
+                if (btnApplyFilter != null) btnApplyFilter.Click += btnApplyFilter_Click;
+
+                // Load initial data
+                LoadAllDashboardData();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tải bảng điều khiển: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                System.Diagnostics.Debug.WriteLine($"FormDashboard_Load error: {ex}");
+            }
         }
 
         private void btnApplyFilter_Click(object sender, EventArgs e)
         {
-            LoadAllDashboardData();
+            try
+            {
+                LoadAllDashboardData();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi áp dụng bộ lọc: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                System.Diagnostics.Debug.WriteLine($"btnApplyFilter_Click error: {ex}");
+            }
+        }
+
+        private void FormDashboard_KeyDown(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.KeyCode == Keys.F5)
+                {
+                    LoadAllDashboardData();
+                    e.Handled = true;
+                }
+                else if (e.Control && e.KeyCode == Keys.R)
+                {
+                    LoadAllDashboardData();
+                    e.Handled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"FormDashboard_KeyDown error: {ex.Message}");
+            }
+        }
+
+        protected override void CleanupResources()
+        {
+            try
+            {
+                _debounceTimer?.Stop();
+                _debounceTimer?.Dispose();
+                if (revenueChart != null)
+                {
+                    revenueChart.Child = null;
+                }
+                if (_wpfRevenueChart != null)
+                {
+                    _wpfRevenueChart.Series = new SeriesCollection();
+                    _wpfRevenueChart = null;
+                }
+            }
+            catch { }
+            finally
+            {
+                base.CleanupResources();
+            }
         }
 
         private void LoadAllDashboardData()
         {
-            DateTime startDate = dtpStartDate.Value;
-            DateTime endDate = dtpEndDate.Value;
-
-            if (startDate > endDate)
+            try
             {
-                MessageBox.Show("Ngày bắt đầu không được lớn hơn ngày kết thúc.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+                DateTime startDate = dtpStartDate.Value;
+                DateTime endDate = dtpEndDate.Value;
 
-            LoadStatCards(startDate, endDate);
-            LoadRevenueChart(startDate, endDate);
-            LoadTopSellingList(startDate, endDate);
-            LoadLowStockList();
+                if (startDate > endDate)
+                {
+                    MessageBox.Show("Ngày bắt đầu không được lớn hơn ngày kết thúc.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Show loading state
+                ShowLoadingState(true);
+
+                try
+                {
+                    LoadStatCards(startDate, endDate);
+                    LoadRevenueChart(startDate, endDate);
+                    LoadTopSellingList(startDate, endDate);
+                    LoadLowStockList();
+                }
+                finally
+                {
+                    ShowLoadingState(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tải dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                System.Diagnostics.Debug.WriteLine($"LoadAllDashboardData error: {ex}");
+            }
+        }
+
+        private void ShowLoadingState(bool isLoading)
+        {
+            if (isLoading)
+            {
+                progressIndicator.Visible = true;
+                progressIndicator.Start();
+                tlpMain.Enabled = false;
+            }
+            else
+            {
+                progressIndicator.Visible = false;
+                progressIndicator.Stop();
+                tlpMain.Enabled = true;
+            }
+            btnApplyFilter.Enabled = !isLoading;
         }
 
         private void LoadStatCards(DateTime startDate, DateTime endDate)
         {
             try
             {
-                lblOrdersCount.Text = _bll.GetOrderCount(startDate, endDate).ToString();
-                lblCustomersCount.Text = _bll.GetNewCustomersCount(startDate, endDate).ToString();
+                // Set default values
+                lblOrdersCount.Text = "0";
+                lblCustomersCount.Text = "0";
+                lblTotalRevenue.Text = "0 VNĐ";
+
+                // Load data
+                int orderCount = _bll.GetOrderCount(startDate, endDate);
+                lblOrdersCount.Text = orderCount.ToString();
+
+                int customerCount = _bll.GetNewCustomersCount(startDate, endDate);
+                lblCustomersCount.Text = customerCount.ToString();
 
                 // Update titles
                 string dateRangeStr = startDate.ToString("dd/MM") == endDate.ToString("dd/MM") ? "hôm nay" : $"từ {startDate:dd/MM} đến {endDate:dd/MM}";
@@ -69,155 +197,237 @@ namespace QLTN_LT.GUI.Dashboard
                 lblOrdersTitle.Text = $"Đơn hàng {dateRangeStr}";
                 lblCustomersTitle.Text = $"Khách hàng mới {dateRangeStr}";
 
-                // Dummy trends for now as we don't have historical comparison logic yet
+                // Dummy trends
                 lblRevenueTrend.Text = "+5.2%";
                 lblOrdersTrend.Text = "-1.5%";
                 lblCustomersTrend.Text = "+12.8%";
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải dữ liệu thống kê: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                System.Diagnostics.Debug.WriteLine($"LoadStatCards error: {ex.Message}");
                 lblOrdersCount.Text = "N/A";
                 lblCustomersCount.Text = "N/A";
+                lblTotalRevenue.Text = "N/A";
             }
         }
 
         private void LoadRevenueChart(DateTime startDate, DateTime endDate)
         {
-            var revenueData = _bll.GetDailyRevenue(startDate, endDate);
-            decimal totalRevenue = revenueData.Sum(r => r.TotalRevenue);
-            lblTotalRevenue.Text = $"{totalRevenue:N0} VNĐ";
-
-            var dayLabels = revenueData.Select(r => r.OrderDate.ToString("dd/MM")).ToArray();
-            var revenueValues = new ChartValues<decimal>(revenueData.Select(r => r.TotalRevenue));
-
-            _wpfRevenueChart.Series = new SeriesCollection
+            try
             {
-                new ColumnSeries
+                var revenueData = _bll.GetDailyRevenue(startDate, endDate);
+                
+                if (revenueData == null || revenueData.Count == 0)
                 {
-                    Title = "Doanh thu",
-                    Values = revenueValues,
-                    Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(19, 146, 236)) // Primary Blue
+                    lblTotalRevenue.Text = "0 VNĐ";
+                    if (_wpfRevenueChart != null)
+                    {
+                        _wpfRevenueChart.Series = new SeriesCollection();
+                    }
+                    return;
                 }
-            };
 
-            _wpfRevenueChart.AxisX.Clear();
-            _wpfRevenueChart.AxisY.Clear();
+                decimal totalRevenue = revenueData.Sum(r => r.TotalRevenue);
+                if (lblTotalRevenue != null)
+                    lblTotalRevenue.Text = $"{totalRevenue:N0} VNĐ";
 
-            _wpfRevenueChart.AxisX.Add(new Axis
+                var dayLabels = revenueData.Select(r => r.OrderDate.ToString("dd/MM")).ToArray();
+                var revenueValues = new ChartValues<decimal>(revenueData.Select(r => r.TotalRevenue));
+
+                if (_wpfRevenueChart != null)
+                {
+                    _wpfRevenueChart.Series = new SeriesCollection
+                    {
+                        new ColumnSeries
+                        {
+                            Title = "Doanh thu",
+                            Values = revenueValues,
+                            Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(19, 146, 236)) // Primary Blue
+                        }
+                    };
+
+                    _wpfRevenueChart.AxisX.Clear();
+                    _wpfRevenueChart.AxisY.Clear();
+
+                    _wpfRevenueChart.AxisX.Add(new Axis
+                    {
+                        Title = "Ngày",
+                        Labels = dayLabels,
+                        Separator = new Separator { Step = 1, IsEnabled = false },
+                        LabelsRotation = dayLabels.Length > 7 ? 45 : 0
+                    });
+
+                    _wpfRevenueChart.AxisY.Add(new Axis
+                    {
+                        Title = "Doanh thu (VNĐ)",
+                        LabelFormatter = value => value.ToString("N0")
+                    });
+                }
+            }
+            catch (Exception ex)
             {
-                Title = "Ngày",
-                Labels = dayLabels,
-                Separator = new Separator { Step = 1, IsEnabled = false },
-                LabelsRotation = dayLabels.Length > 7 ? 45 : 0
-            });
-
-            _wpfRevenueChart.AxisY.Add(new Axis
-            {
-                Title = "Doanh thu (VNĐ)",
-                LabelFormatter = value => value.ToString("N0")
-            });
+                System.Diagnostics.Debug.WriteLine($"LoadRevenueChart error: {ex.Message}");
+                if (lblTotalRevenue != null)
+                    lblTotalRevenue.Text = "N/A";
+            }
         }
 
         private void LoadTopSellingList(DateTime startDate, DateTime endDate)
         {
-            var topItems = _bll.GetTopSellingItems(5, startDate, endDate);
-            flowTopSelling.Controls.Clear();
-
-            if (topItems != null && topItems.Any())
+            try
             {
-                foreach (var item in topItems)
+                var topItems = _bll.GetTopSellingItems(5, startDate, endDate);
+                
+                if (flowTopSelling != null)
+                    flowTopSelling.Controls.Clear();
+
+                if (topItems != null && topItems.Any())
                 {
-                    // Create Item Panel
-                    Guna2Panel pnlItem = new Guna2Panel
+                    foreach (var item in topItems)
                     {
-                        Size = new Size(280, 60),
-                        BackColor = System.Drawing.Color.White,
-                        Margin = new Padding(0, 0, 0, 10)
-                    };
-
-                    // Icon/Image Placeholder
-                    Guna2PictureBox picItem = new Guna2PictureBox
-                    {
-                        Size = new Size(40, 40),
-                        Location = new Point(10, 10),
-                        SizeMode = PictureBoxSizeMode.Zoom,
-                        BorderRadius = 5,
-                        FillColor = System.Drawing.Color.FromArgb(241, 245, 249) // Slate-100
-                    };
-                    // In a real app, load image from path. For now, use a colored box or default icon.
-                    
-                    // Name Label
-                    Label lblName = new Label
-                    {
-                        Text = item.ItemName,
-                        Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                        ForeColor = System.Drawing.Color.FromArgb(51, 65, 85), // Slate-700
-                        Location = new Point(60, 10),
-                        AutoSize = true
-                    };
-
-                    // Category/Price Label
-                    Label lblSub = new Label
-                    {
-                        Text = item.CategoryName, // Or Price if available
-                        Font = new Font("Segoe UI", 8, FontStyle.Regular),
-                        ForeColor = System.Drawing.Color.FromArgb(100, 116, 139), // Slate-500
-                        Location = new Point(60, 30),
-                        AutoSize = true
-                    };
-
-                    // Sales Count Label
-                    Label lblSales = new Label
-                    {
-                        Text = $"{item.TotalQuantitySold} bán",
-                        Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                        ForeColor = System.Drawing.Color.FromArgb(15, 23, 42), // Slate-900
-                        Location = new Point(200, 20),
-                        AutoSize = true,
-                        TextAlign = ContentAlignment.MiddleRight
-                    };
-                    // Adjust location to right align
-                    lblSales.Location = new Point(pnlItem.Width - lblSales.Width - 10, 20);
-
-                    pnlItem.Controls.Add(picItem);
-                    pnlItem.Controls.Add(lblName);
-                    pnlItem.Controls.Add(lblSub);
-                    pnlItem.Controls.Add(lblSales);
-
-                    flowTopSelling.Controls.Add(pnlItem);
+                        if (flowTopSelling != null)
+                        {
+                            var itemPanel = CreateTopSellingItemPanel(item);
+                            flowTopSelling.Controls.Add(itemPanel);
+                        }
+                    }
                 }
-            }
 
-            // Update title
-            string dateRangeStr = startDate.Date == endDate.Date ? "hôm nay" : $"từ {startDate:dd/MM} đến {endDate:dd/MM}";
-            lblTopSellingTitle.Text = $"Top 5 món bán chạy {dateRangeStr}";
+                // Update title
+                string dateRangeStr = startDate.Date == endDate.Date ? "hôm nay" : $"từ {startDate:dd/MM} đến {endDate:dd/MM}";
+                if (lblTopSellingTitle != null)
+                    lblTopSellingTitle.Text = $"Top 5 món bán chạy {dateRangeStr}";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"LoadTopSellingList error: {ex.Message}");
+            }
         }
 
         private void LoadLowStockList()
         {
-            var inventory = _bll.GetInventoryStatusReport();
-            // Filter for low stock, e.g., < 20
-            var lowStockItems = inventory.Where(i => i.QuantityRemaining < 20).ToList();
-
-            dgvExpiration.DataSource = lowStockItems;
-            
-            // Configure Columns
-            if (dgvExpiration.Columns.Count > 0)
+            try
             {
-                dgvExpiration.Columns["ItemID"].Visible = false;
-                dgvExpiration.Columns["ItemName"].HeaderText = "Tên sản phẩm";
-                dgvExpiration.Columns["QuantityRemaining"].HeaderText = "Tồn kho";
+                var inventory = _bll.GetInventoryStatusReport();
                 
-                // Style
-                dgvExpiration.Theme = Guna.UI2.WinForms.Enums.DataGridViewPresetThemes.Default;
-                dgvExpiration.ColumnHeadersHeight = 30;
-                dgvExpiration.RowTemplate.Height = 30;
-                dgvExpiration.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
-                dgvExpiration.DefaultCellStyle.Font = new Font("Segoe UI", 9);
-            }
+                if (inventory == null)
+                {
+                    if (dgvExpiration != null)
+                        dgvExpiration.DataSource = null;
+                    return;
+                }
 
-            lblExpirationTitle.Text = "Cảnh báo tồn kho thấp (< 20)";
+                // Filter for low stock, prefer QuantityRemaining else fallback to Quantity
+                var lowStockItems = inventory.Where(i =>
+                {
+                    try
+                    {
+                        var type = i.GetType();
+                        var prop = type.GetProperty("QuantityRemaining") ?? type.GetProperty("Quantity");
+                        if (prop == null) return false;
+                        var val = prop.GetValue(i);
+                        int qty = 0;
+                        if (val is int iv) qty = iv;
+                        else if (val != null && int.TryParse(val.ToString(), out var p)) qty = p;
+                        return qty < 20;
+                    }
+                    catch { return false; }
+                }).ToList();
+
+                if (dgvExpiration != null)
+                {
+                    dgvExpiration.DataSource = lowStockItems;
+                    
+                    // Configure Columns
+                    if (dgvExpiration.Columns.Count > 0)
+                    {
+                        if (dgvExpiration.Columns["ItemID"] != null)
+                            dgvExpiration.Columns["ItemID"].Visible = false;
+                        
+                        if (dgvExpiration.Columns["ItemName"] != null)
+                            dgvExpiration.Columns["ItemName"].HeaderText = "Tên sản phẩm";
+                        
+                        if (dgvExpiration.Columns["QuantityRemaining"] != null)
+                            dgvExpiration.Columns["QuantityRemaining"].HeaderText = "Tồn kho";
+                        
+                        // Style
+                        dgvExpiration.Theme = Guna.UI2.WinForms.Enums.DataGridViewPresetThemes.Default;
+                        dgvExpiration.ColumnHeadersHeight = 30;
+                        dgvExpiration.RowTemplate.Height = 30;
+                        dgvExpiration.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+                        dgvExpiration.DefaultCellStyle.Font = new Font("Segoe UI", 9);
+                    }
+                }
+
+                if (lblExpirationTitle != null)
+                    lblExpirationTitle.Text = "Cảnh báo tồn kho thấp (< 20)";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"LoadLowStockList error: {ex.Message}");
+            }
+        }
+
+        private Guna2Panel CreateTopSellingItemPanel(TopSellingItemDTO item)
+        {
+            try
+            {
+                Guna2Panel pnlItem = new Guna2Panel
+                {
+                    Size = new Size(280, 60),
+                    BackColor = System.Drawing.Color.White,
+                    Margin = new Padding(0, 0, 0, 10)
+                };
+
+                Guna2PictureBox picItem = new Guna2PictureBox
+                {
+                    Size = new Size(40, 40),
+                    Location = new Point(10, 10),
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    BorderRadius = 5,
+                    FillColor = System.Drawing.Color.FromArgb(241, 245, 249)
+                };
+
+                Label lblName = new Label
+                {
+                    Text = item.ItemName ?? "N/A",
+                    Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                    ForeColor = System.Drawing.Color.FromArgb(51, 65, 85),
+                    Location = new Point(60, 10),
+                    AutoSize = true
+                };
+
+                Label lblSub = new Label
+                {
+                    Text = item.CategoryName ?? "N/A",
+                    Font = new Font("Segoe UI", 8, FontStyle.Regular),
+                    ForeColor = System.Drawing.Color.FromArgb(100, 116, 139),
+                    Location = new Point(60, 30),
+                    AutoSize = true
+                };
+
+                Label lblSales = new Label
+                {
+                    Text = $"{item.TotalQuantitySold} bán",
+                    Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                    ForeColor = System.Drawing.Color.FromArgb(15, 23, 42),
+                    AutoSize = true,
+                    TextAlign = ContentAlignment.MiddleRight
+                };
+                lblSales.Location = new Point(pnlItem.Width - lblSales.Width - 10, 20);
+
+                pnlItem.Controls.Add(picItem);
+                pnlItem.Controls.Add(lblName);
+                pnlItem.Controls.Add(lblSub);
+                pnlItem.Controls.Add(lblSales);
+
+                return pnlItem;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error creating top selling item panel: {ex.Message}");
+                return new Guna2Panel();
+            }
         }
     }
 }
