@@ -69,6 +69,8 @@ namespace QLTN_LT.GUI.Order
             this.pnlInfo.Padding = new System.Windows.Forms.Padding(15);
             this.pnlInfo.Size = new System.Drawing.Size(750, 100);
             this.pnlInfo.TabIndex = 9;
+            this.pnlInfo.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             // 
             // lblOrderNumber
             // 

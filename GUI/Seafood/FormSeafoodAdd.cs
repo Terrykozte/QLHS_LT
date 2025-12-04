@@ -17,7 +17,44 @@ namespace QLTN_LT.GUI.Seafood
             InitializeComponent();
             _seafoodBLL = new SeafoodBLL();
             _categoryBLL = new CategoryBLL();
-            this.Load += (s, e) => { try { LoadCategories(); } catch (Exception ex) { ExceptionHandler.Handle(ex, "LoadCategories"); } };
+
+            // Restrict inputs for price and quantity
+            txtUnitPrice.KeyPress += (s, e) =>
+            {
+                // Only digits allowed
+                if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true;
+            };
+            txtQuantity.KeyPress += (s, e) =>
+            {
+                if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true;
+            };
+
+            this.Load += (s, e) =>
+            {
+                try
+                {
+                    LoadCategories();
+                    EnsureCategorySelectedOrCreate();
+                }
+                catch (Exception ex) { ExceptionHandler.Handle(ex, "LoadCategories"); }
+            };
+        }
+
+        private void EnsureCategorySelectedOrCreate()
+        {
+            if (cboCategory.Items == null || cboCategory.Items.Count == 0)
+            {
+                if (MessageBox.Show("Chưa có danh mục. Bạn có muốn tạo mới ngay không?", "Thiếu danh mục", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    using (var frm = new QLTN_LT.GUI.Category.FormCategoryAdd())
+                    {
+                        if (frm.ShowDialog(this) == DialogResult.OK)
+                        {
+                            LoadCategories();
+                        }
+                    }
+                }
+            }
         }
 
         private void LoadCategories()
@@ -46,6 +83,30 @@ namespace QLTN_LT.GUI.Seafood
         private void btnCancel_Click(object sender, EventArgs e)
         {
             BtnCancel_Click(sender, e);
+        }
+
+        private void btnAddCategory_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (var frm = new QLTN_LT.GUI.Category.FormCategoryAdd())
+                {
+                    if (frm.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var prevSelected = cboCategory.SelectedValue;
+                        LoadCategories();
+                        // Try select the newly added (last by ID)
+                        if (cboCategory.Items.Count > 0)
+                        {
+                            cboCategory.SelectedIndex = cboCategory.Items.Count - 1;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Handle(ex, "btnAddCategory_Click");
+            }
         }
 
         protected override bool ValidateInputs()

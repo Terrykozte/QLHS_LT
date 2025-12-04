@@ -218,11 +218,76 @@ namespace QLTN_LT.GUI.Seafood
                     btnAdd_Click(sender, EventArgs.Empty);
                     e.Handled = true;
                 }
+                else if (e.Control && e.KeyCode == Keys.E)
+                {
+                    ExportSeafood();
+                    e.Handled = true;
+                }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"KeyDown error: {ex.Message}");
             }
+        }
+
+        private void ExportSeafood()
+        {
+            try
+            {
+                using (var sfd = new SaveFileDialog())
+                {
+                    sfd.Filter = "Excel (*.xls)|*.xls|CSV (*.csv)|*.csv";
+                    sfd.FileName = $"HaiSan_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
+                    if (sfd.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var list = dgvSeafood?.DataSource as IEnumerable<SeafoodDTO> ?? _allData ?? new List<SeafoodDTO>();
+                        if (sfd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var lines = new List<string>();
+                            lines.Add("ID,Ten,Danhmuc,Donvi,Soluong,Dongia,Trangthai");
+                            foreach (var s in list)
+                            {
+                                lines.Add($"{s.SeafoodID},{EscapeCsv(s.SeafoodName)},{EscapeCsv(s.CategoryName)},{EscapeCsv(s.Unit)},{s.Quantity},{s.UnitPrice},{EscapeCsv(s.Status)}");
+                            }
+                            System.IO.File.WriteAllLines(sfd.FileName, lines, System.Text.Encoding.UTF8);
+                        }
+                        else
+                        {
+                            var sb = new System.Text.StringBuilder();
+                            sb.AppendLine("<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /></head><body>");
+                            sb.AppendLine("<h3>Danh sách hải sản</h3>");
+                            sb.AppendLine("<table border='1' cellspacing='0' cellpadding='6' style='border-collapse:collapse;font-family:Segoe UI;font-size:11pt'>");
+                            sb.AppendLine("<tr style='background:#e5e7eb'><th>ID</th><th>Tên</th><th>Danh mục</th><th>Đơn vị</th><th>Số lượng</th><th>Đơn giá</th><th>Trạng thái</th></tr>");
+                            foreach (var s in list)
+                            {
+                                sb.AppendLine($"<tr><td>{s.SeafoodID}</td><td>{Html(s.SeafoodName)}</td><td>{Html(s.CategoryName)}</td><td>{Html(s.Unit)}</td><td align='right'>{s.Quantity}</td><td align='right'>{s.UnitPrice:N0}</td><td>{Html(s.Status)}</td></tr>");
+                            }
+                            sb.AppendLine("</table></body></html>");
+                            System.IO.File.WriteAllText(sfd.FileName, sb.ToString(), System.Text.Encoding.UTF8);
+                        }
+                        MessageBox.Show("Xuất danh sách hải sản thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi xuất: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private static string EscapeCsv(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+            var v = s.Replace("\"", "\"\"");
+            if (v.Contains(",") || v.Contains("\n") || v.Contains("\r")) v = "\"" + v + "\"";
+            return v;
+        }
+        private static string Html(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+            var sb = new System.Text.StringBuilder(input);
+            sb.Replace("&", "&amp;"); sb.Replace("<", "&lt;"); sb.Replace(">", "&gt;"); sb.Replace("\"", "&quot;"); sb.Replace("'", "&#39;");
+            return sb.ToString();
         }
 
         protected override void CleanupResources()

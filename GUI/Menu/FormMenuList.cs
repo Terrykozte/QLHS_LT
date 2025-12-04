@@ -224,6 +224,11 @@ namespace QLTN_LT.GUI.Menu
                     btnAdd_Click(sender, EventArgs.Empty);
                     e.Handled = true;
                 }
+                else if (e.Control && e.KeyCode == Keys.E)
+                {
+                    ExportMenu();
+                    e.Handled = true;
+                }
                 else if (e.KeyCode == Keys.Enter && dgvMenu?.CurrentRow != null)
                 {
                     dgvMenu_CellDoubleClick(sender, new DataGridViewCellEventArgs(0, dgvMenu.CurrentRow.Index));
@@ -234,6 +239,66 @@ namespace QLTN_LT.GUI.Menu
             {
                 ExceptionHandler.Handle(ex, "FormMenuList_KeyDown");
             }
+        }
+
+        private void ExportMenu()
+        {
+            try
+            {
+                using (var sfd = new SaveFileDialog())
+                {
+                    sfd.Filter = "Excel (*.xls)|*.xls|CSV (*.csv)|*.csv";
+                    sfd.FileName = $"ThucDon_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
+                    if (sfd.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var list = dgvMenu?.DataSource as IEnumerable<MenuItemDTO> ?? _allItems ?? new List<MenuItemDTO>();
+                        if (sfd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var lines = new List<string>();
+                            lines.Add("ID,TenMon,DanhMuc,Gia,MoTa,TrangThai");
+                            foreach (var m in list)
+                            {
+                                lines.Add($"{m.ItemID},{EscapeCsv(m.ItemName)},{EscapeCsv(m.CategoryName)},{m.UnitPrice},{EscapeCsv(m.Description)},{(m.IsAvailable?"Available":"Unavailable")}");
+                            }
+                            System.IO.File.WriteAllLines(sfd.FileName, lines, System.Text.Encoding.UTF8);
+                        }
+                        else
+                        {
+                            var sb = new System.Text.StringBuilder();
+                            sb.AppendLine("<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /></head><body>");
+                            sb.AppendLine("<h3>Danh sách thực đơn</h3>");
+                            sb.AppendLine("<table border='1' cellspacing='0' cellpadding='6' style='border-collapse:collapse;font-family:Segoe UI;font-size:11pt'>");
+                            sb.AppendLine("<tr style='background:#e5e7eb'><th>ID</th><th>Tên món</th><th>Danh mục</th><th>Giá</th><th>Mô tả</th><th>Trạng thái</th></tr>");
+                            foreach (var m in list)
+                            {
+                                sb.AppendLine($"<tr><td>{m.ItemID}</td><td>{Html(m.ItemName)}</td><td>{Html(m.CategoryName)}</td><td align='right'>{m.UnitPrice:N0}</td><td>{Html(m.Description)}</td><td>{(m.IsAvailable?"Available":"Unavailable")}</td></tr>");
+                            }
+                            sb.AppendLine("</table></body></html>");
+                            System.IO.File.WriteAllText(sfd.FileName, sb.ToString(), System.Text.Encoding.UTF8);
+                        }
+                        MessageBox.Show("Xuất thực đơn thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi xuất: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private static string EscapeCsv(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+            var v = s.Replace("\"", "\"\"");
+            if (v.Contains(",") || v.Contains("\n") || v.Contains("\r")) v = "\"" + v + "\"";
+            return v;
+        }
+        private static string Html(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+            var sb = new System.Text.StringBuilder(input);
+            sb.Replace("&", "&amp;"); sb.Replace("<", "&lt;"); sb.Replace(">", "&gt;"); sb.Replace("\"", "&quot;"); sb.Replace("'", "&#39;");
+            return sb.ToString();
         }
 
         protected override void CleanupResources()

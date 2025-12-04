@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using System.Collections.Generic;
 using Guna.UI2.WinForms;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
@@ -18,8 +19,8 @@ namespace QLTN_LT.GUI.Main
         private Form _activeForm;
         private bool _isSidebarExpanded = true;
         private Timer _sidebarTimer;
-        private const int DefaultWidth = 1024;
-        private const int DefaultHeight = 576;
+        private const int DefaultWidth = 1280;
+        private const int DefaultHeight = 720;
 
         public FormMain(UserDTO user)
         {
@@ -46,10 +47,18 @@ namespace QLTN_LT.GUI.Main
             SetupUserInfo();
             ApplyRolePermissions();
             SetupTooltips();
+            SetupKeyboardNavigation();
+            SetupAnimations();
             ActivateButton(btnDashboard);
+            // Mở trang Tổng quan khi vào MainSystem
+            try { OpenChildForm(new QLTN_LT.GUI.Dashboard.FormDashboard()); } catch { }
 
             UpdateBorderRadius();
             UpdateTitle();
+            PositionTitleButtons();
+            
+            // Apply responsive design
+            ApplyResponsiveDesign();
         }
 
 
@@ -57,6 +66,23 @@ namespace QLTN_LT.GUI.Main
         private void FormMain_Resize(object sender, EventArgs e)
         {
             UpdateBorderRadius();
+            PositionTitleButtons();
+        }
+
+        private void PositionTitleButtons()
+        {
+            try
+            {
+                if (pnlTitleBar == null || btnClose == null || btnMaximize == null || btnMinimize == null || btnSettings == null) return;
+                int marginRight = 12;
+                int gap = 2;
+                // place from right to left
+                btnClose.Left = pnlTitleBar.Width - btnClose.Width - marginRight;
+                btnMaximize.Left = btnClose.Left - btnMaximize.Width - gap;
+                btnMinimize.Left = btnMaximize.Left - btnMinimize.Width - gap;
+                btnSettings.Left = btnMinimize.Left - btnSettings.Width - gap;
+            }
+            catch { }
         }
 
         private void UpdateBorderRadius()
@@ -129,10 +155,12 @@ namespace QLTN_LT.GUI.Main
                     setVisible(btnReports, true);
                     setVisible(btnSupplier, true);
                     setVisible(btnCategory, true);
+                    setVisible(btnMenuQR, true);
                     setEnabled(btnUser, true);
                     setEnabled(btnReports, true);
                     setEnabled(btnSupplier, true);
                     setEnabled(btnCategory, true);
+                    setEnabled(btnMenuQR, true);
                 }
                 else if (isStaff)
                 {
@@ -149,6 +177,7 @@ namespace QLTN_LT.GUI.Main
                     setEnabled(btnTable, true);
                     setEnabled(btnMenu, true);
                     setEnabled(btnInventory, true);
+                    setEnabled(btnMenuQR, true);
                 }
                 else
                 {
@@ -184,6 +213,7 @@ namespace QLTN_LT.GUI.Main
                     case "btnTable":
                     case "btnMenu":
                     case "btnInventory":
+                    case "btnMenuQR":
                         return true;
                     default:
                         return false; // Block: Users, Reports, Supplier, Category, etc.
@@ -256,6 +286,7 @@ namespace QLTN_LT.GUI.Main
                     "btnTable" => new QLTN_LT.GUI.Table.FormTableList(),
                     "btnMenu" => new QLTN_LT.GUI.Menu.FormMenuList(),
                     "btnInventory" => new QLTN_LT.GUI.Inventory.FormInventoryManagement(),
+                    "btnMenuQR" => new QLTN_LT.GUI.Menu.FormMenuQR(),
                     "btnSupplier" => new QLTN_LT.GUI.Supplier.FormSupplierList(),
                     "btnUser" => new QLTN_LT.GUI.User.FormUserList(),
                     "btnReports" => new QLTN_LT.GUI.Report.FormReportSales(),
@@ -357,7 +388,7 @@ namespace QLTN_LT.GUI.Main
                     }
                 }
 
-                // Chuẩn bị form mới (slide-in)
+                // Hiển thị form mới (không animation để tránh flicker/màn phụ)
                 _activeForm = childForm;
                 childForm.TopLevel = false;
                 childForm.FormBorderStyle = FormBorderStyle.None;
@@ -367,42 +398,12 @@ namespace QLTN_LT.GUI.Main
                 pnlContent.Controls.Add(childForm);
                 pnlContent.Tag = childForm;
 
-                // Animation: slide-in từ phải sang
-                childForm.Dock = DockStyle.None;
-                childForm.Width = pnlContent.ClientSize.Width;
-                childForm.Height = pnlContent.ClientSize.Height;
-                childForm.Left = pnlContent.ClientSize.Width; // start off-screen right
-                childForm.Top = 0;
+                childForm.Dock = DockStyle.Fill;
                 childForm.Show();
                 childForm.BringToFront();
 
-                var animTimer = new Timer { Interval = 10 };
-                animTimer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        var step = System.Math.Max(20, pnlContent.ClientSize.Width / 20);
-                        childForm.Left -= step;
-                        if (childForm.Left <= 0)
-                        {
-                            childForm.Left = 0;
-                            animTimer.Stop();
-                            animTimer.Dispose();
-                            childForm.Dock = DockStyle.Fill; // finalize
-                            UpdateTitle();
-                            Wait(false);
-                        }
-                    }
-                    catch
-                    {
-                        animTimer.Stop();
-                        animTimer.Dispose();
-                        childForm.Dock = DockStyle.Fill;
                         UpdateTitle();
                         Wait(false);
-                    }
-                };
-                animTimer.Start();
             }
             catch (Exception ex)
             {
@@ -472,6 +473,108 @@ namespace QLTN_LT.GUI.Main
         private void BtnClose_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        /// <summary>
+        /// Setup keyboard navigation (Tab, Arrow keys)
+        /// </summary>
+        private void SetupKeyboardNavigation()
+        {
+            try
+            {
+                var navigableButtons = new List<Guna2Button>
+                {
+                    btnDashboard, btnSeafood, btnOrders, btnCustomer, 
+                    btnTable, btnMenu, btnInventory, btnReports,
+                    btnSupplier, btnCategory, btnUser, btnMenuQR, btnLogout
+                };
+
+                KeyboardNavigationHelper.RegisterForm(this, navigableButtons.Cast<Control>().ToList());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting up keyboard navigation: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Setup animations cho các button
+        /// </summary>
+        private void SetupAnimations()
+        {
+            try
+            {
+                var buttons = new[] { btnDashboard, btnSeafood, btnOrders, btnCustomer, 
+                    btnTable, btnMenu, btnInventory, btnReports, btnSupplier, 
+                    btnCategory, btnUser, btnMenuQR, btnLogout };
+
+                foreach (var btn in buttons)
+                {
+                    if (btn == null) continue;
+
+                    // Hover effect
+                    btn.MouseEnter += (s, e) =>
+                    {
+                        if (btn != _currentButton)
+                        {
+                            btn.FillColor = Color.FromArgb(31, 41, 55);
+                            AnimationHelper.ScaleIn(btn, 150);
+                        }
+                    };
+
+                    btn.MouseLeave += (s, e) =>
+                    {
+                        if (btn != _currentButton)
+                        {
+                            btn.FillColor = Color.Transparent;
+                        }
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting up animations: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Apply responsive design
+        /// </summary>
+        private void ApplyResponsiveDesign()
+        {
+            try
+            {
+                var screenSize = ResponsiveHelper.GetCurrentScreenSize(this);
+                
+                // Adjust sidebar width
+                int sidebarWidth = ResponsiveHelper.GetResponsiveSidebarWidth(this);
+                if (pnlSidebar != null)
+                {
+                    pnlSidebar.Width = sidebarWidth;
+                }
+
+                // Adjust font sizes
+                if (lblBrand != null)
+                {
+                    lblBrand.Font = new Font(lblBrand.Font.FontFamily, 
+                        ResponsiveHelper.GetResponsiveFontSize(12, this));
+                }
+
+                // Adjust button sizes
+                var buttons = new[] { btnDashboard, btnSeafood, btnOrders, btnCustomer, 
+                    btnTable, btnMenu, btnInventory, btnReports, btnSupplier, 
+                    btnCategory, btnUser, btnMenuQR, btnLogout };
+
+                foreach (var btn in buttons)
+                {
+                    if (btn == null) continue;
+                    btn.Height = ResponsiveHelper.GetResponsiveRowHeight(this, 40);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error applying responsive design: {ex.Message}");
+            }
         }
 
     }

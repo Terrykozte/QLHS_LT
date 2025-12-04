@@ -1,262 +1,238 @@
-# QLHS_LT - Hệ thống Quản lý Nhà hàng Hải sản
+# MainSystem - Quản Lý Cửa Hàng Hải Sản Lẩu Tươi
 
-Ứng dụng quản lý nhà hàng hải sản toàn diện với tích hợp VietQR, quản lý kho hàng nâng cao, và xử lý dữ liệu lớn.
+## 🎯 Mục Đích
 
-## ✨ Tính năng Chính
+Hệ thống quản lý toàn diện cho cửa hàng hải sản lẩu tươi, bao gồm:
+- Quản lý đơn hàng
+- Quản lý kho hàng
+- Quản lý thực đơn
+- Quản lý khách hàng
+- Quản lý nhân viên
+- Báo cáo doanh thu
 
-### 📋 Quản lý Đơn hàng
-- ✅ Tạo đơn hàng mới
-- ✅ Thêm/xóa sản phẩm
-- ✅ Tính toán tổng tiền tự động
-- ✅ Xem danh sách đơn hàng
-- ✅ Lọc theo ngày, trạng thái
-- ✅ Xem chi tiết đơn hàng
+## ✨ Tính Năng Chính
 
-### 💳 Thanh toán VietQR
-- ✅ Tạo QR Code tự động
-- ✅ Hỗ trợ 24 ngân hàng
-- ✅ Hiển thị thông tin thanh toán
-- ✅ Xác nhận thanh toán
-- ✅ Lịch sử thanh toán
-- ✅ Tính toán số tiền còn lại
+### 📊 Dashboard
+- Hiển thị tổng quan doanh thu
+- Thống kê đơn hàng
+- Thống kê khách hàng
+- Top 5 món bán chạy
+- Hàng sắp hết hạn
 
-### 📦 Quản lý Kho hàng
-- ✅ Xem trạng thái kho
-- ✅ Nhập hàng từ nhà cung cấp
-- ✅ Xuất hàng cho khách hàng
-- ✅ Điều chỉnh kho
-- ✅ Lịch sử giao dịch
-- ✅ Báo cáo sản phẩm cần nhập
-- ✅ Pagination (50 bản ghi/trang)
+### 🍤 Quản Lý Hải Sản
+- Thêm/Sửa/Xóa hải sản
+- Phân loại theo danh mục
+- Quản lý nhà cung cấp
+- Theo dõi giá cả
 
-### 📊 Báo cáo
-- ✅ Báo cáo doanh thu
-- ✅ Báo cáo tồn kho
-- ✅ Thống kê sản phẩm bán chạy
-- ✅ Biểu đồ doanh thu
-- ✅ Xuất báo cáo Excel
+### 📋 Quản Lý Đơn Hàng
+- Tạo đơn hàng
+- Chọn bàn ăn
+- Chọn hải sản
+- Thanh toán
+- Lịch sử đơn hàng
 
-### 👥 Quản lý Khách hàng
-- ✅ Thêm/sửa/xóa khách hàng
-- ✅ Tìm kiếm khách hàng
-- ✅ Xem lịch sử mua hàng
+### 📦 Quản Lý Kho
+- Nhập kho
+- Xuất kho
+- Theo dõi giao dịch
+- Báo cáo kho
 
-### 👨[object Object] lý Nhân viên
-- ✅ Quản lý tài khoản nhân viên
-- ✅ Phân quyền (Admin, Staff)
-- ✅ Xem lịch sử hoạt động
+### 📖 Quản Lý Thực Đơn
+- Tạo thực đơn
+- Chọn hải sản
+- Cập nhật giá
+- Phân loại theo danh mục
 
-## [object Object]ắt đầu nhanh
+### 👥 Quản Lý Khách Hàng
+- Thêm/Sửa/Xóa khách hàng
+- Lịch sử mua hàng
+- Thông tin liên hệ
 
-### Yêu cầu
-- .NET Framework 4.7.2+
-- SQL Server 2012+
-- Visual Studio 2019+
+### 🏢 Quản Lý Nhà Cung Cấp
+- Thêm/Sửa/Xóa nhà cung cấp
+- Thông tin liên hệ
+- Lịch sử giao dịch
 
-### Cài đặt (5 phút)
+### 👤 Quản Lý Người Dùng
+- Tạo tài khoản
+- Phân quyền
+- Quản lý vai trò
 
-1. **Clone hoặc Download dự án**
-```bash
-git clone https://github.com/your-repo/QLHS_LT.git
-cd QLHS_LT
+### 📊 Báo Cáo
+- Báo cáo doanh thu
+- Báo cáo kho hàng
+- Báo cáo hàng tháng
+
+## 🏗️ Kiến Trúc
+
+```
+GUI Layer (Giao Diện)
+    ↓
+BLL Layer (Xử Lý Nghiệp Vụ)
+    ↓
+DAL Layer (Truy Cập Dữ Liệu)
+    ↓
+Database (SQL Server)
 ```
 
-2. **Tạo Database**
-```sql
--- Mở SQL Server Management Studio
--- Chạy file: md/database.sql
-```
+## 🔐 Quyền Truy Cập
 
-3. **Cấu hình Connection String**
-```xml
-<!-- App.config -->
-<connectionStrings>
-  <add name="DefaultConnection" 
-       connectionString="Server=YOUR_SERVER;Database=QLHS_LT;Integrated Security=true;" 
-       providerName="System.Data.SqlClient" />
-</connectionStrings>
-```
+| Vai Trò | Quyền |
+|---------|-------|
+| Admin | Truy cập toàn bộ |
+| Staff | Truy cập giới hạn |
+| Khác | Chỉ Dashboard |
 
-4. **Build & Run**
-```bash
-dotnet build
-dotnet run
-```
-
-👉 **[Xem Quick Start Guide](md/QUICK_START.md)**
-
-## 📁 Cấu trúc Dự án
+## 📁 Cấu Trúc Thư Mục
 
 ```
 QLHS_LT/
-├── BLL/                    # Business Logic Layer
-│   ├── OrderBLL.cs
-│   ├── PaymentBLL.cs
-│   ├── InventoryBLL.cs
-│   ├── VietQRService.cs
-│   └── ...
-├── DAL/                    # Data Access Layer
-│   ├── Interfaces/
-│   ├── OrderDAL.cs
-│   ├── PaymentDAL.cs
-│   ├── InventoryDAL.cs
-│   └── ...
-├── DTO/                    # Data Transfer Objects
-│   ├── OrderDTO.cs
-│   ├── PaymentDTO.cs
-│   ├── InventoryDTO.cs
-│   └── ...
-├── GUI/                    # User Interface
-│   ├── Order/
-│   ├── Inventory/
-│   ├── Payment/
-│   └── ...
-└── md/                     # Documentation
-    ├── database.sql
-    ├── QUICK_START.md
-    ├── IMPLEMENTATION_GUIDE.md
-    ├── VIETQR_CONFIG.md
-    ├── TESTING_AND_FIXES.md
-    └── SUMMARY.md
+├── GUI/              # Giao diện người dùng
+├── BLL/              # Xử lý nghiệp vụ
+├── DAL/              # Truy cập dữ liệu
+├── DTO/              # Đối tượng dữ liệu
+└── Properties/       # Cài đặt dự án
 ```
 
-## 📚 Tài liệu
+## [object Object]ắt Đầu
 
-| Tài liệu | Mô tả |
-|---------|-------|
-| [Quick Start](md/QUICK_START.md) | Bắt đầu nhanh trong 5 phút |
-| [Implementation Guide](md/IMPLEMENTATION_GUIDE.md) | Hướng dẫn triển khai chi tiết |
-| [VietQR Config](md/VIETQR_CONFIG.md) | Cấu hình VietQR |
-| [Testing & Fixes](md/TESTING_AND_FIXES.md) | Kiểm tra và fix bugs |
-| [Summary](md/SUMMARY.md) | Tóm tắt hoàn thành |
+### Yêu Cầu
+- Visual Studio 2019+
+- .NET Framework 4.7.2+
+- SQL Server 2016+
+- Guna UI2 WinForms
 
-## [object Object] Chính
+### Cài Đặt
+1. Clone dự án
+2. Mở `QLHS_LT.sln` trong Visual Studio
+3. Khôi phục NuGet packages
+4. Cập nhật chuỗi kết nối trong `ConnectionSettings.cs`
+5. Chạy migration database
+6. Biên dịch và chạy
 
-### OrderBLL
+### Cấu Hình Database
 ```csharp
-var orderBLL = new OrderBLL();
-int orderId = orderBLL.Create(orderDTO);
-var order = orderBLL.GetById(orderId);
-var orders = orderBLL.GetAll(fromDate, toDate, status, keyword);
+// DAL/ConnectionSettings.cs
+public static string ConnectionString = 
+    "Server=YOUR_SERVER;Database=QLHS_LT;User Id=sa;Password=YOUR_PASSWORD;";
 ```
 
-### PaymentBLL
+## 📚 Tài Liệu
+
+### Hướng Dẫn Chính
+- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Hướng dẫn tích hợp chi tiết
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Tham chiếu nhanh
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Kiến trúc hệ thống
+- **[FIXES_APPLIED.md](FIXES_APPLIED.md)** - Chi tiết sửa chữa
+- **[SUMMARY.md](SUMMARY.md)** - Tóm tắt
+
+### Hướng Dẫn Phát Triển
+1. Đọc `ARCHITECTURE.md` để hiểu kiến trúc
+2. Đọc `INTEGRATION_GUIDE.md` để hiểu cách tích hợp
+3. Đọc `QUICK_REFERENCE.md` để tham khảo nhanh
+
+## 🔧 Phát Triển
+
+### Thêm Trang Mới
+1. Tạo form kế thừa từ `BaseForm`
+2. Thêm button vào `FormMain`
+3. Cập nhật `CreateFormForButton()`
+4. Cập nhật `HasAccessForButton()`
+5. Thêm tooltip
+
+### Thêm Tính Năng Mới
+1. Tạo DTO trong `DTO/`
+2. Tạo DAL trong `DAL/`
+3. Tạo BLL trong `BLL/`
+4. Tạo Form trong `GUI/`
+5. Cập nhật `FormMain`
+
+## [object Object]ỡ Rối
+
+### Lỗi Thường Gặp
+
+**Lỗi: "Lỗi hiển thị trang"**
+- Kiểm tra: Form có kế thừa BaseForm không?
+- Kiểm tra: InitializeComponent() có được gọi không?
+
+**Lỗi: "Bạn không có quyền truy cập"**
+- Kiểm tra: Vai trò người dùng có đúng không?
+- Kiểm tra: HasAccessForButton() có logic đúng không?
+
+**Lỗi: "Không thể kết nối DB"**
+- Kiểm tra: Chuỗi kết nối có đúng không?
+- Kiểm tra: SQL Server có chạy không?
+
+### Debug Mode
 ```csharp
-var paymentBLL = new PaymentBLL();
-int paymentId = paymentBLL.CreatePayment(paymentDTO);
-var payments = paymentBLL.GetPaymentsByOrderId(orderId);
-decimal paid = paymentBLL.CalculateTotalPaid(orderId);
+System.Diagnostics.Debug.WriteLine($"Debug: {message}");
 ```
 
-### InventoryBLL
-```csharp
-var inventoryBLL = new InventoryBLL();
-var inventory = inventoryBLL.GetInventoryStatus();
-inventoryBLL.StockIn(inventoryId, quantity, supplierId);
-inventoryBLL.StockOut(inventoryId, quantity);
+## 📊 Luồng Sử Dụng
+
+### Tạo Đơn Hàng
+```
+1. Dashboard → Đơn Hàng
+2. Chọn Bàn Ăn
+3. Chọn Hải Sản
+4. Nhập Số Lượng
+5. Xác Nhận
+6. Thanh Toán
 ```
 
-### VietQRService
-```csharp
-var vietQRService = new VietQRService("970422", "0123456789", "NHA HANG", 1000000, "Thanh toan");
-string qrUrl = vietQRService.GenerateQRCode();
+### Quản Lý Kho
+```
+1. Dashboard → Kho Hàng
+2. Chọn: Nhập Kho / Xuất Kho
+3. Chọn Hải Sản
+4. Nhập Số Lượng
+5. Xác Nhận
 ```
 
-## 🔧 Cấu hình VietQR
+## 🎨 Styling
 
-```csharp
-// Trong FormPayment.cs
-string bankCode = "970422";        // Techcombank
-string accountNumber = "0123456789"; // Số tài khoản
-string accountName = "NHA HANG HAI SAN"; // Tên tài khoản
-```
+### Màu Sắc
+- **Primary**: #3B82F6 (Blue)
+- **Success**: #16A34A (Green)
+- **Danger**: #EF4444 (Red)
+- **Background**: #F9FAFB (Gray)
 
-**Danh sách mã ngân hàng:** [Xem tại đây](md/VIETQR_CONFIG.md#2-danh-sách-mã-ngân-hàng-vietqr)
+### Font
+- **Tiêu đề**: Segoe UI, 14pt, Bold
+- **Nội dung**: Segoe UI, 10pt
 
-## 📊 Thống kê
+## 📞 Hỗ Trợ
 
-| Thành phần | Số File | Dòng Code |
-|-----------|---------|----------|
-| DTO | 2 | ~100 |
-| DAL | 2 + 2 Interfaces | ~400 |
-| BLL | 3 | ~500 |
-| GUI | 4 + 2 Designer | ~800 |
-| Database | 1 SQL | ~500 |
-| Documentation | 5 MD | ~1500 |
-| **Tổng** | **17** | **~3800[object Object] Security
+Nếu gặp vấn đề:
+1. Kiểm tra tài liệu
+2. Xem Debug Output
+3. Kiểm tra Exception Handler
+4. Liên hệ với nhóm phát triển
 
-- ✅ Password Hashing (SHA256 + Salt)
-- ✅ SQL Injection Prevention (Parameterized Queries)
-- ✅ Role-based Access Control
-- ✅ Input Validation
-- ✅ Error Handling
+## 📝 Lịch Sử Thay Đổi
 
-## 🎓 Công nghệ Sử dụng
+### v1.0 (2025-12-04)
+- ✅ Sửa chữa lỗi FormDashboard
+- ✅ Tạo tài liệu hướng dẫn
+- ✅ Đảm bảo tất cả các trang liên kết
+- ✅ Kiểm tra chất lượng
 
-- **Language:** C# (.NET Framework 4.7.2)
-- **Database:** SQL Server 2012+
-- **UI Framework:** WinForms + Guna.UI2
-- **Charts:** LiveCharts
-- **QR Code:** QRCoder
-- **Architecture:** 3-Layer (DAL, BLL, GUI)
+## 📄 Giấy Phép
 
-## [object Object]
+Dự án này được phát triển cho mục đích quản lý cửa hàng.
 
-- **Pagination:** 50 bản ghi/trang
-- **Stored Procedures:** 11 procedures
-- **Database Indexes:** Optimized queries
-- **Async Support:** Sắp tới
+## 👨[object Object] Giả
 
-## [object Object]eshooting
+- **Nhóm Phát Triển**: QLHS_LT Team
+- **Cập Nhật Cuối**: 2025-12-04
 
-### Lỗi Connection
-```
-✅ Kiểm tra SQL Server đang chạy
-✅ Kiểm tra Connection String
-✅ Kiểm tra Database tồn tại
-```
+## 🙏 Cảm Ơn
 
-### Lỗi QR Code
-```
-✅ Kiểm tra Internet
-✅ Kiểm tra Mã ngân hàng
-✅ Kiểm tra Số tài khoản
-```
-
-👉 **[Xem chi tiết](md/TESTING_AND_FIXES.md)**
-
-## 🔮 Phát triển Tiếp theo
-
-- [ ] Unit Tests
-- [ ] Integration Tests
-- [ ] Async/Await
-- [ ] Caching
-- [ ] Mobile App
-- [ ] Cloud Deployment
-- [ ] Advanced Analytics
-
-## 📞 Hỗ trợ
-
-- 📧 Email: support@example.com
-- 📞 Phone: 0123456789
-- 💬 Chat: https://example.com/chat
-
-## 📄 Giấy phép
-
-MIT License - Xem file [LICENSE](LICENSE)
-
-## 👥 Tác giả
-
-Nhóm phát triển - 2024
+Cảm ơn bạn đã sử dụng MainSystem!
 
 ---
 
-## ✅ Status
-
-**Phiên bản:** 1.0.0  
-**Status:** Production Ready ✅  
-**Ngày hoàn thành:** 02/12/2024  
-
----
-
-**Bắt đầu ngay:** [Quick Start Guide](md/QUICK_START.md) 🚀
+**Phiên bản**: 1.0  
+**Trạng thái**: ✅ Hoàn thành & Sẵn Sàng  
+**Cập nhật**: 2025-12-04

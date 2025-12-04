@@ -17,19 +17,23 @@ namespace QLTN_LT.GUI.Base
 
         private Timer _fadeTimer;
 
+        public bool CloseOnEsc { get; set; } = true;
+
         public BaseForm()
         {
             try
             {
-                // Initialize Guna Components
-                BorderlessForm = new Guna2BorderlessForm(this.Container);
-                ShadowForm = new Guna2ShadowForm(this.Container);
+                // Initialize Guna Components (avoid using null Container)
+                BorderlessForm = new Guna2BorderlessForm();
+                ShadowForm = new Guna2ShadowForm();
 
                 // Default Style
                 this.FormBorderStyle = FormBorderStyle.None;
                 this.StartPosition = FormStartPosition.CenterScreen;
                 this.BackColor = Color.White;
                 this.Opacity = 0; // for fade-in
+                this.DoubleBuffered = true; // reduce flicker/ghosting
+                this.KeyPreview = true;
                 
                 // Borderless Settings
                 BorderlessForm.BorderRadius = 16;
@@ -51,6 +55,20 @@ namespace QLTN_LT.GUI.Base
                     }
                     catch { _fadeTimer.Stop(); }
                 };
+
+                // ESC to close popups
+                this.KeyDown += (s, e) =>
+                {
+                    try
+                    {
+                        if (e.KeyCode == Keys.Escape && CloseOnEsc)
+                        {
+                            SafeClose();
+                            e.Handled = true;
+                        }
+                    }
+                    catch { }
+                };
             }
             catch (Exception ex)
             {
@@ -66,7 +84,31 @@ namespace QLTN_LT.GUI.Base
             try
             {
                 base.OnLoad(e);
+
+                // If this form is hosted as child (TopLevel=false), disable fade and shadow to avoid overlay/ghost
+                if (!this.TopLevel)
+                {
+                    try
+                    {
+                        this.Opacity = 1;
+                        _fadeTimer?.Stop();
+                        _fadeTimer?.Dispose();
+                        _fadeTimer = null;
+                    }
+                    catch { }
+
+                    try
+                    {
+                        if (ShadowForm != null) { ShadowForm.Dispose(); ShadowForm = null; }
+                        if (BorderlessForm != null) { BorderlessForm.Dispose(); BorderlessForm = null; }
+                    }
+                    catch { }
+                }
+                else
+                {
                 _fadeTimer?.Start();
+                }
+
                 // Log form load
                 Debug.WriteLine($"Form loaded: {this.GetType().Name}");
             }

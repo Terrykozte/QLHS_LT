@@ -181,7 +181,62 @@ namespace QLTN_LT.GUI.Supplier
 
         private void btnExport_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Chức năng Export đang phát triển.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            try
+            {
+                using (var sfd = new SaveFileDialog())
+                {
+                    sfd.Filter = "Excel (*.xls)|*.xls|CSV (*.csv)|*.csv";
+                    sfd.FileName = $"NhaCungCap_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
+                    if (sfd.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var list = dgvSuppliers?.DataSource as IEnumerable<SupplierDTO> ?? _allData ?? new List<SupplierDTO>();
+                        if (sfd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var lines = new List<string>();
+                            lines.Add("ID,NhaCungCap,NguoiLienHe,SDT,Email,DiaChi");
+                            foreach (var s in list)
+                            {
+                                lines.Add($"{s.SupplierID},{EscapeCsv(s.SupplierName)},{EscapeCsv(s.ContactPerson)},{EscapeCsv(s.PhoneNumber)},{EscapeCsv(s.Email)},{EscapeCsv(s.Address)}");
+                            }
+                            System.IO.File.WriteAllLines(sfd.FileName, lines, System.Text.Encoding.UTF8);
+                        }
+                        else
+                        {
+                            var sb = new System.Text.StringBuilder();
+                            sb.AppendLine("<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /></head><body>");
+                            sb.AppendLine("<h3>Danh sách nhà cung cấp</h3>");
+                            sb.AppendLine("<table border='1' cellspacing='0' cellpadding='6' style='border-collapse:collapse;font-family:Segoe UI;font-size:11pt'>");
+                            sb.AppendLine("<tr style='background:#e5e7eb'><th>ID</th><th>Nhà cung cấp</th><th>Người liên hệ</th><th>SĐT</th><th>Email</th><th>Địa chỉ</th></tr>");
+                            foreach (var s in list)
+                            {
+                                sb.AppendLine($"<tr><td>{s.SupplierID}</td><td>{Html(s.SupplierName)}</td><td>{Html(s.ContactPerson)}</td><td>{Html(s.PhoneNumber)}</td><td>{Html(s.Email)}</td><td>{Html(s.Address)}</td></tr>");
+                            }
+                            sb.AppendLine("</table></body></html>");
+                            System.IO.File.WriteAllText(sfd.FileName, sb.ToString(), System.Text.Encoding.UTF8);
+                        }
+                        MessageBox.Show("Xuất danh sách nhà cung cấp thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Handle(ex, "btnExport_Click");
+            }
+        }
+
+        private static string EscapeCsv(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+            var v = s.Replace("\"", "\"\"");
+            if (v.Contains(",") || v.Contains("\n") || v.Contains("\r")) v = "\"" + v + "\"";
+            return v;
+        }
+        private static string Html(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+            var sb = new System.Text.StringBuilder(input);
+            sb.Replace("&", "&amp;"); sb.Replace("<", "&lt;"); sb.Replace(">", "&gt;"); sb.Replace("\"", "&quot;"); sb.Replace("'", "&#39;");
+            return sb.ToString();
         }
 
         private void txtSearch_KeyDown(object sender, KeyEventArgs e)

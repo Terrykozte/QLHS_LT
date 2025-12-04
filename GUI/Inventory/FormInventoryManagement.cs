@@ -271,10 +271,21 @@ namespace QLTN_LT.GUI.Inventory
             {
                 using (var saveDialog = new SaveFileDialog())
                 {
-                    saveDialog.Filter = "Excel Files (*.xlsx)|*.xlsx|CSV Files (*.csv)|*.csv";
+                    saveDialog.Filter = "Excel (*.xls)|*.xls|CSV (*.csv)|*.csv";
+                    saveDialog.FileName = $"BaoCaoKho_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
                     if (saveDialog.ShowDialog() == DialogResult.OK)
                     {
-                        MessageBox.Show("Chức năng xuất báo cáo đang được phát triển", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        var path = saveDialog.FileName;
+                        if (path.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ExportInventoryToCsv(path);
+                            MessageBox.Show("Xuất CSV thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            ExportInventoryToExcelHtml(path);
+                            MessageBox.Show("Xuất Excel thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
                     }
                 }
             }
@@ -282,6 +293,51 @@ namespace QLTN_LT.GUI.Inventory
             {
                 MessageBox.Show($"Lỗi xuất báo cáo: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void ExportInventoryToCsv(string filePath)
+        {
+            var list = dgvInventory?.DataSource as IEnumerable<InventoryStatusDTO> ?? _inventoryList ?? new List<InventoryStatusDTO>();
+            var lines = new List<string>();
+            lines.Add("Ten san pham,So luong,Muc toi thieu,Trang thai");
+            foreach (var i in list)
+            {
+                string name = EscapeCsv(i.SeafoodName);
+                lines.Add($"{name},{i.Quantity},{i.ReorderLevel},{EscapeCsv(i.Status)}");
+            }
+            System.IO.File.WriteAllLines(filePath, lines, System.Text.Encoding.UTF8);
+        }
+
+        private void ExportInventoryToExcelHtml(string filePath)
+        {
+            var list = dgvInventory?.DataSource as IEnumerable<InventoryStatusDTO> ?? _inventoryList ?? new List<InventoryStatusDTO>();
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /></head><body>");
+            sb.AppendLine("<h3>Danh sách tồn kho</h3>");
+            sb.AppendLine("<table border='1' cellspacing='0' cellpadding='6' style='border-collapse:collapse;font-family:Segoe UI;font-size:11pt'>");
+            sb.AppendLine("<tr style='background:#e5e7eb'><th>Tên sản phẩm</th><th>Số lượng</th><th>Mức tối thiểu</th><th>Trạng thái</th></tr>");
+            foreach (var i in list)
+            {
+                sb.AppendLine($"<tr><td>{Html(i.SeafoodName)}</td><td align='right'>{i.Quantity}</td><td align='right'>{i.ReorderLevel}</td><td>{Html(i.Status)}</td></tr>");
+            }
+            sb.AppendLine("</table></body></html>");
+            System.IO.File.WriteAllText(filePath, sb.ToString(), System.Text.Encoding.UTF8);
+        }
+
+        private static string EscapeCsv(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+            var v = s.Replace("\"", "\"\"");
+            if (v.Contains(",") || v.Contains("\n") || v.Contains("\r")) v = "\"" + v + "\"";
+            return v;
+        }
+
+        private static string Html(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+            var sb = new System.Text.StringBuilder(input);
+            sb.Replace("&", "&amp;"); sb.Replace("<", "&lt;"); sb.Replace(">", "&gt;"); sb.Replace("\"", "&quot;"); sb.Replace("'", "&#39;");
+            return sb.ToString();
         }
 
         private void FormInventoryManagement_KeyDown(object sender, KeyEventArgs e)

@@ -20,6 +20,7 @@ namespace QLTN_LT.GUI.Order
         private Guna.UI2.WinForms.Guna2HtmlLabel lblTotalAmount;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblCustomer;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblTable;
+        private Guna.UI2.WinForms.Guna2NumericUpDown nudQuantity;
 
         protected override void Dispose(bool disposing)
         {
@@ -40,6 +41,7 @@ namespace QLTN_LT.GUI.Order
             this.pnlLeft = new Guna.UI2.WinForms.Guna2Panel();
             this.dgvProducts = new Guna.UI2.WinForms.Guna2DataGridView();
             this.txtSearchProduct = new Guna.UI2.WinForms.Guna2TextBox();
+            this.nudQuantity = new Guna.UI2.WinForms.Guna2NumericUpDown();
             this.pnlRight = new Guna.UI2.WinForms.Guna2Panel();
             this.controlBoxClose = new Guna.UI2.WinForms.Guna2ControlBox();
             this.lblTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
@@ -63,6 +65,7 @@ namespace QLTN_LT.GUI.Order
             // 
             this.pnlLeft.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(250)))));
             this.pnlLeft.Controls.Add(this.dgvProducts);
+            this.pnlLeft.Controls.Add(this.nudQuantity);
             this.pnlLeft.Controls.Add(this.txtSearchProduct);
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.pnlLeft.Location = new System.Drawing.Point(0, 0);
@@ -104,7 +107,7 @@ namespace QLTN_LT.GUI.Order
             this.dgvProducts.DefaultCellStyle = dataGridViewCellStyle3;
             this.dgvProducts.EnableHeadersVisualStyles = false;
             this.dgvProducts.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
-            this.dgvProducts.Location = new System.Drawing.Point(10, 58);
+            this.dgvProducts.Location = new System.Drawing.Point(10, 100);
             this.dgvProducts.Name = "dgvProducts";
             this.dgvProducts.ReadOnly = true;
             this.dgvProducts.RowHeadersVisible = false;
@@ -150,6 +153,17 @@ namespace QLTN_LT.GUI.Order
             this.txtSearchProduct.Size = new System.Drawing.Size(430, 36);
             this.txtSearchProduct.TabIndex = 0;
             this.txtSearchProduct.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtSearchProduct_KeyDown);
+            // 
+            // nudQuantity
+            // 
+            this.nudQuantity.BorderRadius = 6;
+            this.nudQuantity.Location = new System.Drawing.Point(10, 52);
+            this.nudQuantity.Minimum = new decimal(new int[] {1,0,0,0});
+            this.nudQuantity.Maximum = new decimal(new int[] {999,0,0,0});
+            this.nudQuantity.Name = "nudQuantity";
+            this.nudQuantity.Size = new System.Drawing.Size(120, 36);
+            this.nudQuantity.TabIndex = 0;
+            this.nudQuantity.Value = new decimal(new int[] {1,0,0,0});
             // 
             // pnlRight
             // 

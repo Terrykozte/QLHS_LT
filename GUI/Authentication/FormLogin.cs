@@ -59,8 +59,6 @@ namespace QLTN_LT.GUI.Authentication
         private Size _normalSize = new Size(1024, 640);
         private Point _normalLocation;
         private int _originalBorderRadius = 15;
-        private Rectangle _restoreBounds;
-        private bool _isFullscreen = false;
         private ClientSettings _clientSettings;
 
         public FormLogin()

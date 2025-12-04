@@ -236,6 +236,12 @@
     <Compile Include="GUI\Menu\FormMenuEdit.Designer.cs">
       <DependentUpon>FormMenuEdit.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\Menu\FormMenuQR.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Menu\FormMenuQR.Designer.cs">
+      <DependentUpon>FormMenuQR.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\Order\FormOrderList.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -253,6 +259,18 @@
     </Compile>
     <Compile Include="GUI\Order\FormOrderDetail.Designer.cs">
       <DependentUpon>FormOrderDetail.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Order\FormPayment.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Order\FormPayment.Designer.cs">
+      <DependentUpon>FormPayment.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\Order\FormSelectCustomer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Order\FormSelectCustomer.Designer.cs">
+      <DependentUpon>FormSelectCustomer.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\Report\FormReportInventory.cs">
       <SubType>Form</SubType>

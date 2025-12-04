@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using System.Drawing;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
 using System.Diagnostics;
+using Guna.UI2.WinForms;
 using QLTN_LT.GUI.Base;
 using QLTN_LT.GUI.Helper;
+using QLTN_LT.GUI.Utilities;
 
 namespace QLTN_LT.GUI.Order
 {
@@ -283,6 +286,11 @@ namespace QLTN_LT.GUI.Order
                     btnCreate_Click(sender, EventArgs.Empty);
                     e.Handled = true;
                 }
+                else if (e.Control && e.KeyCode == Keys.E)
+                {
+                    ExportOrders();
+                    e.Handled = true;
+                }
                 else if (e.KeyCode == Keys.Enter && dgvOrders?.CurrentRow != null)
                 {
                     btnViewDetails_Click(sender, EventArgs.Empty);
@@ -298,6 +306,66 @@ namespace QLTN_LT.GUI.Order
             {
                 Debug.WriteLine($"KeyDown error: {ex.Message}");
             }
+        }
+
+        private void ExportOrders()
+        {
+            try
+            {
+                using (var sfd = new SaveFileDialog())
+                {
+                    sfd.Filter = "Excel (*.xls)|*.xls|CSV (*.csv)|*.csv";
+                    sfd.FileName = $"DonHang_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
+                    if (sfd.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var list = dgvOrders?.DataSource as IEnumerable<OrderDTO> ?? _allData ?? new List<OrderDTO>();
+                        if (sfd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var lines = new List<string>();
+                            lines.Add("OrderID,MaDon,Ngay,KhachHang,TongTien,TrangThai");
+                            foreach (var o in list)
+                            {
+                                lines.Add($"{o.OrderID},{EscapeCsv(o.OrderNumber)},{o.OrderDate:dd/MM/yyyy HH:mm},{EscapeCsv(o.CustomerName)},{o.TotalAmount},{EscapeCsv(o.Status)}");
+                            }
+                            System.IO.File.WriteAllLines(sfd.FileName, lines, System.Text.Encoding.UTF8);
+                        }
+                        else
+                        {
+                            var sb = new System.Text.StringBuilder();
+                            sb.AppendLine("<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /></head><body>");
+                            sb.AppendLine("<h3>Danh sách đơn hàng</h3>");
+                            sb.AppendLine("<table border='1' cellspacing='0' cellpadding='6' style='border-collapse:collapse;font-family:Segoe UI;font-size:11pt'>");
+                            sb.AppendLine("<tr style='background:#e5e7eb'><th>ID</th><th>Mã đơn</th><th>Ngày</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th></tr>");
+                            foreach (var o in list)
+                            {
+                                sb.AppendLine($"<tr><td>{o.OrderID}</td><td>{Html(o.OrderNumber)}</td><td>{o.OrderDate:dd/MM/yyyy HH:mm}</td><td>{Html(o.CustomerName)}</td><td align='right'>{o.TotalAmount:N0}</td><td>{Html(o.Status)}</td></tr>");
+                            }
+                            sb.AppendLine("</table></body></html>");
+                            System.IO.File.WriteAllText(sfd.FileName, sb.ToString(), System.Text.Encoding.UTF8);
+                        }
+                        MessageBox.Show("Xuất danh sách đơn hàng thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi xuất: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private static string EscapeCsv(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+            var v = s.Replace("\"", "\"\"");
+            if (v.Contains(",") || v.Contains("\n") || v.Contains("\r")) v = "\"" + v + "\"";
+            return v;
+        }
+        private static string Html(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+            var sb = new System.Text.StringBuilder(input);
+            sb.Replace("&", "&amp;"); sb.Replace("<", "&lt;"); sb.Replace(">", "&gt;"); sb.Replace("\"", "&quot;"); sb.Replace("'", "&#39;");
+            return sb.ToString();
         }
 
         protected override void CleanupResources()

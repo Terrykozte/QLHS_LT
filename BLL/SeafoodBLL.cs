@@ -38,32 +38,38 @@ namespace QLTN_LT.BLL
 
         public void Update(SeafoodDTO seafood)
         {
-            if (string.IsNullOrWhiteSpace(seafood.SeafoodName))
-            {
-                throw new ArgumentException("Tên hải sản không được để trống.");
-            }
-
-            if (seafood.CategoryID <= 0)
-            {
-                throw new ArgumentException("Vui lòng chọn danh mục.");
-            }
-
+            ValidateSeafood(seafood, isUpdate: true);
             _repo.Update(seafood);
         }
 
         public void Insert(SeafoodDTO seafood)
         {
+            ValidateSeafood(seafood, isUpdate: false);
+            _repo.Insert(seafood);
+        }
+
+        private void ValidateSeafood(SeafoodDTO seafood, bool isUpdate)
+        {
+            if (seafood == null) throw new ArgumentNullException(nameof(seafood));
+
             if (string.IsNullOrWhiteSpace(seafood.SeafoodName))
-            {
                 throw new ArgumentException("Tên hải sản không được để trống.");
-            }
 
             if (seafood.CategoryID <= 0)
-            {
                 throw new ArgumentException("Vui lòng chọn danh mục.");
-            }
 
-            _repo.Insert(seafood);
+            if (seafood.UnitPrice < 0)
+                throw new ArgumentException("Đơn giá phải >= 0.");
+
+            if (seafood.Quantity < 0)
+                throw new ArgumentException("Số lượng phải >= 0.");
+
+            // Duplicate check by Name + Category (case-insensitive)
+            var all = _repo.GetAll() ?? new List<SeafoodDTO>();
+            var name = seafood.SeafoodName.Trim().ToLower();
+            bool dup = all.Any(s => s.SeafoodName?.Trim().ToLower() == name && s.CategoryID == seafood.CategoryID && (!isUpdate || s.SeafoodID != seafood.SeafoodID));
+            if (dup)
+                throw new ArgumentException("Tên hải sản đã tồn tại trong danh mục này.");
         }
 
         public List<SeafoodDTO> GetAll()

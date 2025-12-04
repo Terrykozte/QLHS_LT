@@ -52,11 +52,23 @@ namespace QLTN_LT.GUI.Dashboard
             this.picRevenue = new Guna.UI2.WinForms.Guna2PictureBox();
             this.lblTotalRevenue = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblRevenueTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.lblRevenueTrend = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.pnlOrdersCard = new Guna.UI2.WinForms.Guna2Panel();
             this.picOrders = new Guna.UI2.WinForms.Guna2PictureBox();
             this.lblOrdersCount = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblOrdersTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.lblOrdersTrend = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.pnlCustomersCard = new Guna.UI2.WinForms.Guna2Panel();
+            this.picCustomers = new Guna.UI2.WinForms.Guna2PictureBox();
+            this.lblCustomersCount = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.lblCustomersTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.lblCustomersTrend = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.pnlRevenueChartCard = new Guna.UI2.WinForms.Guna2Panel();
+            this.revenueChart = new LiveCharts.WinForms.CartesianChart();
+            this.pnlTopSellingChartCard = new Guna.UI2.WinForms.Guna2Panel();
+            this.flowTopSelling = new System.Windows.Forms.FlowLayoutPanel();
+            this.lblTopSellingTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.pnlExpirationCard = new Guna.UI2.WinForms.Guna2Panel();
             this.lblExpirationTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.dgvExpiration = new Guna.UI2.WinForms.Guna2DataGridView();
             this.pnlFilterBar = new Guna.UI2.WinForms.Guna2Panel();
@@ -65,6 +77,7 @@ namespace QLTN_LT.GUI.Dashboard
             this.dtpEndDate = new Guna.UI2.WinForms.Guna2DateTimePicker();
             this.lblFrom = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.dtpStartDate = new Guna.UI2.WinForms.Guna2DateTimePicker();
+            this.progressIndicator = new Guna.UI2.WinForms.Guna2ProgressIndicator();
             this.tlpMain.SuspendLayout();
             this.pnlRevenueCard.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picRevenue)).BeginInit();
@@ -72,7 +85,6 @@ namespace QLTN_LT.GUI.Dashboard
             ((System.ComponentModel.ISupportInitialize)(this.picOrders)).BeginInit();
             this.pnlCustomersCard.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picCustomers)).BeginInit();
-            this.pnlRevenueChartCard.SuspendLayout();
             this.pnlRevenueChartCard.SuspendLayout();
             this.pnlTopSellingChartCard.SuspendLayout();
             this.pnlExpirationCard.SuspendLayout();
@@ -107,9 +119,33 @@ namespace QLTN_LT.GUI.Dashboard
             // 
             // pnlRevenueCard
             // 
-            this.pnlRevenueCard.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlRevenueCard.Margin = new System.Windows.Forms.Padding(10);
+            this.pnlRevenueCard.BackColor = System.Drawing.Color.Transparent;
+            this.pnlRevenueCard.BorderRadius = 10;
+            this.pnlRevenueCard.Controls.Add(this.lblRevenueTrend);
+            this.pnlRevenueCard.Controls.Add(this.lblTotalRevenue);
+            this.pnlRevenueCard.Controls.Add(this.lblRevenueTitle);
+            this.pnlRevenueCard.Controls.Add(this.picRevenue);
+            this.pnlRevenueCard.FillColor = System.Drawing.Color.White;
+            this.pnlRevenueCard.Location = new System.Drawing.Point(20, 20);
+            this.pnlRevenueCard.Margin = new System.Windows.Forms.Padding(5);
+            this.pnlRevenueCard.Name = "pnlRevenueCard";
+            this.pnlRevenueCard.ShadowDecoration.BorderRadius = 10;
+            this.pnlRevenueCard.ShadowDecoration.Color = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(200)))), ((int)(((byte)(200)))));
+            this.pnlRevenueCard.ShadowDecoration.Enabled = true;
+            this.pnlRevenueCard.ShadowDecoration.Shadow = new System.Windows.Forms.Padding(0, 0, 5, 5);
+            this.pnlRevenueCard.Size = new System.Drawing.Size(300, 120);
+            this.pnlRevenueCard.TabIndex = 0;
             // 
+            // picRevenue
+            // 
+            this.picRevenue.Image = null;
+            this.picRevenue.ImageRotate = 0F;
+            this.picRevenue.Location = new System.Drawing.Point(250, 20);
+            this.picRevenue.Name = "picRevenue";
+            this.picRevenue.Size = new System.Drawing.Size(40, 40);
+            this.picRevenue.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picRevenue.TabIndex = 3;
+            this.picRevenue.TabStop = false;
             // 
             // lblRevenueTrend
             // 
@@ -151,6 +187,7 @@ namespace QLTN_LT.GUI.Dashboard
             this.pnlOrdersCard.Controls.Add(this.lblOrdersTrend);
             this.pnlOrdersCard.Controls.Add(this.lblOrdersCount);
             this.pnlOrdersCard.Controls.Add(this.lblOrdersTitle);
+            this.pnlOrdersCard.Controls.Add(this.picOrders);
             this.pnlOrdersCard.FillColor = System.Drawing.Color.White;
             this.pnlOrdersCard.Location = new System.Drawing.Point(330, 20);
             this.pnlOrdersCard.Margin = new System.Windows.Forms.Padding(5);
@@ -162,6 +199,16 @@ namespace QLTN_LT.GUI.Dashboard
             this.pnlOrdersCard.Size = new System.Drawing.Size(300, 120);
             this.pnlOrdersCard.TabIndex = 1;
             // 
+            // picOrders
+            // 
+            this.picOrders.Image = null;
+            this.picOrders.ImageRotate = 0F;
+            this.picOrders.Location = new System.Drawing.Point(250, 20);
+            this.picOrders.Name = "picOrders";
+            this.picOrders.Size = new System.Drawing.Size(40, 40);
+            this.picOrders.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picOrders.TabIndex = 3;
+            this.picOrders.TabStop = false;
             // 
             // lblOrdersTrend
             // 
@@ -203,6 +250,7 @@ namespace QLTN_LT.GUI.Dashboard
             this.pnlCustomersCard.Controls.Add(this.lblCustomersTrend);
             this.pnlCustomersCard.Controls.Add(this.lblCustomersCount);
             this.pnlCustomersCard.Controls.Add(this.lblCustomersTitle);
+            this.pnlCustomersCard.Controls.Add(this.picCustomers);
             this.pnlCustomersCard.FillColor = System.Drawing.Color.White;
             this.pnlCustomersCard.Location = new System.Drawing.Point(640, 20);
             this.pnlCustomersCard.Margin = new System.Windows.Forms.Padding(5);
@@ -214,6 +262,16 @@ namespace QLTN_LT.GUI.Dashboard
             this.pnlCustomersCard.Size = new System.Drawing.Size(300, 120);
             this.pnlCustomersCard.TabIndex = 2;
             // 
+            // picCustomers
+            // 
+            this.picCustomers.Image = null;
+            this.picCustomers.ImageRotate = 0F;
+            this.picCustomers.Location = new System.Drawing.Point(250, 20);
+            this.picCustomers.Name = "picCustomers";
+            this.picCustomers.Size = new System.Drawing.Size(40, 40);
+            this.picCustomers.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picCustomers.TabIndex = 3;
+            this.picCustomers.TabStop = false;
             // 
             // lblCustomersTrend
             // 
@@ -360,6 +418,9 @@ namespace QLTN_LT.GUI.Dashboard
             this.pnlFilterBar.Controls.Add(this.dtpEndDate);
             this.pnlFilterBar.Controls.Add(this.lblFrom);
             this.pnlFilterBar.Controls.Add(this.dtpStartDate);
+            this.pnlFilterBar.Controls.Add(this.btnToday);
+            this.pnlFilterBar.Controls.Add(this.btn7Days);
+            this.pnlFilterBar.Controls.Add(this.btn30Days);
             this.pnlFilterBar.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlFilterBar.Location = new System.Drawing.Point(0, 0);
             this.pnlFilterBar.Name = "pnlFilterBar";

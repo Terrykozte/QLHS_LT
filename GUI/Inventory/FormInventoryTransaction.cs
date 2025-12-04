@@ -6,7 +6,7 @@ using QLTN_LT.DTO;
 
 namespace QLTN_LT.GUI.Inventory
 {
-    public partial class FormInventoryTransaction : Form
+    public partial class FormInventoryTransaction : QLTN_LT.GUI.Base.BaseForm
     {
         private readonly InventoryBLL _inventoryBLL;
         private readonly SupplierBLL _supplierBLL;

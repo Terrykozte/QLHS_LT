@@ -20,7 +20,6 @@ namespace QLTN_LT.GUI.Order
         private Guna2Button btnAddOrder => btnSave;
         private Guna2Button btnClear => btnClose;
         private Guna2HtmlLabel lblTotal => lblTotalAmount;
-        private NumericUpDown nudQuantity = new NumericUpDown { Minimum = 1, Value = 1 };
         private ComboBox cmbCategory = new ComboBox();
         // Optional buttons (currently not present in Designer) are removed to keep code clean
         private TextBox txtNotes = new TextBox();
@@ -68,8 +67,11 @@ namespace QLTN_LT.GUI.Order
 
         private void FormOrderCreate_Load(object sender, EventArgs e)
         {
+            LoadData();
             LoadCategories();
             LoadMenuItems();
+            LoadCustomers();
+            LoadTables();
             SetupEventHandlers();
         }
 
@@ -95,6 +97,11 @@ namespace QLTN_LT.GUI.Order
             if (e.KeyCode == Keys.F5)
             {
                 LoadMenuItems();
+                e.Handled = true;
+            }
+            else if (e.KeyCode == Keys.Delete && dgvCart?.SelectedRows?.Count > 0)
+            {
+                RemoveFromCart();
                 e.Handled = true;
             }
         }
@@ -168,9 +175,30 @@ namespace QLTN_LT.GUI.Order
         {
             cmbCategory.SelectedIndexChanged += (s, e) => FilterMenuItems();
             txtSearch.TextChanged += (s, e) => FilterMenuItems();
-            dgvMenu.CellDoubleClick += (s, e) => AddMenuItemToCart();
+            dgvMenu.CellDoubleClick += DgvMenu_CellDoubleClick;
             btnClear.Click += (s, e) => ClearCart();
             btnAddOrder.Click += (s, e) => CreateOrder();
+
+            if (nudQuantity != null)
+            {
+                nudQuantity.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) { AddMenuItemToCart(); e.Handled = true; } };
+            }
+
+            if (cmbCustomer != null)
+            {
+                cmbCustomer.SelectedIndexChanged += (s, e) => OnCustomerChanged();
+            }
+
+            if (lblCustomer != null)
+            {
+                lblCustomer.Cursor = Cursors.Hand;
+                lblCustomer.Click += (s, e) => SelectCustomer();
+            }
+
+            if (dgvCart != null)
+            {
+                dgvCart.CellContentClick += DgvCart_CellContentClick;
+            }
         }
 
         private void FilterMenuItems()
@@ -201,6 +229,21 @@ namespace QLTN_LT.GUI.Order
             }
         }
 
+        private void DgvMenu_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex < 0) return;
+                dgvMenu.ClearSelection();
+                dgvMenu.Rows[e.RowIndex].Selected = true;
+                AddMenuItemToCart();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi: " + ex.Message);
+            }
+        }
+
         private void AddMenuItemToCart()
         {
             try
@@ -217,16 +260,36 @@ namespace QLTN_LT.GUI.Order
 
                 if (menuItem != null)
                 {
-                    int quantity = (int)nudQuantity.Value;
+                    int quantity = 1;
+                    if (nudQuantity != null) quantity = (int)nudQuantity.Value;
                     if (quantity <= 0) quantity = 1;
 
                     _cartService.AddItem(menuItem, quantity);
-                    nudQuantity.Value = 1;
+                    if (nudQuantity != null) nudQuantity.Value = 1;
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi thêm vào giỏ: " + ex.Message);
+            }
+        }
+
+        private void DgvCart_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex < 0) return;
+                if (dgvCart.Columns[e.ColumnIndex].Name != "colDelete") return;
+                var item = dgvCart.Rows[e.RowIndex].DataBoundItem as CartItem;
+                if (item == null) return;
+                if (MessageBox.Show($"Xóa '{item.ProductName}' khỏi giỏ?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    _cartService.RemoveItem(item.ProductId);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi: " + ex.Message);
             }
         }
 
@@ -271,6 +334,20 @@ namespace QLTN_LT.GUI.Order
                 dgvCart.DataSource = null;
                 dgvCart.DataSource = items;
 
+                // Add delete button column once
+                if (dgvCart.Columns["colDelete"] == null)
+                {
+                    var colDel = new DataGridViewButtonColumn
+                    {
+                        Name = "colDelete",
+                        HeaderText = "",
+                        Text = "✕",
+                        UseColumnTextForButtonValue = true,
+                        Width = 40
+                    };
+                    dgvCart.Columns.Add(colDel);
+                }
+
                 decimal total = _cartService.GetTotalAmount();
                 lblTotal.Text = $"Tổng tiền: {total:N0} VNĐ";
 
@@ -282,12 +359,80 @@ namespace QLTN_LT.GUI.Order
             }
         }
 
+        private void LoadCustomers()
+        {
+            try
+            {
+                var customers = _customerBLL.GetAll();
+                cmbCustomer.DataSource = customers;
+                cmbCustomer.DisplayMember = nameof(CustomerDTO.CustomerName);
+                cmbCustomer.ValueMember = nameof(CustomerDTO.CustomerID);
+                if (customers != null && customers.Count > 0)
+                {
+                    _selectedCustomer = customers.First();
+                    UpdateCustomerLabel();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải khách hàng: " + ex.Message);
+            }
+        }
+
+        private void LoadTables()
+        {
+            try
+            {
+                var tblBll = new TableBLL();
+                var tables = tblBll.GetAll() ?? new List<TableDTO>();
+                cmbTable.DataSource = tables;
+                cmbTable.DisplayMember = nameof(TableDTO.TableName);
+                cmbTable.ValueMember = nameof(TableDTO.TableID);
+                if (tables.Count > 0 && lblTable != null)
+                {
+                    lblTable.Text = "Bàn";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải bàn: " + ex.Message);
+            }
+        }
+
+        private void OnCustomerChanged()
+        {
+            try
+            {
+                _selectedCustomer = cmbCustomer.SelectedItem as CustomerDTO;
+                UpdateCustomerLabel();
+            }
+            catch { }
+        }
+
+        private void UpdateCustomerLabel()
+        {
+            try
+            {
+                if (_selectedCustomer != null)
+                    lblCustomer.Text = $"Khách hàng: {_selectedCustomer.CustomerName}";
+                else
+                    lblCustomer.Text = "Chưa chọn khách hàng";
+            }
+            catch { }
+        }
+
         private void SelectCustomer()
         {
             try
             {
-                // TODO: Tạo form chọn khách hàng
-                MessageBox.Show("Chức năng chọn khách hàng sẽ được thêm");
+                using (var dlg = new FormSelectCustomer())
+                {
+                    if (dlg.ShowDialog(this) == DialogResult.OK && dlg.SelectedCustomer != null)
+                    {
+                        _selectedCustomer = dlg.SelectedCustomer;
+                        UpdateCustomerLabel();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -321,7 +466,13 @@ namespace QLTN_LT.GUI.Order
                 int orderId = _orderBLL.Create(order);
                 if (orderId > 0)
                 {
-                    MessageBox.Show($"Tạo đơn hàng thành công! Mã đơn: {orderId}");
+                    if (MessageBox.Show($"Tạo đơn hàng thành công!\nMã đơn: {orderId}\n\nThanh toán ngay?", "Thành công", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        using (var payment = new QLTN_LT.GUI.Order.FormPayment(orderId))
+                        {
+                            payment.ShowDialog(this);
+                        }
+                    }
                     _cartService.Clear();
                     ClearForm();
                 }

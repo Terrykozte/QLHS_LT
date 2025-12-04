@@ -22,8 +22,12 @@ namespace QLTN_LT.GUI.Dashboard
         public FormDashboard()
         {
             InitializeComponent();
-            _wpfRevenueChart = new LiveCharts.Wpf.CartesianChart();
-            revenueChart.Child = _wpfRevenueChart;
+            try
+            {
+                _wpfRevenueChart = new LiveCharts.Wpf.CartesianChart();
+                if (revenueChart != null) revenueChart.Child = _wpfRevenueChart;
+            }
+            catch { _wpfRevenueChart = new LiveCharts.Wpf.CartesianChart(); }
 
             // UX & Styling
             try
@@ -106,10 +110,14 @@ namespace QLTN_LT.GUI.Dashboard
             {
                 _debounceTimer?.Stop();
                 _debounceTimer?.Dispose();
-                if (revenueChart != null)
+                try
+                {
+                    if (revenueChart != null && !revenueChart.IsDisposed)
                 {
                     revenueChart.Child = null;
+                    }
                 }
+                catch { }
                 if (_wpfRevenueChart != null)
                 {
                     _wpfRevenueChart.Series = new SeriesCollection();

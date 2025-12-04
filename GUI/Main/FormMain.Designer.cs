@@ -29,6 +29,7 @@ namespace QLTN_LT.GUI.Main
         private Guna.UI2.WinForms.Guna2Button btnInventory;
         private Guna.UI2.WinForms.Guna2Button btnSupplier;
         private Guna.UI2.WinForms.Guna2Button btnUser;
+        private Guna.UI2.WinForms.Guna2Button btnMenuQR;
         private Guna.UI2.WinForms.Guna2Button btnLogout;
 
         // User Info
@@ -77,6 +78,7 @@ namespace QLTN_LT.GUI.Main
             this.btnTable = new Guna.UI2.WinForms.Guna2Button();
             this.btnMenu = new Guna.UI2.WinForms.Guna2Button();
             this.btnInventory = new Guna.UI2.WinForms.Guna2Button();
+            this.btnMenuQR = new Guna.UI2.WinForms.Guna2Button();
             this.btnSupplier = new Guna.UI2.WinForms.Guna2Button();
             this.btnUser = new Guna.UI2.WinForms.Guna2Button();
             this.btnLogout = new Guna.UI2.WinForms.Guna2Button();
@@ -138,7 +140,7 @@ namespace QLTN_LT.GUI.Main
             // 
             // picLogo - Điều chỉnh vị trí để có chỗ cho btnToggleSidebar
             // 
-            this.picLogo.Image = ((System.Drawing.Image)(resources.GetObject("picLogo.Image")));
+            this.picLogo.Image = null;
             this.picLogo.ImageRotate = 0F;
             this.picLogo.Location = new System.Drawing.Point(55, 20);
             this.picLogo.Name = "picLogo";
@@ -180,6 +182,7 @@ namespace QLTN_LT.GUI.Main
             this.flowSidebar.Controls.Add(this.btnTable);
             this.flowSidebar.Controls.Add(this.btnMenu);
             this.flowSidebar.Controls.Add(this.btnInventory);
+            this.flowSidebar.Controls.Add(this.btnMenuQR);
             this.flowSidebar.Controls.Add(this.btnSupplier);
             this.flowSidebar.Controls.Add(this.btnUser);
             this.flowSidebar.Controls.Add(this.btnLogout);
@@ -198,13 +201,13 @@ namespace QLTN_LT.GUI.Main
             this.btnDashboard.Checked = true;
             this.btnDashboard.CheckedState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(41)))), ((int)(((byte)(55)))));
             this.btnDashboard.CheckedState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
-            this.btnDashboard.CheckedState.Image = ((System.Drawing.Image)(resources.GetObject("btnDashboard.Image")));
+            this.btnDashboard.CheckedState.Image = null;
             this.btnDashboard.FillColor = System.Drawing.Color.Transparent;
             this.btnDashboard.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnDashboard.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(156)))), ((int)(((byte)(163)))), ((int)(((byte)(175)))));
             this.btnDashboard.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(41)))), ((int)(((byte)(55)))));
             this.btnDashboard.HoverState.ForeColor = System.Drawing.Color.White;
-            this.btnDashboard.Image = ((System.Drawing.Image)(resources.GetObject("btnDashboard.Image")));
+            this.btnDashboard.Image = null;
             this.btnDashboard.ImageAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnDashboard.ImageOffset = new System.Drawing.Point(5, 0);
             this.btnDashboard.Location = new System.Drawing.Point(13, 3);
@@ -401,6 +404,29 @@ namespace QLTN_LT.GUI.Main
             this.btnInventory.TextOffset = new System.Drawing.Point(15, 0);
             this.btnInventory.Click += new System.EventHandler(this.NavigationButton_Click);
 
+            // btnMenuQR
+            // 
+            this.btnMenuQR.BorderRadius = 6;
+            this.btnMenuQR.ButtonMode = Guna.UI2.WinForms.Enums.ButtonMode.RadioButton;
+            this.btnMenuQR.CheckedState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(41)))), ((int)(((byte)(55)))));
+            this.btnMenuQR.CheckedState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
+            this.btnMenuQR.FillColor = System.Drawing.Color.Transparent;
+            this.btnMenuQR.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnMenuQR.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(156)))), ((int)(((byte)(163)))), ((int)(((byte)(175)))));
+            this.btnMenuQR.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(41)))), ((int)(((byte)(55)))));
+            this.btnMenuQR.HoverState.ForeColor = System.Drawing.Color.White;
+            this.btnMenuQR.ImageAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.btnMenuQR.ImageOffset = new System.Drawing.Point(5, 0);
+            this.btnMenuQR.Location = new System.Drawing.Point(13, 462);
+            this.btnMenuQR.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.btnMenuQR.Name = "btnMenuQR";
+            this.btnMenuQR.Size = new System.Drawing.Size(215, 45);
+            this.btnMenuQR.TabIndex = 8;
+            this.btnMenuQR.Text = "Menu QR";
+            this.btnMenuQR.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.btnMenuQR.TextOffset = new System.Drawing.Point(15, 0);
+            this.btnMenuQR.Click += new System.EventHandler(this.NavigationButton_Click);
+
             // btnSupplier
             // 
             this.btnSupplier.BorderRadius = 6;
@@ -484,7 +510,7 @@ namespace QLTN_LT.GUI.Main
             // 
             // picUserAvatar
             // 
-            this.picUserAvatar.Image = ((System.Drawing.Image)(resources.GetObject("picUserAvatar.Image")));
+            this.picUserAvatar.Image = null;
             this.picUserAvatar.ImageRotate = 0F;
             this.picUserAvatar.Location = new System.Drawing.Point(15, 15);
             this.picUserAvatar.Name = "picUserAvatar";
@@ -569,7 +595,7 @@ namespace QLTN_LT.GUI.Main
             this.btnSettings.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
             this.btnSettings.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
             this.btnSettings.HoverState.Parent = this.btnSettings;
-            this.btnSettings.Location = new System.Drawing.Point(644, 0);
+            this.btnSettings.Location = new System.Drawing.Point(624, 0);
             this.btnSettings.Name = "btnSettings";
             this.btnSettings.ShadowDecoration.Parent = this.btnSettings;
             this.btnSettings.Size = new System.Drawing.Size(40, 40);
@@ -589,7 +615,7 @@ namespace QLTN_LT.GUI.Main
             this.btnMinimize.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
             this.btnMinimize.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
             this.btnMinimize.HoverState.Parent = this.btnMinimize;
-            this.btnMinimize.Location = new System.Drawing.Point(684, 0);
+            this.btnMinimize.Location = new System.Drawing.Point(624, 0);
             this.btnMinimize.Name = "btnMinimize";
             this.btnMinimize.ShadowDecoration.Parent = this.btnMinimize;
             this.btnMinimize.Size = new System.Drawing.Size(40, 40);

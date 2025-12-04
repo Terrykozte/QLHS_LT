@@ -28,6 +28,8 @@ namespace QLTN_LT.GUI.Seafood
             this.cboCategory = new Guna.UI2.WinForms.Guna2ComboBox();
             this.txtUnitPrice = new Guna.UI2.WinForms.Guna2TextBox();
             this.txtQuantity = new Guna.UI2.WinForms.Guna2TextBox();
+
+
             this.txtUnit = new Guna.UI2.WinForms.Guna2TextBox();
             this.txtDescription = new Guna.UI2.WinForms.Guna2TextBox();
             this.btnSave = new Guna.UI2.WinForms.Guna2Button();
@@ -50,7 +52,7 @@ namespace QLTN_LT.GUI.Seafood
             this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlHeader.Location = new System.Drawing.Point(0, 0);
             this.pnlHeader.Name = "pnlHeader";
-            this.pnlHeader.Size = new System.Drawing.Size(500, 50);
+            this.pnlHeader.Size = new System.Drawing.Size(560, 60);
             this.pnlHeader.TabIndex = 0;
             // 
             // lblTitle
@@ -83,11 +85,12 @@ namespace QLTN_LT.GUI.Seafood
             this.pnlBody.Controls.Add(this.txtQuantity);
             this.pnlBody.Controls.Add(this.txtUnitPrice);
             this.pnlBody.Controls.Add(this.cboCategory);
+            this.pnlBody.Controls.Add(this.btnAddCategory);
             this.pnlBody.Controls.Add(this.txtSeafoodName);
             this.pnlBody.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlBody.Location = new System.Drawing.Point(0, 50);
+            this.pnlBody.Location = new System.Drawing.Point(0, 60);
             this.pnlBody.Name = "pnlBody";
-            this.pnlBody.Size = new System.Drawing.Size(500, 500);
+            this.pnlBody.Size = new System.Drawing.Size(560, 560);
             this.pnlBody.TabIndex = 1;
             // 
             // txtSeafoodName
@@ -114,9 +117,23 @@ namespace QLTN_LT.GUI.Seafood
             this.cboCategory.ItemHeight = 30;
             this.cboCategory.Location = new System.Drawing.Point(30, 80);
             this.cboCategory.Name = "cboCategory";
-            this.cboCategory.Size = new System.Drawing.Size(440, 36);
+            this.cboCategory.Size = new System.Drawing.Size(360, 36);
             this.cboCategory.TabIndex = 1;
             // 
+            // btnAddCategory
+            // 
+            this.btnAddCategory = new Guna.UI2.WinForms.Guna2Button();
+            this.btnAddCategory.BorderRadius = 6;
+            this.btnAddCategory.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(14)))), ((int)(((byte)(165)))), ((int)(((byte)(233)))));
+            this.btnAddCategory.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnAddCategory.ForeColor = System.Drawing.Color.White;
+            this.btnAddCategory.Location = new System.Drawing.Point(400, 80);
+            this.btnAddCategory.Name = "btnAddCategory";
+            this.btnAddCategory.Size = new System.Drawing.Size(70, 36);
+            this.btnAddCategory.TabIndex = 12;
+            this.btnAddCategory.Text = "+Mới";
+            this.btnAddCategory.Click += new System.EventHandler(this.btnAddCategory_Click);
+            
             // txtUnitPrice
             // 
             this.txtUnitPrice.BorderRadius = 6;
@@ -203,7 +220,7 @@ namespace QLTN_LT.GUI.Seafood
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(500, 500);
+            this.ClientSize = new System.Drawing.Size(560, 560);
             this.Controls.Add(this.pnlBody);
             this.Controls.Add(this.pnlHeader);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
@@ -235,5 +252,6 @@ namespace QLTN_LT.GUI.Seafood
         private Guna.UI2.WinForms.Guna2Button btnSave;
         private Guna.UI2.WinForms.Guna2Button btnCancel;
         private Guna.UI2.WinForms.Guna2DragControl guna2DragControl1;
+        private Guna.UI2.WinForms.Guna2Button btnAddCategory;
     }
 }
