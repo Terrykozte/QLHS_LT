@@ -4,6 +4,9 @@ using System.Windows.Forms;
 using Guna.UI2.WinForms;
 using QLTN_LT.DAL;
 using System.Data.SqlClient;
+using QLTN_LT.GUI.Helper;
+using QLTN_LT.BLL;
+using QLTN_LT.GUI.Utilities;
 
 namespace QLTN_LT.GUI.Authentication
 {
@@ -17,6 +20,11 @@ namespace QLTN_LT.GUI.Authentication
         private Guna2Button btnTest;
         private Guna2Button btnSave;
         private Guna2Button btnCancel;
+        // Theme
+        private Guna2ComboBox cboTheme;
+        // Shortcuts helper
+        private Guna2Button btnShortcuts;
+        private Guna2TextBox txtShortcutHints;
 
         public FormConfig()
         {
@@ -106,8 +114,56 @@ namespace QLTN_LT.GUI.Authentication
             this.Controls.Add(btnSave);
             this.Controls.Add(btnCancel);
 
+            // Theme selection
+            AddLabel("Giao diện (Theme):", 520);
+            cboTheme = new Guna2ComboBox();
+            cboTheme.Location = new Point(20, 550);
+            cboTheme.Size = new Size(360, 36);
+            cboTheme.Items.Add("Light");
+            cboTheme.Items.Add("Dark");
+            cboTheme.BorderColor = Color.FromArgb(213, 218, 223);
+            cboTheme.BorderRadius = 5;
+            var prefsInit = UserPreferences.Load();
+            cboTheme.SelectedIndex = (!string.IsNullOrWhiteSpace(prefsInit?.Theme) && prefsInit.Theme.Equals("Dark", StringComparison.OrdinalIgnoreCase)) ? 1 : 0;
+            this.Controls.Add(cboTheme);
+
+            // Shortcuts section
+            AddShortcutsSection();
+
             // Resize form to fit
-            this.Size = new Size(400, 540);
+            this.Size = new Size(400, 820);
+        }
+
+        private void AddShortcutsSection()
+        {
+            // Title
+            var lblShortcuts = new Label();
+            lblShortcuts.Text = "Gợi ý & phím tắt";
+            lblShortcuts.Font = new Font("Segoe UI", 12, FontStyle.Bold);
+            lblShortcuts.ForeColor = Color.FromArgb(94, 148, 255);
+            lblShortcuts.Location = new Point(20, 520);
+            lblShortcuts.AutoSize = true;
+            this.Controls.Add(lblShortcuts);
+
+            // Multiline hints
+            txtShortcutHints = new Guna2TextBox();
+            txtShortcutHints.Location = new Point(20, 550);
+            txtShortcutHints.Size = new Size(360, 90);
+            txtShortcutHints.Multiline = true;
+            txtShortcutHints.ReadOnly = true;
+            txtShortcutHints.BorderRadius = 6;
+            txtShortcutHints.Text = "F1: Hướng dẫn phím tắt\r\nCtrl + D: Đổi theme Light/Dark\r\nCtrl + Q: Tạo VietQR (Thanh toán)\r\nF5: Làm mới dữ liệu\r\nEnter: Xác nhận\r\nEsc: Đóng";
+            this.Controls.Add(txtShortcutHints);
+
+            // Open full guide button
+            btnShortcuts = CreateButton("Xem đầy đủ phím tắt (F1)", 650, Color.MediumSlateBlue);
+            btnShortcuts.Size = new Size(360, 36);
+            btnShortcuts.Location = new Point(20, 650);
+            btnShortcuts.Click += (s, e) =>
+            {
+                try { new FormShortcuts().ShowDialog(this); } catch { }
+            };
+            this.Controls.Add(btnShortcuts);
         }
 
         private void AddLabel(string text, int y)
@@ -163,7 +219,7 @@ namespace QLTN_LT.GUI.Authentication
             else
             {
                 // Defaults
-                txtServer.Text = @".\SQLEXPRESS";
+                txtServer.Text = @"TERRYKOZTE\SQLEXPRESS";
                 txtDatabase.Text = "QLHS_LT";
                 cboAuth.SelectedIndex = 0;
             }
@@ -247,7 +303,15 @@ namespace QLTN_LT.GUI.Authentication
 
                 // Save settings
                 ConnectionSettings.Save(settings);
-                DatabaseHelper.ResetConnection(); // Clear cache
+
+                // Save theme preference
+                try
+                {
+                    var prefs = UserPreferences.Load() ?? new UserPreferences();
+                    prefs.Theme = cboTheme.SelectedIndex == 1 ? "Dark" : "Light";
+                    UserPreferences.Save(prefs);
+                }
+                catch { }
                 
                 MessageBox.Show("✓ Cài đặt đã được lưu thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();

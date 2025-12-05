@@ -250,6 +250,32 @@ namespace QLTN_LT.GUI.Order
             this.btnExportPdf.UseVisualStyleBackColor = false;
             this.btnExportPdf.Click += new System.EventHandler(this.btnExportPdf_Click);
 
+            // btnVietQRQuickLink
+            this.btnVietQRQuickLink = new System.Windows.Forms.Button();
+            this.btnVietQRQuickLink.BackColor = System.Drawing.Color.SteelBlue;
+            this.btnVietQRQuickLink.ForeColor = System.Drawing.Color.White;
+            this.btnVietQRQuickLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnVietQRQuickLink.Location = new System.Drawing.Point(522, 370);
+            this.btnVietQRQuickLink.Name = "btnVietQRQuickLink";
+            this.btnVietQRQuickLink.Size = new System.Drawing.Size(150, 40);
+            this.btnVietQRQuickLink.TabIndex = 7;
+            this.btnVietQRQuickLink.Text = "Tạo VietQR (Quick Link)";
+            this.btnVietQRQuickLink.UseVisualStyleBackColor = false;
+            this.btnVietQRQuickLink.Click += new System.EventHandler(this.btnVietQRQuickLink_Click);
+
+            // btnHelp
+            this.btnHelp = new System.Windows.Forms.Button();
+            this.btnHelp.BackColor = System.Drawing.Color.Gray;
+            this.btnHelp.ForeColor = System.Drawing.Color.White;
+            this.btnHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnHelp.Location = new System.Drawing.Point(682, 370);
+            this.btnHelp.Name = "btnHelp";
+            this.btnHelp.Size = new System.Drawing.Size(80, 40);
+            this.btnHelp.TabIndex = 8;
+            this.btnHelp.Text = "Hướng dẫn";
+            this.btnHelp.UseVisualStyleBackColor = false;
+            this.btnHelp.Click += new System.EventHandler(this.btnHelp_Click);
+
             // FormPayment
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -261,6 +287,7 @@ namespace QLTN_LT.GUI.Order
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnExportInvoice);
             this.Controls.Add(this.btnExportPdf);
+            this.Controls.Add(this.btnVietQRQuickLink);
             this.Name = "FormPayment";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Thanh toán đơn hàng";
@@ -300,6 +327,8 @@ namespace QLTN_LT.GUI.Order
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnExportInvoice;
         private System.Windows.Forms.Button btnExportPdf;
+        private System.Windows.Forms.Button btnVietQRQuickLink;
+        private System.Windows.Forms.Button btnHelp;
     }
 }
 

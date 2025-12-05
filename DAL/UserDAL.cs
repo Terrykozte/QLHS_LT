@@ -14,15 +14,28 @@ namespace QLTN_LT.DAL
     {
         public UserDTO GetUserWithRoles(string username)
         {
+            // Thử schema mới trước; nếu lỗi cột không tồn tại → fallback sang schema legacy
+            try
+            {
+                return GetUserWithRoles_NewSchema(username);
+            }
+            catch (SqlException)
+            {
+                // Column name mismatch → thử legacy
+                return GetUserWithRoles_Legacy(username);
+            }
+        }
+
+        private UserDTO GetUserWithRoles_NewSchema(string username)
+        {
             UserDTO user = null;
             const string userSql = @"SELECT UserID, Username, PasswordHash, PasswordSalt, FullName, Email, Phone, IsActive, Roles 
                                      FROM dbo.Users WHERE Username = @username AND IsActive = 1";
 
-            using (var conn = DatabaseHelper.CreateConnection())
+            using (var conn = DatabaseHelper.CreateAndOpenConnection())
             using (var cmd = new SqlCommand(userSql, conn))
             {
                 cmd.Parameters.AddWithValue("@username", username);
-                conn.Open();
                 using (var rd = cmd.ExecuteReader())
                 {
                     if (rd.Read())
@@ -39,7 +52,6 @@ namespace QLTN_LT.DAL
                             IsActive = (bool)rd["IsActive"],
                         };
 
-                        // Parse roles from comma-separated string if available
                         if (!rd.IsDBNull(rd.GetOrdinal("Roles")))
                         {
                             var roleStr = rd["Roles"].ToString();
@@ -58,7 +70,57 @@ namespace QLTN_LT.DAL
             return user;
         }
 
+        private UserDTO GetUserWithRoles_Legacy(string username)
+        {
+            UserDTO user = null;
+            const string sql = @"SELECT TOP 1 UserID, Username, PasswordHash, FullName, Email, Role, Status 
+                                  FROM dbo.Users WHERE Username = @username";
+
+            using (var conn = DatabaseHelper.CreateAndOpenConnection())
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@username", username);
+                using (var rd = cmd.ExecuteReader())
+                {
+                    if (rd.Read())
+                    {
+                        user = new UserDTO
+                        {
+                            UserID = rd["UserID"] is int id ? id : Convert.ToInt32(rd["UserID"]),
+                            Username = rd["Username"].ToString(),
+                            LegacyPassword = rd["PasswordHash"]?.ToString(),
+                            FullName = rd["FullName"] as string,
+                            Email = rd["Email"] as string,
+                            IsActive = string.Equals(rd["Status"]?.ToString(), "Active", StringComparison.OrdinalIgnoreCase),
+                            Roles = new List<string>()
+                        };
+
+                        var role = rd["Role"]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(role))
+                        {
+                            user.Roles.Add(role.Trim());
+                        }
+                    }
+                }
+            }
+            return user;
+        }
+
         public List<UserDTO> GetAll()
+        {
+            // Thử schema mới trước; nếu lỗi cột không tồn tại → fallback sang schema legacy
+            try
+            {
+                return GetAll_NewSchema();
+            }
+            catch (SqlException)
+            {
+                // Column name mismatch → thử legacy
+                return GetAll_Legacy();
+            }
+        }
+
+        private List<UserDTO> GetAll_NewSchema()
         {
             var users = new List<UserDTO>();
             const string sql = "SELECT UserID, Username, FullName, Email, Phone, IsActive, Roles FROM dbo.Users";
@@ -92,6 +154,43 @@ namespace QLTN_LT.DAL
                                     .ToList();
                             }
                         }
+                        users.Add(user);
+                    }
+                }
+            }
+            return users;
+        }
+
+        private List<UserDTO> GetAll_Legacy()
+        {
+            var users = new List<UserDTO>();
+            const string sql = "SELECT UserID, Username, FullName, Email, Role, Status FROM dbo.Users";
+
+            using (var conn = DatabaseHelper.CreateConnection())
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                conn.Open();
+                using (var rd = cmd.ExecuteReader())
+                {
+                    while (rd.Read())
+                    {
+                        var user = new UserDTO
+                        {
+                            UserID = rd["UserID"] is int id ? id : Convert.ToInt32(rd["UserID"]),
+                            Username = rd["Username"].ToString(),
+                            FullName = rd["FullName"] as string,
+                            Email = rd["Email"] as string,
+                            Phone = null, // Legacy schema không có Phone
+                            IsActive = string.Equals(rd["Status"]?.ToString(), "Active", StringComparison.OrdinalIgnoreCase),
+                            Roles = new List<string>()
+                        };
+
+                        var role = rd["Role"]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(role))
+                        {
+                            user.Roles.Add(role.Trim());
+                        }
+
                         users.Add(user);
                     }
                 }

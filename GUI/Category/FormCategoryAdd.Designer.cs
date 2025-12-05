@@ -22,7 +22,6 @@ namespace QLTN_LT.GUI.Category
             this.guna2ShadowForm1 = new Guna.UI2.WinForms.Guna2ShadowForm(this.components);
             this.pnlHeader = new Guna.UI2.WinForms.Guna2Panel();
             this.lblTitle = new System.Windows.Forms.Label();
-            this.btnClose = new Guna.UI2.WinForms.Guna2ControlBox();
             this.pnlBody = new Guna.UI2.WinForms.Guna2Panel();
             this.txtCategoryName = new Guna.UI2.WinForms.Guna2TextBox();
             this.txtDescription = new Guna.UI2.WinForms.Guna2TextBox();

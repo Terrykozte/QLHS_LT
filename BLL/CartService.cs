@@ -80,6 +80,22 @@ namespace QLTN_LT.BLL
         }
 
         /// <summary>
+        /// Giảm số lượng sản phẩm; nếu <=0 thì xóa khỏi giỏ
+        /// </summary>
+        public void DecrementItem(int productId, int amount = 1)
+        {
+            if (amount <= 0) return;
+            var item = _items.FirstOrDefault(i => i.ProductId == productId);
+            if (item == null) return;
+            item.Quantity -= amount;
+            if (item.Quantity <= 0)
+            {
+                _items.Remove(item);
+            }
+            OnCartChanged();
+        }
+
+        /// <summary>
         /// Lấy tất cả sản phẩm trong giỏ
         /// </summary>
         public List<CartItem> GetItems()
@@ -179,7 +195,7 @@ namespace QLTN_LT.BLL
         /// <summary>
         /// Tạo đơn hàng từ giỏ hàng
         /// </summary>
-        public OrderDTO CreateOrder(int customerId, string customerName, string customerPhone, string notes = "")
+        public OrderDTO CreateOrder(int customerId, string customerName, string customerPhone, int? tableId = null, string notes = "")
         {
             if (_items.Count == 0) return null;
 
@@ -187,8 +203,10 @@ namespace QLTN_LT.BLL
             {
                 CustomerID = customerId,
                 CustomerName = customerName,
+                TableID = tableId,
                 OrderDate = DateTime.Now,
                 Status = "Pending",
+                Notes = notes,
                 TotalAmount = GetTotalAmount(),
                 OrderDetails = _items.Select(i => new OrderDetailDTO
                 {

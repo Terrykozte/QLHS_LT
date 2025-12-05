@@ -15,7 +15,7 @@ namespace QLTN_LT.DAL
                 FROM dbo.MenuCategories
                 ORDER BY DisplayOrder, CategoryName";
 
-            using (var conn = DatabaseHelper.CreateConnection())
+            using (var conn = DatabaseHelper.CreateAndOpenConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
                 conn.Open();
@@ -46,7 +46,7 @@ namespace QLTN_LT.DAL
                 INNER JOIN dbo.MenuCategories mc ON mi.CategoryID = mc.CategoryID
                 ORDER BY mc.DisplayOrder, mi.ItemName";
 
-            using (var conn = DatabaseHelper.CreateConnection())
+            using (var conn = DatabaseHelper.CreateAndOpenConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
                 conn.Open();
@@ -83,7 +83,7 @@ namespace QLTN_LT.DAL
                 INNER JOIN dbo.MenuCategories mc ON mi.CategoryID = mc.CategoryID
                 WHERE mi.ItemID = @ItemID";
 
-            using (var conn = DatabaseHelper.CreateConnection())
+            using (var conn = DatabaseHelper.CreateAndOpenConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddWithValue("@ItemID", itemId);
@@ -118,7 +118,7 @@ namespace QLTN_LT.DAL
                 INSERT INTO dbo.MenuItems (CategoryID, ItemCode, ItemName, UnitPrice, UnitName, Description, IsAvailable, CreatedAt)
                 VALUES (@CategoryID, @ItemCode, @ItemName, @UnitPrice, @UnitName, @Description, @IsAvailable, GETDATE())";
 
-            using (var conn = DatabaseHelper.CreateConnection())
+            using (var conn = DatabaseHelper.CreateAndOpenConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddWithValue("@CategoryID", item.CategoryID);
@@ -146,7 +146,7 @@ namespace QLTN_LT.DAL
                     IsAvailable = @IsAvailable
                 WHERE ItemID = @ItemID";
 
-            using (var conn = DatabaseHelper.CreateConnection())
+            using (var conn = DatabaseHelper.CreateAndOpenConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddWithValue("@ItemID", item.ItemID);
@@ -166,11 +166,22 @@ namespace QLTN_LT.DAL
         {
             const string sql = "DELETE FROM dbo.MenuItems WHERE ItemID = @ItemID";
 
-            using (var conn = DatabaseHelper.CreateConnection())
+            using (var conn = DatabaseHelper.CreateAndOpenConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddWithValue("@ItemID", itemId);
                 conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+        public void SetAvailability(int itemId, bool isAvailable)
+        {
+            const string sql = @"UPDATE dbo.MenuItems SET IsAvailable = @IsAvailable WHERE ItemID = @ItemID";
+            using (var conn = DatabaseHelper.CreateAndOpenConnection())
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@ItemID", itemId);
+                cmd.Parameters.AddWithValue("@IsAvailable", isAvailable);
                 cmd.ExecuteNonQuery();
             }
         }

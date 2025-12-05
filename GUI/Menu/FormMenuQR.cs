@@ -14,6 +14,7 @@ using QLTN_LT.GUI.Base;
 using Guna.UI2.WinForms;
 using QLTN_LT.GUI.Utilities;
 using QLTN_LT.DAL;
+using QLTN_LT.GUI.Controls;
 
 namespace QLTN_LT.GUI.Menu
 {
@@ -21,6 +22,10 @@ namespace QLTN_LT.GUI.Menu
     {
         private readonly MenuBLL _menuBLL = new MenuBLL();
         private readonly CartService _cart = new CartService();
+        private bool _cardView = true;
+        private string _selectedCategory = null;
+        private FlowLayoutPanel _catTabs;
+        private Guna2Button _btnToggleView;
         private List<MenuItemDTO> _allItems = new List<MenuItemDTO>();
 
         private Timer _searchTimer;
@@ -28,7 +33,7 @@ namespace QLTN_LT.GUI.Menu
         private bool _isGenerating = false;
 
         // Hardcode account info as requested
-        private const string VietQR_BankCode = "970422"; // Techcombank (default)
+        private const string VietQR_BankCode = "970436"; // Vietcombank (default)
         private const string VietQR_AccountNo = "1031839610";
         private const string VietQR_AccountName = "PHAM HOAI THUONG";
 
@@ -42,6 +47,7 @@ namespace QLTN_LT.GUI.Menu
             this.KeyPreview = true;
             this.KeyDown += FormMenuQR_KeyDown;
             this.FormClosing += FormMenuQR_FormClosing;
+            this.Resize += (s, e) => { try { AdjustBreakpoints(); UpdateCardWidths(); } catch { } };
         }
 
         private void FormMenuQR_Load(object sender, EventArgs e)
@@ -64,17 +70,68 @@ namespace QLTN_LT.GUI.Menu
                 // Setup QR context menu
                 SetupQrContextMenu();
 
+                // Wire fixed QR buttons
+                try
+                {
+                    if (btnCopyPayload != null) btnCopyPayload.Click += (s, e2) => CopyPayloadToClipboard();
+                    if (btnSaveQR != null) btnSaveQR.Click += (s, e2) => SaveQrToFile();
+                }
+                catch { }
+
+                // Toggle Card/Grid button
+                try
+                {
+                    _btnToggleView = new Guna2Button
+                    {
+                        Text = "Grid",
+                        Width = 70,
+                        Height = 30,
+                        BorderRadius = 6
+                    };
+                    _btnToggleView.Left = Math.Max(0, txtSearch.Right - _btnToggleView.Width);
+                    _btnToggleView.Top = txtSearch.Top + 5;
+                    _btnToggleView.Click += (s, e2) => ToggleView();
+                    pnlLeft.Controls.Add(_btnToggleView);
+                }
+                catch { }
+
+                BuildCategoryTabs();
+
                 LoadMenu();
                 SetupGridStyles();
                 txtSearch.Focus();
 
                 // Responsive tweaks
                 ApplyResponsiveDesign();
+                AdjustBreakpoints();
+                UpdateCardWidths();
 
                 _cart.CartChanged += (s, ev) => RefreshCart();
 
                 // Events
                 dgvMenu.CellDoubleClick += (s, e2) => { btnAddToCart_Click(s, EventArgs.Empty); };
+
+                // Reservation UI toggle
+                if (chkReserve != null) chkReserve.CheckedChanged += (s2, e2) => UpdateReserveUI();
+                UpdateReserveUI();
+
+                // Style QR info box
+                try
+                {
+                    if (txtQRInfo != null)
+                    {
+                        txtQRInfo.Font = new Font("Consolas", 9f);
+                        txtQRInfo.FillColor = Color.FromArgb(245, 247, 250);
+                        txtQRInfo.ForeColor = Color.FromArgb(31, 41, 55);
+                        txtQRInfo.PlaceholderText = "Thông tin thanh toán sẽ hiển thị tại đây...";
+                    }
+                    if (picQR != null)
+                    {
+                        picQR.BorderStyle = BorderStyle.FixedSingle;
+                        picQR.BackColor = Color.White;
+                    }
+                }
+                catch { }
 
                 // Initial layout
                 pnlRight_Resize(pnlRight, EventArgs.Empty);
@@ -126,6 +183,17 @@ namespace QLTN_LT.GUI.Menu
                 txtQRInfo.Left = picQR.Right + padding;
                 txtQRInfo.Width = infoWidth;
                 txtQRInfo.Height = bottomHeight;
+
+                // Place fixed QR action buttons at bottom-right
+                if (btnSaveQR != null && btnCopyPayload != null)
+                {
+                    int btnTop = picQR.Bottom - btnSaveQR.Height - 4;
+                    btnSaveQR.Top = btnTop;
+                    btnSaveQR.Left = width - btnSaveQR.Width - padding;
+
+                    btnCopyPayload.Top = btnTop;
+                    btnCopyPayload.Left = btnSaveQR.Left - btnCopyPayload.Width - 8;
+                }
             }
             catch { }
         }
@@ -317,6 +385,21 @@ namespace QLTN_LT.GUI.Menu
             catch { }
         }
 
+        private void UpdateReserveUI()
+        {
+            bool on = (chkReserve != null && chkReserve.Checked);
+            if (lblReserveTime != null) lblReserveTime.Enabled = on;
+            if (dtpReserveTime != null) dtpReserveTime.Enabled = on;
+            if (lblGuests != null) lblGuests.Enabled = on;
+            if (nudGuests != null) nudGuests.Enabled = on;
+            if (lblContactName != null) lblContactName.Enabled = on;
+            if (txtContactName != null) txtContactName.Enabled = on;
+            if (lblContactPhone != null) lblContactPhone.Enabled = on;
+            if (txtContactPhone != null) txtContactPhone.Enabled = on;
+            if (lblContactNote != null) lblContactNote.Enabled = on;
+            if (txtContactNote != null) txtContactNote.Enabled = on;
+        }
+
         private void SetupGridStyles()
         {
             dgvMenu.AutoGenerateColumns = false;
@@ -349,13 +432,108 @@ namespace QLTN_LT.GUI.Menu
         private void ApplyFilter()
         {
             var keyword = (txtSearch.Text ?? string.Empty).Trim().ToLower();
-            var filtered = string.IsNullOrEmpty(keyword) ? _allItems : _allItems.Where(i =>
-                (i.ItemName?.ToLower().Contains(keyword) ?? false) ||
-                (i.CategoryName?.ToLower().Contains(keyword) ?? false) ||
-                (i.ItemCode?.ToLower().Contains(keyword) ?? false)
-            ).ToList();
-            dgvMenu.DataSource = filtered;
+            IEnumerable<MenuItemDTO> query = _allItems;
+            if (!string.IsNullOrEmpty(_selectedCategory))
+            {
+                query = query.Where(i => string.Equals(i.CategoryName, _selectedCategory, StringComparison.OrdinalIgnoreCase));
+            }
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                query = query.Where(i =>
+                    (i.ItemName?.ToLower().Contains(keyword) ?? false) ||
+                    (i.CategoryName?.ToLower().Contains(keyword) ?? false) ||
+                    (i.ItemCode?.ToLower().Contains(keyword) ?? false));
+            }
+            var filtered = query.ToList();
+
+            // Grid/Card toggle
+            if (dgvMenu != null)
+            {
+                dgvMenu.DataSource = filtered;
+                dgvMenu.Visible = !_cardView;
+            }
+            if (flpMenuCards != null) flpMenuCards.Visible = _cardView;
+
+            // Card view
+            if (_cardView)
+            {
+                BindMenuCards(filtered);
+                UpdateCardWidths();
+            }
             lblFound.Text = $"Tìm thấy {filtered.Count} món";
+        }
+
+        private void BindMenuCards(List<MenuItemDTO> items)
+        {
+            if (flpMenuCards == null) return;
+            flpMenuCards.SuspendLayout();
+            try
+            {
+                flpMenuCards.Controls.Clear();
+                foreach (var it in items)
+                {
+                    var card = CreateMenuCard(it);
+                    flpMenuCards.Controls.Add(card);
+                }
+            }
+            finally
+            {
+                flpMenuCards.ResumeLayout();
+            }
+        }
+
+        private Control CreateMenuCard(MenuItemDTO item)
+        {
+            var card = new CardItemControl
+            {
+                Title = item.ItemName,
+                Subtitle = string.IsNullOrWhiteSpace(item.Description) ? item.CategoryName : item.Description,
+                Value = string.Format("{0:N0} VNĐ", item.UnitPrice),
+                ActionText = "Chọn",
+                Width = 240,
+                Height = 150,
+                Margin = new Padding(8)
+            };
+
+            // Image binding with fallback
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(item.ImagePath) && File.Exists(item.ImagePath))
+                {
+                    using (var bmp = new Bitmap(item.ImagePath))
+                    {
+                        card.Icon = new Bitmap(bmp);
+                    }
+                }
+                else
+                {
+                    card.Icon = SystemIcons.Application.ToBitmap();
+                }
+            }
+            catch { card.Icon = SystemIcons.Application.ToBitmap(); }
+
+            card.ActionButtonClick += (s, e) =>
+            {
+                try
+                {
+                    int qty = 1;
+                    try { qty = (int)nudQty.Value; } catch { }
+                    if (qty <= 0) qty = 1;
+                    _cart.AddItem(item, qty);
+                }
+                catch { }
+            };
+
+            card.PlusClicked += (s, e) =>
+            {
+                try { _cart.AddItem(item, 1); } catch { }
+            };
+            card.MinusClicked += (s, e) =>
+            {
+                try { _cart.DecrementItem(item.ItemID, 1); } catch { }
+            };
+
+            return card;
         }
 
         private void btnAddToCart_Click(object sender, EventArgs e)
@@ -475,6 +653,29 @@ namespace QLTN_LT.GUI.Menu
                 if (string.IsNullOrEmpty(branchCode)) { UXInteractionHelper.ShowWarning("Thiếu dữ liệu", "Vui lòng nhập BranchCode"); return; }
                 int? tableNo = null;
                 try { var val = (int)nudTableNo.Value; if (val > 0) tableNo = val; } catch { }
+
+                // Validate reservation fields if needed
+                bool isReserveFlag = (chkReserve != null && chkReserve.Checked);
+                if (isReserveFlag)
+                {
+                    if (string.IsNullOrWhiteSpace(txtContactPhone?.Text))
+                    {
+                        UXInteractionHelper.ShowWarning("Thiếu dữ liệu", "Vui lòng nhập SĐT liên hệ khi đặt trước");
+                        return;
+                    }
+                    var when = dtpReserveTime?.Value ?? DateTime.Now;
+                    if (when < DateTime.Now.AddMinutes(-5))
+                    {
+                        UXInteractionHelper.ShowWarning("Thời gian không hợp lệ", "Thời gian đặt trước phải lớn hơn hiện tại");
+                        return;
+                    }
+                    int guests = 0; try { guests = (int)nudGuests.Value; } catch { }
+                    if (guests <= 0)
+                    {
+                        UXInteractionHelper.ShowWarning("Thiếu dữ liệu", "Số khách phải >= 1");
+                        return;
+                    }
+                }
 
                 using (var conn = DatabaseHelper.CreateConnection())
                 {
@@ -644,7 +845,116 @@ namespace QLTN_LT.GUI.Menu
                     cmd.Parameters.AddWithValue("@BankName", bankCode);
                     cmd.Parameters.AddWithValue("@Status", "Pending");
                     cmd.ExecuteScalar();
+            }
+            }
+            catch { }
+        }
+        private void ToggleView()
+        {
+            try
+            {
+                _cardView = !_cardView;
+                if (_btnToggleView != null) _btnToggleView.Text = _cardView ? "Grid" : "Card";
+                ApplyFilter();
+            }
+            catch { }
+        }
+
+        private void BuildCategoryTabs()
+        {
+            try
+            {
+                var categories = _menuBLL.GetAllCategories() ?? new List<MenuCategoryDTO>();
+                if (_catTabs == null)
+                {
+                    _catTabs = new FlowLayoutPanel
+                    {
+                        AutoScroll = true,
+                        WrapContents = false,
+                        Height = 36,
+                        Left = 0,
+                        Top = 60,
+                        Width = pnlLeft.Width - 10,
+                        Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+                    };
+                    pnlLeft.Controls.Add(_catTabs);
                 }
+                _catTabs.Controls.Clear();
+
+                void addTab(string text, string cat)
+                {
+                    var b = new Guna2Button
+                    {
+                        Text = text,
+                        Height = 30,
+                        Width = Math.Max(80, TextRenderer.MeasureText(text, new Font("Segoe UI", 9)).Width + 24),
+                        BorderRadius = 6,
+                        Margin = new Padding(6, 3, 0, 3),
+                        Tag = cat,
+                        FillColor = string.Equals(_selectedCategory, cat, StringComparison.OrdinalIgnoreCase) ? Color.FromArgb(59,130,246) : Color.FromArgb(229,231,235),
+                        ForeColor = string.Equals(_selectedCategory, cat, StringComparison.OrdinalIgnoreCase) ? Color.White : Color.FromArgb(31,41,55)
+                    };
+                    b.Click += (s, e) =>
+                    {
+                        _selectedCategory = (string)((Guna2Button)s).Tag;
+                        // reposition card list below tabs
+                        if (flpMenuCards != null)
+                        {
+                            flpMenuCards.Top = _catTabs.Bottom + 6;
+                            flpMenuCards.Height = pnlLeft.Height - flpMenuCards.Top - 10;
+                        }
+                        ApplyFilter();
+                    };
+                    _catTabs.Controls.Add(b);
+                }
+
+                addTab("Tất cả", null);
+                foreach (var c in categories.OrderBy(x => x.DisplayOrder).ThenBy(x => x.CategoryName))
+                {
+                    addTab(c.CategoryName, c.CategoryName);
+                }
+
+                // Adjust positions
+                if (flpMenuCards != null)
+                {
+                    flpMenuCards.Top = _catTabs.Bottom + 6;
+                    flpMenuCards.Height = pnlLeft.Height - flpMenuCards.Top - 10;
+                }
+            }
+            catch { }
+        }
+
+        private void AdjustBreakpoints()
+        {
+            try { UpdateCardWidths(); } catch { }
+        }
+
+        private int GetCardColumns()
+        {
+            try
+            {
+                int w = this.Width;
+                if (w <= 1100) return 2; // ~1024
+                if (w <= 1600) return 3; // ~1366
+                return 4; // >=1920
+            }
+            catch { return 3; }
+        }
+
+        private void UpdateCardWidths()
+        {
+            try
+            {
+                if (flpMenuCards == null || !_cardView) return;
+                int cols = GetCardColumns();
+                int padding = 8;
+                int avail = flpMenuCards.ClientSize.Width - padding * (cols + 1);
+                int itemW = Math.Max(220, avail / cols);
+                foreach (Control c in flpMenuCards.Controls)
+                {
+                    c.Width = itemW;
+                }
+                flpMenuCards.PerformLayout();
             }
             catch { }
         }

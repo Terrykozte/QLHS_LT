@@ -15,6 +15,9 @@ namespace QLTN_LT.BLL
         private readonly IUserRepository _userRepo;
         private static readonly string LogSource = "AuthBLL";
 
+        // Lưu thông điệp lỗi cuối cùng để UI hiển thị popup thay vì throw
+        public string LastError { get; private set; }
+
         // Lockout policy (in-memory)
         private const int MAX_ATTEMPTS = 5;
         private static readonly TimeSpan WINDOW = TimeSpan.FromMinutes(10);
@@ -35,8 +38,12 @@ namespace QLTN_LT.BLL
         {
             try
             {
+                LastError = null;
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                {
+                    LastError = "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.";
                     return null;
+                }
 
                 username = username.Trim();
 
@@ -47,7 +54,8 @@ namespace QLTN_LT.BLL
                     if (att.LockedUntil.HasValue && DateTime.Now < att.LockedUntil.Value)
                     {
                         var remaining = att.LockedUntil.Value - DateTime.Now;
-                        throw new InvalidOperationException($"Tài khoản tạm bị khóa. Vui lòng thử lại sau {Math.Ceiling(remaining.TotalMinutes)} phút.");
+                        LastError = $"Tài khoản tạm bị khóa. Vui lòng thử lại sau {Math.Ceiling(remaining.TotalMinutes)} phút.";
+                        return null;
                     }
                     // Reset window if expired
                     if (att.FirstAttemptAt.HasValue && DateTime.Now - att.FirstAttemptAt.Value > WINDOW)
@@ -64,8 +72,10 @@ namespace QLTN_LT.BLL
                 }
                 catch (Exception ex)
                 {
-                    LogMessage($"Database error retrieving user '{username}': {ex.Message}", EventLogEntryType.Error);
-                    throw new InvalidOperationException("Không thể kết nối đến cơ sở dữ liệu.");
+                    // Không ném ngoại lệ để UI không bị crash. Ghi log và tiếp tục cho phép tài khoản demo hoạt động.
+                    LogMessage($"Database error retrieving user '{username}': {ex}", EventLogEntryType.Error);
+                    LastError = "Không thể kết nối đến cơ sở dữ liệu. Vui lòng kiểm tra cấu hình App.config hoặc trạng thái SQL Server.";
+                    user = null; // Trả về null để luồng xử lý phía dưới kiểm tra tài khoản demo hoặc trả về thất bại đăng nhập.
                 }
 
                 // Demo accounts (no lockout applied to built-in demo to ease testing)
@@ -108,32 +118,48 @@ namespace QLTN_LT.BLL
                     return null;
                 }
 
-                // Verify password (PBKDF2 preferred, fallback legacy HMACSHA512)
-                bool legacy;
-                if (!VerifyPassword( password, user.PasswordSalt, user.PasswordHash, out legacy))
+                // Hỗ trợ schema legacy: nếu không có hash/salt và có LegacyPassword dạng text → so sánh thẳng
+                if ((user.PasswordHash == null || user.PasswordHash.Length == 0)
+                    && (user.PasswordSalt == null || user.PasswordSalt.Length == 0)
+                    && !string.IsNullOrEmpty(user.LegacyPassword))
                 {
-                    RegisterFailedAttempt(username);
-                    return null;
+                    if (!string.Equals(password, user.LegacyPassword))
+                    {
+                        RegisterFailedAttempt(username);
+                        return null;
+                    }
                 }
-
-                // Auto-migrate legacy hashes to PBKDF2 on successful login
-                if (legacy)
+                else
                 {
-                    try { _userRepo.ChangePassword(user.UserID, password); } catch { /* ignore migrate errors */ }
+                    // Verify password (PBKDF2 preferred, fallback legacy HMACSHA512)
+                    bool legacy;
+                    if (!VerifyPassword(password, user.PasswordSalt, user.PasswordHash, out legacy))
+                    {
+                        RegisterFailedAttempt(username);
+                        return null;
+                    }
+
+                    // Auto-migrate legacy hashes to PBKDF2 on successful login
+                    if (legacy)
+                    {
+                        try { _userRepo.ChangePassword(user.UserID, password); } catch { /* ignore migrate errors */ }
+                    }
                 }
 
                 // Successful login → clear attempts
                 _attempts.TryRemove(username, out _);
                 return user;
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
-                throw;
+                // Không để ngoại lệ văng ra UI; trả về null để FormLogin xử lý hiển thị
+                LogMessage($"Login warning/invalid op: {ex.Message}", EventLogEntryType.Warning);
+                return null;
             }
             catch (Exception ex)
             {
-                LogMessage($"Unexpected error during login: {ex.Message}", EventLogEntryType.Error);
-                throw new InvalidOperationException("Lỗi không mong muốn trong quá trình đăng nhập.");
+                LogMessage($"Unexpected error during login: {ex}", EventLogEntryType.Error);
+                return null;
             }
         }
 
@@ -158,7 +184,11 @@ namespace QLTN_LT.BLL
                     att.LockedUntil = now.Add(LOCKOUT);
                     att.Count = 0;
                     att.FirstAttemptAt = null;
-                    throw new InvalidOperationException($"Tài khoản tạm bị khóa {LOCKOUT.TotalMinutes} phút do đăng nhập sai nhiều lần.");
+                    LastError = $"Tài khoản tạm bị khóa {LOCKOUT.TotalMinutes} phút do đăng nhập sai nhiều lần.";
+                }
+                else
+                {
+                    LastError = "Tên đăng nhập hoặc mật khẩu không đúng.";
                 }
             }
         }

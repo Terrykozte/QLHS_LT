@@ -18,6 +18,7 @@ namespace QLTN_LT.GUI.Order
         private OrderBLL _orderBLL;
         private Timer _searchDebounceTimer;
         private List<OrderDTO> _allData = new List<OrderDTO>();
+        private ContextMenuStrip _ordersMenu;
 
         public FormOrderList()
         {
@@ -48,13 +49,25 @@ namespace QLTN_LT.GUI.Order
             }
             catch { }
 
+            // Context menu for orders
+            _ordersMenu = new ContextMenuStrip();
+            var mStart = new ToolStripMenuItem("Nhận khách (Processing)") { Name = "mStart" };
+            mStart.Click += (s, e) => StartProcessingSelected();
+            _ordersMenu.Items.Add(mStart);
+
+            var mComplete = new ToolStripMenuItem("Hoàn tất (Completed)") { Name = "mComplete" };
+            mComplete.Click += (s, e) => CompleteSelected();
+            _ordersMenu.Items.Add(mComplete);
+
             // Events
             this.Load += FormOrderList_Load;
+            this.FormClosing += (s,e)=> { try { _ordersMenu?.Dispose(); } catch { } };
             if (txtSearch != null) txtSearch.TextChanged += txtSearch_TextChanged;
             if (btnReload != null) btnReload.Click += btnReload_Click;
             if (btnCreate != null) btnCreate.Click += btnCreate_Click;
             if (btnViewDetails != null) btnViewDetails.Click += btnViewDetails_Click;
             if (btnCancelOrder != null) btnCancelOrder.Click += btnCancelOrder_Click;
+            if (dgvOrders != null) dgvOrders.MouseDown += dgvOrders_MouseDown;
         }
 
         private void FormOrderList_Load(object sender, EventArgs e)
@@ -78,7 +91,11 @@ namespace QLTN_LT.GUI.Order
                 LoadData();
                 
                 if (dgvOrders != null) 
+                {
                     dgvOrders.CellDoubleClick += dgvOrders_CellDoubleClick;
+                    dgvOrders.MouseDown += dgvOrders_MouseDown;
+                    dgvOrders.CellFormatting += dgvOrders_CellFormatting;
+                }
             }
             catch (Exception ex)
             {
@@ -349,6 +366,56 @@ namespace QLTN_LT.GUI.Order
             }
         }
 
+        private void dgvOrders_MouseDown(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (e.Button == MouseButtons.Right && dgvOrders != null)
+                {
+                    var hit = dgvOrders.HitTest(e.X, e.Y);
+                    if (hit.RowIndex >= 0)
+                    {
+                        dgvOrders.ClearSelection();
+                        dgvOrders.Rows[hit.RowIndex].Selected = true;
+                        var ord = dgvOrders.Rows[hit.RowIndex].DataBoundItem as OrderDTO;
+                        if (ord != null)
+                        {
+                            // Enable only when Reserved
+                            foreach (ToolStripItem it in _ordersMenu.Items)
+                            {
+                                if (it.Name == "mStart") it.Enabled = string.Equals(ord.Status, "Reserved", StringComparison.OrdinalIgnoreCase);
+                                if (it.Name == "mComplete") it.Enabled = string.Equals(ord.Status, "Processing", StringComparison.OrdinalIgnoreCase);
+                            }
+                            _ordersMenu.Show(dgvOrders, new Point(e.X, e.Y));
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void StartProcessingSelected()
+        {
+            try
+            {
+                if (dgvOrders?.CurrentRow == null) return;
+                var ord = dgvOrders.CurrentRow.DataBoundItem as OrderDTO;
+                if (ord == null) return;
+                if (!string.Equals(ord.Status, "Reserved", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("Chỉ có thể nhận khách cho đơn ở trạng thái Reserved.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+                _orderBLL.StartProcessing(ord.OrderID);
+                UXInteractionHelper.ShowToast(this, $"Đơn {ord.OrderNumber} chuyển sang Processing", 2000, Color.FromArgb(34,197,94), Color.White);
+                LoadData();
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Handle(ex, "StartProcessingSelected");
+            }
+        }
+
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
             _searchDebounceTimer.Stop();
@@ -449,6 +516,62 @@ namespace QLTN_LT.GUI.Order
             var sb = new System.Text.StringBuilder(input);
             sb.Replace("&", "&amp;"); sb.Replace("<", "&lt;"); sb.Replace(">", "&gt;"); sb.Replace("\"", "&quot;"); sb.Replace("'", "&#39;");
             return sb.ToString();
+        }
+
+        private void dgvOrders_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            try
+            {
+                if (dgvOrders == null) return;
+                var col = dgvOrders.Columns[e.ColumnIndex];
+                if (col != null && string.Equals(col.DataPropertyName, "Status", StringComparison.OrdinalIgnoreCase) && e.Value != null)
+                {
+                    string st = e.Value.ToString();
+                    if (string.Equals(st, "Reserved", StringComparison.OrdinalIgnoreCase))
+                    {
+                        e.CellStyle.BackColor = Color.FromArgb(254, 243, 199); // amber-100
+                        e.CellStyle.ForeColor = Color.FromArgb(120, 53, 15);
+                    }
+                    else if (string.Equals(st, "Processing", StringComparison.OrdinalIgnoreCase))
+                    {
+                        e.CellStyle.BackColor = Color.FromArgb(219, 234, 254); // blue-100
+                        e.CellStyle.ForeColor = Color.FromArgb(30, 58, 138);
+                    }
+                    else if (string.Equals(st, "Completed", StringComparison.OrdinalIgnoreCase))
+                    {
+                        e.CellStyle.BackColor = Color.FromArgb(220, 252, 231); // green-100
+                        e.CellStyle.ForeColor = Color.FromArgb(22, 101, 52);
+                    }
+                    else if (string.Equals(st, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                    {
+                        e.CellStyle.BackColor = Color.FromArgb(254, 226, 226); // red-100
+                        e.CellStyle.ForeColor = Color.FromArgb(153, 27, 27);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void CompleteSelected()
+        {
+            try
+            {
+                if (dgvOrders?.CurrentRow == null) return;
+                var ord = dgvOrders.CurrentRow.DataBoundItem as OrderDTO;
+                if (ord == null) return;
+                if (!string.Equals(ord.Status, "Processing", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("Chỉ hoàn tất đơn ở trạng thái Processing.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+                _orderBLL.CompleteOrder(ord.OrderID);
+                UXInteractionHelper.ShowToast(this, $"Đơn {ord.OrderNumber} chuyển sang Completed", 2000, Color.FromArgb(34,197,94), Color.White);
+                LoadData();
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Handle(ex, "CompleteSelected");
+            }
         }
 
         private void FormOrderList_FormClosing(object sender, FormClosingEventArgs e)

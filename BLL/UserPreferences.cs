@@ -10,6 +10,7 @@ namespace QLTN_LT.BLL
 
         public string Username { get; set; }
         public bool RememberMe { get; set; }
+        public string Theme { get; set; } // "Light" or "Dark"
 
         public static void Save(UserPreferences prefs)
         {

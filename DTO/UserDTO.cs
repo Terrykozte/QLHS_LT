@@ -8,6 +8,8 @@ namespace QLTN_LT.DTO
         public string Username { get; set; }
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
+        // Hỗ trợ bảng legacy lưu mật khẩu dạng text
+        public string LegacyPassword { get; set; }
         public string FullName { get; set; }
         public string Email { get; set; }
         public string Phone { get; set; }

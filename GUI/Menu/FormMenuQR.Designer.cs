@@ -48,6 +48,7 @@ namespace QLTN_LT.GUI.Menu
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.pnlLeft.Width = 520;
             this.pnlLeft.Padding = new System.Windows.Forms.Padding(0, 0, 10, 0);
+            this.pnlLeft.Controls.Add(this.flpMenuCards);
             this.pnlLeft.Controls.Add(this.dgvMenu);
             this.pnlLeft.Controls.Add(this.lblFound);
             this.pnlLeft.Controls.Add(this.txtSearch);
@@ -63,9 +64,21 @@ namespace QLTN_LT.GUI.Menu
             this.lblFound.Location = new System.Drawing.Point(5, 45);
             this.lblFound.Text = "Tìm thấy 0 món";
 
-            // dgvMenu
+            // flpMenuCards
+            this.flpMenuCards = new System.Windows.Forms.FlowLayoutPanel();
+            this.flpMenuCards.Location = new System.Drawing.Point(0, 65);
+            this.flpMenuCards.Size = new System.Drawing.Size(510, 520);
+            this.flpMenuCards.AutoScroll = true;
+            this.flpMenuCards.WrapContents = true;
+            this.flpMenuCards.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+            this.flpMenuCards.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                | System.Windows.Forms.AnchorStyles.Left)
+                | System.Windows.Forms.AnchorStyles.Right)));
+
+            // dgvMenu (hidden by default when using card view)
             this.dgvMenu.Location = new System.Drawing.Point(0, 65);
             this.dgvMenu.Size = new System.Drawing.Size(510, 520);
+            this.dgvMenu.Visible = false;
             this.dgvMenu.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                 | System.Windows.Forms.AnchorStyles.Left)
                 | System.Windows.Forms.AnchorStyles.Right)));
@@ -75,6 +88,8 @@ namespace QLTN_LT.GUI.Menu
             this.pnlRight.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
             this.pnlRight.Controls.Add(this.txtQRInfo);
             this.pnlRight.Controls.Add(this.picQR);
+            this.pnlRight.Controls.Add(this.btnCopyPayload);
+            this.pnlRight.Controls.Add(this.btnSaveQR);
             this.pnlRight.Controls.Add(this.btnGenerateQR);
             this.pnlRight.Controls.Add(this.lblTotal);
             this.pnlRight.Controls.Add(this.btnCreateOrder);
@@ -232,6 +247,18 @@ namespace QLTN_LT.GUI.Menu
             this.btnCreateOrder.Size = new System.Drawing.Size(120, 36);
             this.btnCreateOrder.Click += new System.EventHandler(this.btnCreateOrder_Click);
 
+            // btnCopyPayload
+            this.btnCopyPayload = new Guna.UI2.WinForms.Guna2Button();
+            this.btnCopyPayload.Text = "Copy Payload";
+            this.btnCopyPayload.Location = new System.Drawing.Point(310, 510);
+            this.btnCopyPayload.Size = new System.Drawing.Size(120, 32);
+
+            // btnSaveQR
+            this.btnSaveQR = new Guna.UI2.WinForms.Guna2Button();
+            this.btnSaveQR.Text = "Lưu ảnh QR";
+            this.btnSaveQR.Location = new System.Drawing.Point(430, 510);
+            this.btnSaveQR.Size = new System.Drawing.Size(110, 32);
+
             // btnGenerateQR
             this.btnGenerateQR.Text = "Tạo mã QR";
             this.btnGenerateQR.Location = new System.Drawing.Point(400, 550);
@@ -296,6 +323,7 @@ namespace QLTN_LT.GUI.Menu
         private Guna.UI2.WinForms.Guna2Button btnGenerateQR;
         private System.Windows.Forms.PictureBox picQR;
         private Guna.UI2.WinForms.Guna2TextBox txtQRInfo;
+        private System.Windows.Forms.FlowLayoutPanel flpMenuCards;
         private System.Windows.Forms.Label lblReserve;
         private Guna.UI2.WinForms.Guna2CheckBox chkReserve;
         private System.Windows.Forms.Label lblReserveTime;
@@ -308,6 +336,8 @@ namespace QLTN_LT.GUI.Menu
         private Guna.UI2.WinForms.Guna2TextBox txtContactPhone;
         private System.Windows.Forms.Label lblContactNote;
         private Guna.UI2.WinForms.Guna2TextBox txtContactNote;
+        private Guna.UI2.WinForms.Guna2Button btnCopyPayload;
+        private Guna.UI2.WinForms.Guna2Button btnSaveQR;
     }
 }
 

@@ -67,6 +67,9 @@
     <Reference Include="WindowsFormsIntegration" />
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <!-- BLL -->
@@ -89,6 +92,8 @@
     <Compile Include="BLL\InvoiceExportService.cs" />
     <Compile Include="BLL\OrderStatusUpdater.cs" />
     <Compile Include="BLL\Interfaces\ISeafoodService.cs" />
+    <Compile Include="BLL\UserPreferences.cs" />
+    <Compile Include="BLL\VietQRIntegrationService.cs" />
     <!-- DAL -->
     <Compile Include="DAL\CategoryDAL.cs" />
     <Compile Include="DAL\CustomerDAL.cs" />
@@ -142,6 +147,9 @@
     <Compile Include="GUI\Utilities\ResponsiveHelper.cs" />
     <Compile Include="GUI\Utilities\KeyboardNavigationHelper.cs" />
     <Compile Include="GUI\Utilities\UXInteractionHelper.cs" />
+    <Compile Include="GUI\Utilities\ResponsiveDesignHelper.cs" />
+    <Compile Include="GUI\Utilities\ThemeHelper.cs" />
+    <Compile Include="GUI\Utilities\LoadingOverlay.cs" />
     <Compile Include="GUI\Utilities\DataBindingHelper.cs" />
     <Compile Include="GUI\Controls\CardItemControl.cs">
       <SubType>UserControl</SubType>
@@ -281,6 +289,10 @@
     <Compile Include="GUI\Order\FormPayment.Designer.cs">
       <DependentUpon>FormPayment.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\Order\FormPayment.Help.cs">
+      <DependentUpon>FormPayment.cs</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="GUI\Order\FormSelectCustomer.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -384,6 +396,16 @@
     <Compile Include="GUI\Helper\ExceptionHandler.cs" />
     <Compile Include="GUI\Helper\UIHelper.cs" />
     <Compile Include="GUI\Helper\FormTemplate.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Helper\FormManagementHelper.cs" />
+    <Compile Include="GUI\Helper\FormShortcuts.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Payment\FormVietQRGenerator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Order\FormOrderCreateUI.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Program.cs" />

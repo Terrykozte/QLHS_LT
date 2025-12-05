@@ -40,10 +40,32 @@ namespace QLTN_LT.GUI.Main
             
             // Setup form events
             this.Resize += FormMain_Resize;
+            this.KeyDown += FormMain_KeyDown;
         }
 
         private void FormMain_Load(object sender, EventArgs e)
         {
+            // Áp dụng theme từ UserPreferences
+            try
+            {
+                var prefs = QLTN_LT.BLL.UserPreferences.Load();
+                if (!string.IsNullOrWhiteSpace(prefs?.Theme) && prefs.Theme.Equals("Dark", StringComparison.OrdinalIgnoreCase))
+                    ThemeHelper.SetTheme(ThemeHelper.Theme.Dark);
+                else
+                    ThemeHelper.SetTheme(ThemeHelper.Theme.Light);
+                ThemeHelper.ApplyThemeToForm(this);
+                // Force sidebar to always use dark palette regardless of global theme
+                ThemeHelper.ApplySidebarTheme(
+                    pnlSidebar,
+                    flowSidebar,
+                    pnlUserInfo,
+                    new List<Guna2Button> { btnDashboard, btnSeafood, btnOrders, btnReports, btnCategory, btnCustomer, btnTable, btnMenu, btnInventory, btnMenuQR, btnSupplier, btnUser, btnLogout },
+                    lblBrand,
+                    separatorSidebar
+                );
+            }
+            catch { }
+
             SetupUserInfo();
             ApplyRolePermissions();
             SetupTooltips();
@@ -81,6 +103,10 @@ namespace QLTN_LT.GUI.Main
                 btnMaximize.Left = btnClose.Left - btnMaximize.Width - gap;
                 btnMinimize.Left = btnMaximize.Left - btnMinimize.Width - gap;
                 btnSettings.Left = btnMinimize.Left - btnSettings.Width - gap;
+                if (btnHelp != null)
+                {
+                    btnHelp.Left = btnSettings.Left - btnHelp.Width - gap;
+                }
             }
             catch { }
         }
@@ -364,6 +390,8 @@ namespace QLTN_LT.GUI.Main
                 if (btnCategory != null) _toolTip.SetToolTip(btnCategory, "Danh mục");
                 if (btnUser != null) _toolTip.SetToolTip(btnUser, "Người dùng");
                 if (btnLogout != null) _toolTip.SetToolTip(btnLogout, "Đăng xuất");
+                if (btnHelp != null) _toolTip.SetToolTip(btnHelp, "Hướng dẫn (F1)");
+                if (btnSettings != null) _toolTip.SetToolTip(btnSettings, "Cài đặt\nMẹo: Ctrl+D để đổi giao diện Light/Dark");
             }
             catch { }
         }
@@ -443,8 +471,29 @@ namespace QLTN_LT.GUI.Main
             {
                 using (var frm = new QLTN_LT.GUI.Authentication.FormConfig())
                 {
-                    frm.ShowDialog();
+                    frm.ShowDialog(this);
                 }
+                // After closing settings, reload and apply theme
+                try
+                {
+                    var prefs = QLTN_LT.BLL.UserPreferences.Load();
+                    if (!string.IsNullOrWhiteSpace(prefs?.Theme) && prefs.Theme.Equals("Dark", StringComparison.OrdinalIgnoreCase))
+                        ThemeHelper.SetTheme(ThemeHelper.Theme.Dark);
+                    else
+                        ThemeHelper.SetTheme(ThemeHelper.Theme.Light);
+
+                    ThemeHelper.ApplyThemeToForm(this);
+                    if (_activeForm != null) ThemeHelper.ApplyThemeToForm(_activeForm);
+                    ThemeHelper.ApplySidebarTheme(
+                        pnlSidebar,
+                        flowSidebar,
+                        pnlUserInfo,
+                        new List<Guna2Button> { btnDashboard, btnSeafood, btnOrders, btnReports, btnCategory, btnCustomer, btnTable, btnMenu, btnInventory, btnMenuQR, btnSupplier, btnUser, btnLogout },
+                        lblBrand,
+                        separatorSidebar
+                    );
+                }
+                catch { }
             }
             catch (Exception ex)
             {
@@ -474,6 +523,11 @@ namespace QLTN_LT.GUI.Main
         private void BtnClose_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void BtnHelp_Click(object sender, EventArgs e)
+        {
+            try { new QLTN_LT.GUI.Helper.FormShortcuts().ShowDialog(this); } catch { }
         }
 
         /// <summary>
@@ -607,6 +661,40 @@ namespace QLTN_LT.GUI.Main
             }
         }
 
+        private void FormMain_KeyDown(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.KeyCode == Keys.F1)
+                {
+                    try { new QLTN_LT.GUI.Helper.FormShortcuts().ShowDialog(this); } catch { }
+                    e.Handled = true;
+                }
+                else if (e.Control && e.KeyCode == Keys.D)
+                {
+                    ThemeHelper.ToggleTheme();
+                    ThemeHelper.ApplyThemeToForm(this);
+                    if (_activeForm != null) ThemeHelper.ApplyThemeToForm(_activeForm);
+                    ThemeHelper.ApplySidebarTheme(
+                        pnlSidebar,
+                        flowSidebar,
+                        pnlUserInfo,
+                        new List<Guna2Button> { btnDashboard, btnSeafood, btnOrders, btnReports, btnCategory, btnCustomer, btnTable, btnMenu, btnInventory, btnMenuQR, btnSupplier, btnUser, btnLogout },
+                        lblBrand,
+                        separatorSidebar
+                    );
+                    try
+                    {
+                        var prefs = QLTN_LT.BLL.UserPreferences.Load();
+                        prefs.Theme = ThemeHelper.GetCurrentTheme() == ThemeHelper.Theme.Dark ? "Dark" : "Light";
+                        QLTN_LT.BLL.UserPreferences.Save(prefs);
+                    }
+                    catch { }
+                    e.Handled = true;
+                }
+            }
+            catch { }
+        }
     }
 }
 

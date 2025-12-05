@@ -17,6 +17,9 @@ namespace QLTN_LT.GUI.Controls
         private Label lblValue;
         private PictureBox picIcon;
         private Guna2Button btnAction;
+        private Guna2Button btnMinus;
+        private Guna2Button btnPlus;
+        private bool _showQuantityControls = true;
 
         public string Title
         {
@@ -49,6 +52,25 @@ namespace QLTN_LT.GUI.Controls
         }
 
         public event EventHandler ActionButtonClick;
+        public event EventHandler PlusClicked;
+        public event EventHandler MinusClicked;
+
+        public bool ShowQuantityControls
+        {
+            get => _showQuantityControls;
+            set
+            {
+                _showQuantityControls = value;
+                if (btnMinus != null) btnMinus.Visible = value;
+                if (btnPlus != null) btnPlus.Visible = value;
+            }
+        }
+
+        public string ActionText
+        {
+            get => btnAction?.Text;
+            set { if (btnAction != null) btnAction.Text = value; }
+        }
 
         public CardItemControl()
         {
@@ -77,12 +99,12 @@ namespace QLTN_LT.GUI.Controls
             }
             catch { }
 
-            // Icon
+            // Icon/Image
             picIcon = new PictureBox
             {
-                Size = new Size(40, 40),
+                Size = new Size(48, 48),
                 Location = new Point(15, 15),
-                SizeMode = PictureBoxSizeMode.CenterImage,
+                SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
 
@@ -123,23 +145,53 @@ namespace QLTN_LT.GUI.Controls
             // Action button
             btnAction = new Guna2Button
             {
-                Text = "Chi tiết",
-                Size = new Size(220, 30),
+                Text = "Chọn",
+                Size = new Size(150, 30),
                 Location = new Point(15, 115),
                 FillColor = Color.FromArgb(59, 130, 246),
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 9),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 BorderRadius = 5,
                 Cursor = Cursors.Hand
             };
 
+            // Quantity +/-
+            btnMinus = new Guna2Button
+            {
+                Text = "-",
+                Size = new Size(30, 30),
+                Location = new Point(170, 115),
+                FillColor = Color.FromArgb(31, 41, 55),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                BorderRadius = 5,
+                Cursor = Cursors.Hand,
+                Visible = _showQuantityControls
+            };
+            btnPlus = new Guna2Button
+            {
+                Text = "+",
+                Size = new Size(30, 30),
+                Location = new Point(205, 115),
+                FillColor = Color.FromArgb(31, 41, 55),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                BorderRadius = 5,
+                Cursor = Cursors.Hand,
+                Visible = _showQuantityControls
+            };
+
             btnAction.Click += (s, e) => ActionButtonClick?.Invoke(this, e);
+            btnPlus.Click += (s, e) => PlusClicked?.Invoke(this, e);
+            btnMinus.Click += (s, e) => MinusClicked?.Invoke(this, e);
 
             pnlCard.Controls.Add(picIcon);
             pnlCard.Controls.Add(lblTitle);
             pnlCard.Controls.Add(lblSubtitle);
             pnlCard.Controls.Add(lblValue);
             pnlCard.Controls.Add(btnAction);
+            pnlCard.Controls.Add(btnMinus);
+            pnlCard.Controls.Add(btnPlus);
 
             this.Controls.Add(pnlCard);
 

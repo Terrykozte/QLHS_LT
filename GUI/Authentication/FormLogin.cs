@@ -27,7 +27,6 @@ namespace QLTN_LT.GUI.Authentication
         private Timer _fadeInTimer;
         private Timer _capsLockTimer;
         private Timer _inputValidationTimer;
-        private static bool _configPrompted = false;
 
         private float _glowOpacity = 0.3f;
         private bool _glowIncreasing = true;
@@ -113,27 +112,7 @@ namespace QLTN_LT.GUI.Authentication
         private void FormLogin_Shown(object sender, EventArgs e)
         {
             try { txtUsername?.Focus(); } catch { }
-
-            if (_configPrompted) return;
-            _configPrompted = true;
-
-            try
-            {
-                // Hiển thị FormConfig đúng 1 lần ở lần chạy đầu tiên của app (per user/machine)
-                _clientSettings = _clientSettings ?? ClientSettings.Load();
-                if (!_clientSettings.FirstRunConfigShown)
-                {
-                    using (var cfg = new FormConfig())
-                    {
-                        cfg.ShowDialog(this);
-                    }
-                    _clientSettings.FirstRunConfigShown = true;
-                    ClientSettings.Save(_clientSettings);
-                    // Sau khi đóng, xóa cache để dùng cấu hình mới (nếu user đã lưu)
-                    DatabaseHelper.ResetConnection();
-                }
-            }
-            catch { }
+            // Không hiển thị form cấu hình nữa, sử dụng connection string từ App.config
         }
 
         private void InitializeTimers()
@@ -608,11 +587,20 @@ namespace QLTN_LT.GUI.Authentication
 
         private void btnSettings_Click(object sender, EventArgs e)
         {
-            using (var frm = new FormConfig())
+            try
             {
-                frm.ShowDialog(this);
+                // Mở form cấu hình kết nối database
+                var configForm = new FormConfig();
+                configForm.ShowDialog(this);
             }
-            DatabaseHelper.ResetConnection();
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Lỗi mở form cấu hình: {ex.Message}",
+                    "Lỗi",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
         private void BtnMinimize_Click(object sender, EventArgs e) { this.WindowState = FormWindowState.Minimized; }
         private void BtnClose_Click(object sender, EventArgs e) { this.Close(); }
@@ -717,12 +705,26 @@ namespace QLTN_LT.GUI.Authentication
             while (cur != null)
             {
                 if (cur is SqlException) return true;
-                var msg = cur.Message ?? string.Empty;
-                if (msg.IndexOf("network-related", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    msg.IndexOf("server was not found", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    msg.IndexOf("timeout", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    msg.IndexOf("login failed", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    msg.IndexOf("transport-level", StringComparison.OrdinalIgnoreCase) >= 0)
+                
+                // Check for InvalidOperationException with database connection message
+                if (cur is InvalidOperationException)
+                {
+                    var msg = cur.Message ?? string.Empty;
+                    if (msg.IndexOf("kết nối đến cơ sở dữ liệu", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        msg.IndexOf("cannot connect", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        msg.IndexOf("database", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        return true;
+                    }
+                }
+                
+                var msg2 = cur.Message ?? string.Empty;
+                if (msg2.IndexOf("network-related", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg2.IndexOf("server was not found", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg2.IndexOf("timeout", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg2.IndexOf("login failed", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg2.IndexOf("transport-level", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    msg2.IndexOf("kết nối đến cơ sở dữ liệu", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     return true;
                 }
@@ -736,21 +738,32 @@ namespace QLTN_LT.GUI.Authentication
             try
             {
                 var result = MessageBox.Show(
-                    "Không thể kết nối CSDL. Bạn có muốn mở Cấu hình để kiểm tra?\n\nChi tiết: " + (ex?.Message ?? "") ,
-                    "Lỗi kết nối", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    "❌ Không thể kết nối đến cơ sở dữ liệu.\n\n" +
+                    "Chi tiết lỗi:\n" + (ex?.Message ?? "Lỗi không xác định") + "\n\n" +
+                    "Bạn có muốn mở form cấu hình kết nối không?",
+                    "Lỗi kết nối CSDL",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Error);
+                
                 if (result == DialogResult.Yes)
                 {
-                    using (var cfg = new FormConfig())
+                    try
                     {
-                        cfg.ShowDialog(this);
+                        var configForm = new FormConfig();
+                        configForm.ShowDialog(this);
                     }
-                    DatabaseHelper.ResetConnection();
+                    catch (Exception configEx)
+                    {
+                        MessageBox.Show(
+                            $"Lỗi mở form cấu hình: {configEx.Message}",
+                            "Lỗi",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
                 }
-                else
-                {
-                    ShowError("Lỗi kết nối CSDL. Vui lòng kiểm tra lại cấu hình.");
-                    AnimateErrorShake();
-                }
+                
+                ShowError("Lỗi kết nối CSDL. Vui lòng cấu hình lại kết nối.");
+                AnimateErrorShake();
             }
             catch { }
         }

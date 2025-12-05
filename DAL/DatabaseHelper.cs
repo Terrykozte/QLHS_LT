@@ -1,3 +1,4 @@
+using System;
 using System.Configuration;
 using System.Data.SqlClient;
 
@@ -10,24 +11,20 @@ namespace QLTN_LT.DAL
     public static class DatabaseHelper
     {
         private const string DefaultConnName = "DefaultConnection";
-        private static string _cachedConnectionString;
 
         /// <summary>
-        /// Lấy connection string theo tên trong App.config hoặc từ file cấu hình động.
+        /// Lấy connection string từ App.config hoặc từ file cấu hình portable.
         /// </summary>
         public static string GetConnectionString(string name = DefaultConnName)
         {
-            // 1. Try to load from cached or dynamic config first
-            if (!string.IsNullOrEmpty(_cachedConnectionString)) return _cachedConnectionString;
-
-            var settings = ConnectionSettings.Load();
-            if (settings != null)
+            // Ưu tiên: 1) Portable config 2) App.config
+            var portableSettings = ConnectionSettings.Load();
+            if (portableSettings != null)
             {
-                _cachedConnectionString = settings.GetConnectionString();
-                return _cachedConnectionString;
+                return portableSettings.GetConnectionString();
             }
-
-            // 2. Fallback to App.config
+            
+            // Fallback: App.config
             return ConfigurationManager.ConnectionStrings[name]?.ConnectionString;
         }
 
@@ -37,15 +34,21 @@ namespace QLTN_LT.DAL
         public static SqlConnection CreateConnection(string name = DefaultConnName)
         {
             var cs = GetConnectionString(name);
+            if (string.IsNullOrWhiteSpace(cs))
+            {
+                throw new InvalidOperationException("Không tìm thấy connection string. Vui lòng cấu hình kết nối database.");
+            }
             return new SqlConnection(cs);
         }
         
         /// <summary>
-        /// Xóa cache để load lại setting mới
+        /// Tạo và mở SqlConnection. Người gọi chịu trách nhiệm đóng.
         /// </summary>
-        public static void ResetConnection()
+        public static SqlConnection CreateAndOpenConnection(string name = DefaultConnName)
         {
-            _cachedConnectionString = null;
+            var connection = CreateConnection(name);
+            connection.Open();
+            return connection;
         }
     }
 }

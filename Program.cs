@@ -8,7 +8,7 @@ namespace QLTN_LT
 {
     internal static class Program
     {
-        private static bool SkipLogin = true; // Đổi về false nếu muốn bật lại màn hình đăng nhập
+        private static bool SkipLogin = false; // Đổi về false nếu muốn bật lại màn hình đăng nhập
 
         [STAThread]
         static void Main()
@@ -36,10 +36,22 @@ namespace QLTN_LT
             }
             else
             {
-                var loginForm = new GUI.Authentication.FormLogin();
-                if (loginForm.ShowDialog() == DialogResult.OK)
+                // Vòng lặp để quay lại login khi đăng xuất hoặc đóng FormMain
+                while (true)
                 {
-                    Application.Run(new GUI.Main.FormMain(loginForm.LoggedInUser));
+                    var loginForm = new GUI.Authentication.FormLogin();
+                    if (loginForm.ShowDialog() == DialogResult.OK)
+                    {
+                        var mainForm = new GUI.Main.FormMain(loginForm.LoggedInUser);
+                        mainForm.ShowDialog();
+                        // Khi FormMain đóng (bất kể cách nào), quay lại vòng lặp để hiển thị login lại
+                        // Nếu người dùng đóng FormLogin (không đăng nhập), thoát khỏi vòng lặp
+                    }
+                    else
+                    {
+                        // Người dùng đóng form login mà không đăng nhập -> thoát ứng dụng
+                        break;
+                    }
                 }
             }
         }

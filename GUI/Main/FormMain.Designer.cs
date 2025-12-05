@@ -44,6 +44,7 @@ namespace QLTN_LT.GUI.Main
         private Guna.UI2.WinForms.Guna2Button btnMaximize;
         private Guna.UI2.WinForms.Guna2Button btnClose;
         private Guna.UI2.WinForms.Guna2Button btnSettings;
+        private Guna.UI2.WinForms.Guna2Button btnHelp;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblTitle;
         private Guna.UI2.WinForms.Guna2DragControl dragControl;
 
@@ -125,6 +126,7 @@ namespace QLTN_LT.GUI.Main
             // pnlSidebar - Dock từ top (dùng thanh tiêu đề Windows)
             // 
             this.pnlSidebar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39))))); // Dark Theme
+            this.pnlSidebar.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
             this.pnlSidebar.BorderRadius = 0;
             this.pnlSidebar.Controls.Add(this.pnlUserInfo);
             this.pnlSidebar.Controls.Add(this.flowSidebar);
@@ -192,6 +194,7 @@ namespace QLTN_LT.GUI.Main
             this.flowSidebar.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
             this.flowSidebar.Size = new System.Drawing.Size(240, 550);
             this.flowSidebar.TabIndex = 3;
+            this.flowSidebar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
             this.flowSidebar.WrapContents = false;
             // 
             // btnDashboard
@@ -502,7 +505,7 @@ namespace QLTN_LT.GUI.Main
             this.pnlUserInfo.Controls.Add(this.lblUserName);
             this.pnlUserInfo.Controls.Add(this.picUserAvatar);
             this.pnlUserInfo.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlUserInfo.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(41)))), ((int)(((byte)(55))))); // Slightly lighter dark
+            this.pnlUserInfo.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39))))); // Same as sidebar background
             this.pnlUserInfo.Location = new System.Drawing.Point(0, 650);
             this.pnlUserInfo.Name = "pnlUserInfo";
             this.pnlUserInfo.Size = new System.Drawing.Size(240, 70);
@@ -561,6 +564,7 @@ namespace QLTN_LT.GUI.Main
             this.pnlTitleBar.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(191)))), ((int)(((byte)(219)))), ((int)(((byte)(254)))));
             this.pnlTitleBar.BorderThickness = 1;
             this.pnlTitleBar.Controls.Add(this.lblTitle);
+            this.pnlTitleBar.Controls.Add(this.btnHelp);
             this.pnlTitleBar.Controls.Add(this.btnSettings);
             this.pnlTitleBar.Controls.Add(this.btnMinimize);
             this.pnlTitleBar.Controls.Add(this.btnMaximize);
@@ -595,13 +599,34 @@ namespace QLTN_LT.GUI.Main
             this.btnSettings.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
             this.btnSettings.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
             this.btnSettings.HoverState.Parent = this.btnSettings;
-            this.btnSettings.Location = new System.Drawing.Point(624, 0);
+            this.btnSettings.Location = new System.Drawing.Point(584, 0);
             this.btnSettings.Name = "btnSettings";
             this.btnSettings.ShadowDecoration.Parent = this.btnSettings;
             this.btnSettings.Size = new System.Drawing.Size(40, 40);
             this.btnSettings.TabIndex = 1;
             this.btnSettings.Text = "⚙";
             this.btnSettings.Click += new System.EventHandler(this.BtnSettings_Click);
+            // 
+            // btnHelp
+            // 
+            this.btnHelp = new Guna.UI2.WinForms.Guna2Button();
+            this.btnHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnHelp.BorderRadius = 0;
+            this.btnHelp.CheckedState.Parent = this.btnHelp;
+            this.btnHelp.CustomImages.Parent = this.btnHelp;
+            this.btnHelp.FillColor = System.Drawing.Color.Transparent;
+            this.btnHelp.Font = new System.Drawing.Font("Segoe UI", 12F);
+            this.btnHelp.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(58)))), ((int)(((byte)(138)))));
+            this.btnHelp.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(219)))), ((int)(((byte)(234)))), ((int)(((byte)(254)))));
+            this.btnHelp.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(246)))));
+            this.btnHelp.HoverState.Parent = this.btnHelp;
+            this.btnHelp.Location = new System.Drawing.Point(544, 0);
+            this.btnHelp.Name = "btnHelp";
+            this.btnHelp.ShadowDecoration.Parent = this.btnHelp;
+            this.btnHelp.Size = new System.Drawing.Size(40, 40);
+            this.btnHelp.TabIndex = 6;
+            this.btnHelp.Text = "?";
+            this.btnHelp.Click += new System.EventHandler(this.BtnHelp_Click);
             // 
             // btnMinimize
             // 

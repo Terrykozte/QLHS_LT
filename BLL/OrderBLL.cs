@@ -61,6 +61,13 @@ namespace QLTN_LT.BLL
             _repo.UpdateStatus(orderId, "Completed");
         }
 
+        public void StartProcessing(int orderId)
+        {
+            if (orderId <= 0)
+                throw new ArgumentException("OrderID phải lớn hơn 0");
+            _repo.UpdateStatus(orderId, "Processing");
+        }
+
         public int Create(OrderDTO order)
         {
             if (order == null)

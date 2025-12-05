@@ -42,6 +42,7 @@ namespace QLTN_LT.DAL
                 DataSource = Server,
                 InitialCatalog = Database,
                 IntegratedSecurity = IntegratedSecurity,
+                Encrypt = true,
                 TrustServerCertificate = true // Important for newer SQL Servers
             };
 

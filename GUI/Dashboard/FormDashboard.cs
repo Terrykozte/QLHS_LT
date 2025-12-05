@@ -199,11 +199,11 @@ namespace QLTN_LT.GUI.Dashboard
                     var cachedData = DataBindingHelper.GetCachedData<object>(cacheKey);
 
                     if (cachedData == null)
-                    {
-                        LoadStatCards(startDate, endDate);
-                        LoadRevenueChart(startDate, endDate);
-                        LoadTopSellingList(startDate, endDate);
-                        LoadLowStockList();
+                {
+                    LoadStatCards(startDate, endDate);
+                    LoadRevenueChart(startDate, endDate);
+                    LoadTopSellingList(startDate, endDate);
+                    LoadLowStockList();
                     }
                     else
                     {

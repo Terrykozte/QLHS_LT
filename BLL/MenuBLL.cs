@@ -39,6 +39,12 @@ namespace QLTN_LT.BLL
             _dal.DeleteItem(itemId);
         }
 
+        public void SetAvailability(int itemId, bool isAvailable)
+        {
+            if (itemId <= 0) throw new ArgumentException("ItemID không hợp lệ.");
+            _dal.SetAvailability(itemId, isAvailable);
+        }
+
         public Dictionary<string, List<MenuItemDTO>> GetGroupedMenu()
         {
             var allItems = GetAllItems();

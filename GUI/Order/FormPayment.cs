@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
@@ -23,8 +28,8 @@ namespace QLTN_LT.GUI.Order
         private OrderDTO _order;
         private List<PaymentMethodDTO> _paymentMethods;
         private System.Windows.Forms.Timer _autoRefreshTimer;
-        private System.Windows.Forms.Timer _searchTimer;
         private bool _isProcessing = false;
+        private LoadingOverlay _overlay;
 
         public FormPayment(int orderId)
         {
@@ -47,6 +52,9 @@ namespace QLTN_LT.GUI.Order
 
             this.KeyPreview = true;
             this.KeyDown += FormPayment_KeyDown;
+
+            // Overlay
+            _overlay = new LoadingOverlay(this, "Đang xử lý...");
         }
 
         private void FormPayment_Load(object sender, EventArgs e)
@@ -59,11 +67,12 @@ namespace QLTN_LT.GUI.Order
                     cmbPaymentMethod, txtPaymentAmount, btnConfirmPayment, btnCancel
                 });
 
+                // Apply theme & responsive
+                ThemeHelper.ApplyThemeToForm(this);
+                ApplyResponsiveDesign();
+
                 // Setup animations
                 AnimationHelper.FadeIn(this, 300);
-
-                // Setup responsive
-                ApplyResponsiveDesign();
 
                 LoadOrderData();
                 LoadPaymentMethods();
@@ -82,8 +91,7 @@ namespace QLTN_LT.GUI.Order
         {
             _autoRefreshTimer?.Stop();
             _autoRefreshTimer?.Dispose();
-            _searchTimer?.Stop();
-            _searchTimer?.Dispose();
+            _overlay?.Dispose();
             KeyboardNavigationHelper.UnregisterForm(this);
         }
         
@@ -151,24 +159,21 @@ namespace QLTN_LT.GUI.Order
             // Setup payment method change event
             cmbPaymentMethod.SelectedIndexChanged += CmbPaymentMethod_SelectedIndexChanged;
 
-            // Setup hover effects
-            var _btnOkObj = (object)btnConfirmPayment;
-            if (_btnOkObj is Guna2Button confirmBtn)
+            // Hover/click effects for primary buttons
+            try
             {
-                UXInteractionHelper.AddHoverEffect(confirmBtn,
-                    Color.FromArgb(34, 197, 94),
-                    Color.FromArgb(22, 163, 74));
-                UXInteractionHelper.AddClickEffect(confirmBtn);
-            }
+                // Style basic WinForms buttons
+                btnConfirmPayment.FlatStyle = FlatStyle.Flat;
+                btnConfirmPayment.BackColor = Color.FromArgb(34, 197, 94);
+                btnConfirmPayment.ForeColor = Color.White;
+                btnConfirmPayment.FlatAppearance.BorderSize = 0;
 
-            var _btnCancelObj = (object)btnCancel;
-            if (_btnCancelObj is Guna2Button cancelBtn)
-            {
-                UXInteractionHelper.AddHoverEffect(cancelBtn,
-                    Color.FromArgb(107, 114, 128),
-                    Color.FromArgb(75, 85, 99));
-                UXInteractionHelper.AddClickEffect(cancelBtn);
+                btnCancel.FlatStyle = FlatStyle.Flat;
+                btnCancel.BackColor = Color.FromArgb(107, 114, 128);
+                btnCancel.ForeColor = Color.White;
+                btnCancel.FlatAppearance.BorderSize = 0;
             }
+            catch { }
         }
 
         private void ApplyResponsiveDesign()
@@ -176,8 +181,6 @@ namespace QLTN_LT.GUI.Order
             try
             {
                 // Adjust font sizes
-                var screenSize = ResponsiveHelper.GetCurrentScreenSize(this);
-                
                 if (lblOrderNumber != null)
                     lblOrderNumber.Font = new Font(lblOrderNumber.Font.FontFamily,
                         ResponsiveHelper.GetResponsiveFontSize(12, this), FontStyle.Bold);
@@ -199,26 +202,26 @@ namespace QLTN_LT.GUI.Order
         private void CmbPaymentMethod_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
-            {
-                var selectedMethod = (PaymentMethodDTO)cmbPaymentMethod.SelectedItem;
-                
-                // Show/Hide VietQR controls based on selected method
-                if (selectedMethod.MethodName == "VietQR")
+        {
+            var selectedMethod = (PaymentMethodDTO)cmbPaymentMethod.SelectedItem;
+            
+            // Show/Hide VietQR controls based on selected method
+            if (selectedMethod.MethodName == "VietQR")
                 {
                     if (!pnlVietQR.Visible)
-                    {
-                        pnlVietQR.Visible = true;
+            {
+                pnlVietQR.Visible = true;
                         AnimationHelper.FadeIn(pnlVietQR, 300);
                     }
-                    GenerateVietQRCode();
-                }
-                else
+                GenerateVietQRCode();
+            }
+            else
                 {
                     if (pnlVietQR.Visible)
                     {
                         AnimationHelper.FadeOut(pnlVietQR, 200, () =>
-                        {
-                            pnlVietQR.Visible = false;
+            {
+                pnlVietQR.Visible = false;
                         });
                     }
                 }
@@ -240,17 +243,17 @@ namespace QLTN_LT.GUI.Order
                     lblQRStatus.ForeColor = Color.FromArgb(59, 130, 246);
                 }
 
-                // Thông tin tài khoản ngân hàng (cấu hình theo yêu cầu)
-                string bankCode = "970422"; // Techcombank
-                string accountNumber = "1031839610"; // Số tài khoản
-                string accountName = "PHAM HOAI THUONG"; // Tên tài khoản
+                // Lấy thông tin tài khoản VietQR từ App.config (ưu tiên) hoặc mặc định VietinBank
+                string bankCode = ConfigurationManager.AppSettings["VietQR_BankId"] ?? "970415"; // VietinBank
+                string accountNumber = ConfigurationManager.AppSettings["VietQR_AccountNo"] ?? "113366668888";
+                string accountName = ConfigurationManager.AppSettings["VietQR_AccountName"] ?? "VIETQR ACCOUNT";
                 
                 decimal amount = decimal.Parse(txtPaymentAmount.Text.Replace(",", "").Replace(" VNĐ", ""));
-                string description = $"Thanh toan don hang {_order.OrderNumber}";
+                string description = BuildVietQRDescription(_order);
 
                 var vietQRService = new VietQRService(bankCode, accountNumber, accountName, amount, description);
                 
-                // Tạo QR Code bằng QRCoder
+                // Tạo QR Code bằng QRCoder (dạng text EMVCo từ VietQRService)
                 string qrData = vietQRService.GenerateQRCode();
                 
                 using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
@@ -263,7 +266,7 @@ namespace QLTN_LT.GUI.Order
                         // Animate QR code display
                         if (picQRCode != null)
                         {
-                            picQRCode.Image = qrCodeImage;
+                        picQRCode.Image = qrCodeImage;
                             AnimationHelper.ScaleIn(picQRCode, 300);
                         }
                     }
@@ -272,7 +275,7 @@ namespace QLTN_LT.GUI.Order
                 // Hiển thị thông tin thanh toán
                 if (txtPaymentInfo != null)
                 {
-                    txtPaymentInfo.Text = vietQRService.GeneratePaymentInfo();
+                txtPaymentInfo.Text = vietQRService.GeneratePaymentInfo();
                     AnimationHelper.FadeIn(txtPaymentInfo, 300);
                 }
 
@@ -349,8 +352,8 @@ namespace QLTN_LT.GUI.Order
                     {
                         closeTimer.Stop();
                         closeTimer.Dispose();
-                        this.DialogResult = DialogResult.OK;
-                        this.Close();
+                    this.DialogResult = DialogResult.OK;
+                    this.Close();
                     };
                     closeTimer.Start();
                 }
@@ -392,7 +395,6 @@ namespace QLTN_LT.GUI.Order
             if (!decimal.TryParse(txtPaymentAmount.Text.Replace(",", "").Replace(" VNĐ", ""), out decimal amount))
             {
                 UXInteractionHelper.ShowWarning("Cảnh báo", "Số tiền không hợp lệ");
-                // Skipping Guna2TextBox-specific validation feedback for compatibility with standard TextBox
                 AnimationHelper.Shake(txtPaymentAmount, 300);
                 return false;
             }
@@ -412,7 +414,6 @@ namespace QLTN_LT.GUI.Order
                 return false;
             }
 
-            // Validation success
             return true;
         }
 
@@ -490,6 +491,95 @@ namespace QLTN_LT.GUI.Order
             }
         }
 
+        // NEW: Button Quick Link VietQR
+        private async void btnVietQRQuickLink_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _overlay.Show("Đang tạo VietQR (Quick Link)...");
+
+                // Chuẩn bị thông tin VietQR
+                string bankId = ConfigurationManager.AppSettings["VietQR_BankId"] ?? "970415"; // VietinBank
+                string accountNo = ConfigurationManager.AppSettings["VietQR_AccountNo"] ?? "113366668888";
+                string accountName = ConfigurationManager.AppSettings["VietQR_AccountName"] ?? "VIETQR ACCOUNT";
+
+                decimal amount = decimal.Parse(txtPaymentAmount.Text.Replace(",", "").Replace(" VNĐ", ""));
+                string desc = BuildVietQRDescription(_order);
+
+                var service = new VietQRIntegrationService();
+                var quick = service.GenerateQuickLink(accountNo, accountName, amount, desc, bankId, VietQRIntegrationService.QRTemplate.Compact2);
+
+                if (!quick.IsSuccess)
+                {
+                    _overlay.Hide();
+                    UXInteractionHelper.ShowError("VietQR", quick.Message);
+                    return;
+                }
+
+                // Hiển thị panel VietQR nếu đang ẩn
+                if (!pnlVietQR.Visible)
+                {
+                    pnlVietQR.Visible = true;
+                    AnimationHelper.FadeIn(pnlVietQR, 250);
+                }
+
+                lblQRStatus.Text = "Đang tải ảnh QR...";
+                lblQRStatus.ForeColor = Color.FromArgb(59, 130, 246);
+
+                // Tải ảnh Quick Link
+                var bmp = await DownloadImageAsync(quick.Data);
+                if (bmp != null)
+                {
+                    picQRCode.Image = bmp;
+                    AnimationHelper.ScaleIn(picQRCode, 280);
+                    lblQRStatus.Text = "✓ Quick Link đã sẵn sàng";
+                    lblQRStatus.ForeColor = ThemeHelper.Colors.Success;
+                    txtPaymentInfo.Text = $"Ngân hàng: {bankId}\r\nSố TK: {accountNo}\r\nTên TK: {accountName}\r\nSố tiền: {amount:N0} VNĐ\r\nNội dung: {desc}\r\nTemplate: compact2\r\nURL: {quick.Data}";
+                }
+                else
+                {
+                    lblQRStatus.Text = "✗ Không tải được ảnh QR";
+                    lblQRStatus.ForeColor = ThemeHelper.Colors.Danger;
+                }
+
+                _overlay.Hide();
+                UXInteractionHelper.ShowToast(this, "Tạo VietQR (Quick Link) thành công!", 1800, ThemeHelper.Colors.Success, Color.White);
+            }
+            catch (Exception ex)
+            {
+                _overlay.Hide();
+                UXInteractionHelper.ShowError("VietQR", ex.Message);
+            }
+        }
+
+        private async Task<Bitmap> DownloadImageAsync(string url)
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    var bytes = await client.GetByteArrayAsync(url);
+                    using (var ms = new MemoryStream(bytes))
+                    {
+                        return new Bitmap(ms);
+                    }
+                }
+            }
+            catch { return null; }
+        }
+
+        private string BuildVietQRDescription(OrderDTO order)
+        {
+            // Mô tả tối đa 25 ký tự theo quy định
+            // Mặc định: TT_yyyyMMdd_suffix6
+            string suffix = order?.OrderNumber;
+            if (!string.IsNullOrEmpty(suffix) && suffix.Length > 6)
+                suffix = suffix.Substring(suffix.Length - 6);
+            string s = $"TT_{(order?.OrderDate ?? DateTime.Now):yyyyMMdd}_{suffix}";
+            if (s.Length > 25) s = s.Substring(0, 25);
+            return s;
+        }
+
         private void FormPayment_KeyDown(object sender, KeyEventArgs e)
         {
             try
@@ -510,9 +600,33 @@ namespace QLTN_LT.GUI.Order
                     this.Close();
                     e.Handled = true;
                 }
+                else if (e.Control && e.KeyCode == Keys.Q)
+                {
+                    btnVietQRQuickLink_Click(sender, EventArgs.Empty);
+                    e.Handled = true;
+                }
+                else if (e.KeyCode == Keys.F1)
+                {
+                    // Mở Hướng dẫn phím tắt
+                    try
+                    {
+                        var form = new QLTN_LT.GUI.Helper.FormShortcuts();
+                        form.ShowDialog(this);
+                    }
+                    catch { }
+                }
+                else if (e.Control && e.KeyCode == Keys.F1)
+                {
+                    // Mở VietQR nâng cao (giữ như tuỳ chọn)
+                    try
+                    {
+                        var form = new QLTN_LT.GUI.Payment.FormVietQRGenerator(_order);
+                        form.ShowDialog(this);
+                    }
+                    catch { }
+                }
             }
             catch { }
         }
     }
 }
-

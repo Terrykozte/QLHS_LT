@@ -12,12 +12,26 @@ namespace QLTN_LT.DAL
         public List<InventoryStatusDTO> GetInventoryStatus()
         {
             var list = new List<InventoryStatusDTO>();
-            const string sql = "sp_GetInventoryStatus";
+            const string sql = @"
+                SELECT 
+                    i.InventoryID,
+                    i.SeafoodID,
+                    s.SeafoodName,
+                    i.Quantity,
+                    i.ReorderLevel,
+                    CASE 
+                        WHEN i.Quantity <= 0 THEN N'Cần nhập'
+                        WHEN i.Quantity <= i.ReorderLevel THEN N'Thấp'
+                        ELSE N'Bình thường'
+                    END AS Status,
+                    ISNULL(i.LastUpdated, GETDATE()) AS LastUpdated
+                FROM [dbo].[Inventory] i
+                INNER JOIN [dbo].[Seafoods] s ON i.SeafoodID = s.SeafoodID
+                ORDER BY s.SeafoodName";
 
             using (var conn = DatabaseHelper.CreateConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
                 conn.Open();
                 using (var rd = cmd.ExecuteReader())
                 {

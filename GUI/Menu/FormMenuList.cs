@@ -13,7 +13,15 @@ namespace QLTN_LT.GUI.Menu
     {
         private readonly MenuBLL _bll = new MenuBLL();
         private List<MenuItemDTO> _allItems = new List<MenuItemDTO>();
+        private List<MenuItemDTO> _filteredItems = new List<MenuItemDTO>();
         private Timer _searchDebounceTimer;
+
+        // Pagination
+        private int _pageSize = 15;
+        private int _currentPage = 1;
+
+        // Context menu
+        private ContextMenuStrip _rowMenu;
 
         public FormMenuList()
         {
@@ -53,12 +61,52 @@ namespace QLTN_LT.GUI.Menu
             try
             {
                 ConfigureGrid();
+                InitRowContextMenu();
+                if (btnNext != null) btnNext.Click += BtnNext_Click;
+                if (btnPrevious != null) btnPrevious.Click += BtnPrevious_Click;
+
                 LoadData();
+                AddHelpButtonAndTooltips();
             }
             catch (Exception ex)
             {
                 ExceptionHandler.Handle(ex, "FormMenuList_Load");
             }
+        }
+
+        private void AddHelpButtonAndTooltips()
+        {
+            try
+            {
+                // Nút Hướng dẫn (F1) góc phải trên
+                var btnHelp = new Button
+                {
+                    Text = "F1",
+                    Width = 36,
+                    Height = 28,
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = System.Drawing.Color.FromArgb(107,114,128),
+                    ForeColor = System.Drawing.Color.White,
+                    Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                };
+                btnHelp.FlatAppearance.BorderSize = 0;
+                btnHelp.Left = this.ClientSize.Width - btnHelp.Width - 12;
+                btnHelp.Top = 10;
+                btnHelp.Click += (s, e) => { try { new QLTN_LT.GUI.Helper.FormShortcuts().ShowDialog(this); } catch { } };
+                this.Controls.Add(btnHelp);
+
+                // Tooltips
+                var tip = new ToolTip { AutoPopDelay = 4000, InitialDelay = 400, ReshowDelay = 200, ShowAlways = true };
+                if (btnHelp != null) tip.SetToolTip(btnHelp, "Hướng dẫn phím tắt (F1)");
+                if (txtSearch != null) tip.SetToolTip(txtSearch, "Tìm kiếm\nMẹo: Enter để áp dụng, Esc để xóa");
+                if (cboCategory != null) tip.SetToolTip(cboCategory, "Lọc theo danh mục");
+                var miBtnAdd = this.GetType().GetField("btnAdd", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(this) as Control;
+                var miBtnReload = this.GetType().GetField("btnReload", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(this) as Control;
+                if (miBtnAdd != null) tip.SetToolTip(miBtnAdd, "Thêm mới (Ctrl+N)");
+                if (miBtnReload != null) tip.SetToolTip(miBtnReload, "Làm mới (F5)");
+                if (dgvMenu != null) tip.SetToolTip(dgvMenu, "Double‑click để sửa\nEnter để mở chi tiết");
+            }
+            catch { }
         }
 
         private void ConfigureGrid()
@@ -301,6 +349,106 @@ namespace QLTN_LT.GUI.Menu
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Khởi tạo context menu cho các hàng trong DataGridView
+        /// </summary>
+        private void InitRowContextMenu()
+        {
+            try
+            {
+                if (dgvMenu == null) return;
+
+                _rowMenu = new ContextMenuStrip();
+                
+                var itemEdit = new ToolStripMenuItem("Sửa (Enter)", null, (s, e) =>
+                {
+                    if (dgvMenu.CurrentRow != null)
+                    {
+                        dgvMenu_CellDoubleClick(dgvMenu, new DataGridViewCellEventArgs(0, dgvMenu.CurrentRow.Index));
+                    }
+                });
+                
+                var itemDelete = new ToolStripMenuItem("Xóa (Delete)", null, (s, e) =>
+                {
+                    try
+                    {
+                        if (dgvMenu.CurrentRow != null)
+                        {
+                            var selectedItem = dgvMenu.CurrentRow.DataBoundItem as MenuItemDTO;
+                            if (selectedItem != null)
+                            {
+                                if (MessageBox.Show($"Xóa món '{selectedItem.ItemName}'?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                                {
+                                    try
+                                    {
+                                        _bll.DeleteItem(selectedItem.ItemID);
+                                        LoadData();
+                                        MessageBox.Show("Xóa thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    }
+                                    catch (Exception deleteEx)
+                                    {
+                                        MessageBox.Show($"Xóa thất bại: {deleteEx.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ExceptionHandler.Handle(ex, "Delete menu item");
+                    }
+                });
+
+                var itemRefresh = new ToolStripMenuItem("Làm mới (F5)", null, (s, e) => LoadData());
+
+                _rowMenu.Items.Add(itemEdit);
+                _rowMenu.Items.Add(itemDelete);
+                _rowMenu.Items.Add(new ToolStripSeparator());
+                _rowMenu.Items.Add(itemRefresh);
+
+                dgvMenu.ContextMenuStrip = _rowMenu;
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Handle(ex, "InitRowContextMenu");
+            }
+        }
+
+        /// <summary>
+        /// Xử lý nút Next cho phân trang
+        /// </summary>
+        private void BtnNext_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _currentPage++;
+                ApplyFilter();
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Handle(ex, "BtnNext_Click");
+            }
+        }
+
+        /// <summary>
+        /// Xử lý nút Previous cho phân trang
+        /// </summary>
+        private void BtnPrevious_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_currentPage > 1)
+                {
+                    _currentPage--;
+                    ApplyFilter();
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Handle(ex, "BtnPrevious_Click");
+            }
+        }
+
         protected override void CleanupResources()
         {
             try
@@ -308,6 +456,7 @@ namespace QLTN_LT.GUI.Menu
                 _searchDebounceTimer?.Stop();
                 _searchDebounceTimer?.Dispose();
                 _allItems?.Clear();
+                _rowMenu?.Dispose();
             }
             catch { }
             finally { base.CleanupResources(); }

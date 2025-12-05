@@ -157,17 +157,28 @@ namespace QLTN_LT.GUI.Order
         {
             try
             {
+                if (dgvMenu == null) return;
+                
                 dgvMenu.DataSource = null;
                 dgvMenu.DataSource = _allMenuItems;
-                dgvMenu.Columns["ItemID"].HeaderText = "ID";
-                dgvMenu.Columns["ItemName"].HeaderText = "Tên món";
-                dgvMenu.Columns["UnitPrice"].HeaderText = "Giá";
-                dgvMenu.Columns["CategoryName"].HeaderText = "Danh mục";
-                dgvMenu.Columns["Description"].HeaderText = "Mô tả";
+                
+                if (dgvMenu.Columns.Count > 0)
+                {
+                    if (dgvMenu.Columns["ItemID"] != null)
+                        dgvMenu.Columns["ItemID"].HeaderText = "ID";
+                    if (dgvMenu.Columns["ItemName"] != null)
+                        dgvMenu.Columns["ItemName"].HeaderText = "Tên món";
+                    if (dgvMenu.Columns["UnitPrice"] != null)
+                        dgvMenu.Columns["UnitPrice"].HeaderText = "Giá";
+                    if (dgvMenu.Columns["CategoryName"] != null)
+                        dgvMenu.Columns["CategoryName"].HeaderText = "Danh mục";
+                    if (dgvMenu.Columns["Description"] != null)
+                        dgvMenu.Columns["Description"].HeaderText = "Mô tả";
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải menu: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi tải danh sách menu: {ex.Message}");
             }
         }
 
@@ -205,27 +216,35 @@ namespace QLTN_LT.GUI.Order
         {
             try
             {
+                if (_allMenuItems == null || _allMenuItems.Count == 0) return;
+                
                 var filtered = _allMenuItems.AsEnumerable();
 
                 // Filter by category
-                if (cmbCategory.SelectedIndex > 0)
+                if (cmbCategory != null && cmbCategory.SelectedIndex > 0)
                 {
-                    string category = cmbCategory.SelectedItem.ToString();
-                    filtered = filtered.Where(m => m.CategoryName == category);
+                    string category = cmbCategory.SelectedItem?.ToString();
+                    if (!string.IsNullOrEmpty(category))
+                    {
+                        filtered = filtered.Where(m => m.CategoryName == category);
+                    }
                 }
 
                 // Filter by search text
-                if (!string.IsNullOrWhiteSpace(txtSearch.Text))
+                if (txtSearch != null && !string.IsNullOrWhiteSpace(txtSearch.Text))
                 {
                     string search = txtSearch.Text.ToLower();
-                    filtered = filtered.Where(m => m.ItemName.ToLower().Contains(search));
+                    filtered = filtered.Where(m => m.ItemName != null && m.ItemName.ToLower().Contains(search));
                 }
 
-                dgvMenu.DataSource = filtered.ToList();
+                if (dgvMenu != null)
+                {
+                    dgvMenu.DataSource = filtered.ToList();
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi lọc menu: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi lọc menu: {ex.Message}");
             }
         }
 
@@ -234,13 +253,15 @@ namespace QLTN_LT.GUI.Order
             try
             {
                 if (e.RowIndex < 0) return;
+                if (dgvMenu == null) return;
+                
                 dgvMenu.ClearSelection();
                 dgvMenu.Rows[e.RowIndex].Selected = true;
                 AddMenuItemToCart();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi: {ex.Message}");
             }
         }
 
@@ -248,29 +269,43 @@ namespace QLTN_LT.GUI.Order
         {
             try
             {
-                if (dgvMenu.SelectedRows.Count == 0)
+                if (dgvMenu == null || dgvMenu.SelectedRows.Count == 0)
                 {
-                    MessageBox.Show("Vui lòng chọn một món ăn");
+                    FormManagementHelper.ShowWarningMessage("Vui lòng chọn một món ăn từ danh sách");
                     return;
                 }
 
                 var selectedRow = dgvMenu.SelectedRows[0];
-                int menuItemId = (int)selectedRow.Cells["ItemID"].Value;
-                var menuItem = _allMenuItems.FirstOrDefault(m => m.ItemID == menuItemId);
-
-                if (menuItem != null)
+                if (selectedRow.Cells["ItemID"]?.Value == null)
                 {
-                    int quantity = 1;
-                    if (nudQuantity != null) quantity = (int)nudQuantity.Value;
-                    if (quantity <= 0) quantity = 1;
-
-                    _cartService.AddItem(menuItem, quantity);
-                    if (nudQuantity != null) nudQuantity.Value = 1;
+                    FormManagementHelper.ShowWarningMessage("Không thể lấy thông tin sản phẩm");
+                    return;
                 }
+
+                int menuItemId = (int)selectedRow.Cells["ItemID"].Value;
+                var menuItem = _allMenuItems?.FirstOrDefault(m => m.ItemID == menuItemId);
+
+                if (menuItem == null)
+                {
+                    FormManagementHelper.ShowWarningMessage("Không tìm thấy sản phẩm trong danh sách");
+                    return;
+                }
+
+                int quantity = 1;
+                if (nudQuantity != null) 
+                {
+                    quantity = (int)nudQuantity.Value;
+                }
+                if (quantity <= 0) quantity = 1;
+
+                _cartService.AddItem(menuItem, quantity);
+                if (nudQuantity != null) nudQuantity.Value = 1;
+                
+                FormManagementHelper.ShowSuccessMessage($"Đã thêm {menuItem.ItemName} vào đơn hàng");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi thêm vào giỏ: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi thêm sản phẩm vào giỏ: {ex.Message}");
             }
         }
 
@@ -278,18 +313,24 @@ namespace QLTN_LT.GUI.Order
         {
             try
             {
-                if (e.RowIndex < 0) return;
+                if (e.RowIndex < 0 || dgvCart == null) return;
                 if (dgvCart.Columns[e.ColumnIndex].Name != "colDelete") return;
+                
                 var item = dgvCart.Rows[e.RowIndex].DataBoundItem as CartItem;
                 if (item == null) return;
-                if (MessageBox.Show($"Xóa '{item.ProductName}' khỏi giỏ?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                
+                if (MessageBox.Show(
+                    $"Bạn có chắc muốn xóa '{item.ProductName}' khỏi đơn hàng?",
+                    "Xác nhận xóa",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     _cartService.RemoveItem(item.ProductId);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi xóa sản phẩm: {ex.Message}");
             }
         }
 
@@ -297,25 +338,35 @@ namespace QLTN_LT.GUI.Order
         {
             try
             {
-                if (dgvCart.SelectedRows.Count == 0)
+                if (dgvCart == null || dgvCart.SelectedRows.Count == 0)
                 {
-                    MessageBox.Show("Vui lòng chọn sản phẩm để xóa");
+                    FormManagementHelper.ShowWarningMessage("Vui lòng chọn sản phẩm để xóa");
                     return;
                 }
 
                 var selectedRow = dgvCart.SelectedRows[0];
+                if (selectedRow.Cells["ProductId"]?.Value == null)
+                {
+                    FormManagementHelper.ShowWarningMessage("Không thể lấy thông tin sản phẩm");
+                    return;
+                }
+
                 int productId = (int)selectedRow.Cells["ProductId"].Value;
                 _cartService.RemoveItem(productId);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi xóa khỏi giỏ: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi xóa sản phẩm khỏi giỏ: {ex.Message}");
             }
         }
 
         private void ClearCart()
         {
-            if (MessageBox.Show("Bạn có chắc muốn xóa tất cả sản phẩm?", "Xác nhận", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (MessageBox.Show(
+                "Bạn có chắc muốn xóa tất cả sản phẩm khỏi đơn hàng?",
+                "Xác nhận xóa",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 _cartService.Clear();
             }
@@ -349,13 +400,19 @@ namespace QLTN_LT.GUI.Order
                 }
 
                 decimal total = _cartService.GetTotalAmount();
-                lblTotal.Text = $"Tổng tiền: {total:N0} VNĐ";
+                if (lblTotal != null)
+                {
+                    lblTotal.Text = $"Tổng tiền: {total:N0} VNĐ";
+                }
 
-                btnAddOrder.Enabled = items.Count > 0;
+                if (btnAddOrder != null)
+                {
+                    btnAddOrder.Enabled = items.Count > 0;
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi cập nhật giỏ: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi cập nhật giỏ hàng: {ex.Message}");
             }
         }
 
@@ -364,10 +421,17 @@ namespace QLTN_LT.GUI.Order
             try
             {
                 var customers = _customerBLL.GetAll();
+                if (customers == null || customers.Count == 0)
+                {
+                    FormManagementHelper.ShowWarningMessage("Chưa có khách hàng nào trong hệ thống. Vui lòng thêm khách hàng trước.");
+                    return;
+                }
+                
                 cmbCustomer.DataSource = customers;
                 cmbCustomer.DisplayMember = nameof(CustomerDTO.CustomerName);
                 cmbCustomer.ValueMember = nameof(CustomerDTO.CustomerID);
-                if (customers != null && customers.Count > 0)
+                
+                if (customers.Count > 0)
                 {
                     _selectedCustomer = customers.First();
                     UpdateCustomerLabel();
@@ -375,7 +439,7 @@ namespace QLTN_LT.GUI.Order
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải khách hàng: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi tải danh sách khách hàng: {ex.Message}");
             }
         }
 
@@ -385,9 +449,15 @@ namespace QLTN_LT.GUI.Order
             {
                 var tblBll = new TableBLL();
                 var tables = tblBll.GetAll() ?? new List<TableDTO>();
-                cmbTable.DataSource = tables;
+                
+                // Thêm option "Không chọn bàn"
+                var tablesWithNone = new List<TableDTO> { new TableDTO { TableID = 0, TableName = "-- Không chọn bàn --" } };
+                tablesWithNone.AddRange(tables);
+                
+                cmbTable.DataSource = tablesWithNone;
                 cmbTable.DisplayMember = nameof(TableDTO.TableName);
                 cmbTable.ValueMember = nameof(TableDTO.TableID);
+                
                 if (tables.Count > 0 && lblTable != null)
                 {
                     lblTable.Text = "Bàn";
@@ -395,7 +465,7 @@ namespace QLTN_LT.GUI.Order
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải bàn: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi tải danh sách bàn: {ex.Message}");
             }
         }
 
@@ -403,22 +473,34 @@ namespace QLTN_LT.GUI.Order
         {
             try
             {
-                _selectedCustomer = cmbCustomer.SelectedItem as CustomerDTO;
-                UpdateCustomerLabel();
+                if (cmbCustomer != null && cmbCustomer.SelectedItem != null)
+                {
+                    _selectedCustomer = cmbCustomer.SelectedItem as CustomerDTO;
+                    UpdateCustomerLabel();
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi thay đổi khách hàng: {ex.Message}");
+            }
         }
 
         private void UpdateCustomerLabel()
         {
             try
             {
-                if (_selectedCustomer != null)
-                    lblCustomer.Text = $"Khách hàng: {_selectedCustomer.CustomerName}";
-                else
-                    lblCustomer.Text = "Chưa chọn khách hàng";
+                if (lblCustomer != null)
+                {
+                    if (_selectedCustomer != null)
+                        lblCustomer.Text = $"Khách hàng: {_selectedCustomer.CustomerName}";
+                    else
+                        lblCustomer.Text = "Chưa chọn khách hàng";
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi cập nhật label khách hàng: {ex.Message}");
+            }
         }
 
         private void SelectCustomer()
@@ -431,12 +513,26 @@ namespace QLTN_LT.GUI.Order
                     {
                         _selectedCustomer = dlg.SelectedCustomer;
                         UpdateCustomerLabel();
+                        
+                        // Cập nhật combobox để hiển thị khách hàng đã chọn
+                        if (cmbCustomer != null && cmbCustomer.Items.Count > 0)
+                        {
+                            for (int i = 0; i < cmbCustomer.Items.Count; i++)
+                            {
+                                var customer = cmbCustomer.Items[i] as CustomerDTO;
+                                if (customer != null && customer.CustomerID == _selectedCustomer.CustomerID)
+                                {
+                                    cmbCustomer.SelectedIndex = i;
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi chọn khách hàng: {ex.Message}");
             }
         }
 
@@ -446,52 +542,89 @@ namespace QLTN_LT.GUI.Order
             {
                 if (_cartService.IsEmpty())
                 {
-                    MessageBox.Show("Giỏ hàng trống");
+                    FormManagementHelper.ShowWarningMessage("Giỏ hàng trống. Vui lòng thêm sản phẩm vào đơn hàng.");
                     return;
                 }
 
                 if (_selectedCustomer == null)
                 {
-                    MessageBox.Show("Vui lòng chọn khách hàng");
+                    FormManagementHelper.ShowWarningMessage("Vui lòng chọn khách hàng");
                     return;
+                }
+
+                // Lấy TableID nếu có chọn bàn
+                int? tableId = null;
+                if (cmbTable != null && cmbTable.SelectedItem != null)
+                {
+                    var selectedTable = cmbTable.SelectedItem as TableDTO;
+                    if (selectedTable != null && selectedTable.TableID > 0)
+                    {
+                        tableId = selectedTable.TableID;
+                    }
                 }
 
                 var order = _cartService.CreateOrder(
                     _selectedCustomer.CustomerID,
                     _selectedCustomer.CustomerName,
                     _selectedCustomer.PhoneNumber,
-                    txtNotes.Text
+                    tableId,
+                    txtNotes?.Text ?? ""
                 );
+
+                if (order == null)
+                {
+                    FormManagementHelper.ShowErrorMessage("Không thể tạo đơn hàng. Vui lòng thử lại.");
+                    return;
+                }
 
                 int orderId = _orderBLL.Create(order);
                 if (orderId > 0)
                 {
-                    if (MessageBox.Show($"Tạo đơn hàng thành công!\nMã đơn: {orderId}\n\nThanh toán ngay?", "Thành công", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    FormManagementHelper.ShowSuccessMessage($"Tạo đơn hàng thành công!\nMã đơn: {orderId}");
+                    
+                    var result = MessageBox.Show(
+                        $"Tạo đơn hàng thành công!\nMã đơn: {orderId}\n\nBạn có muốn thanh toán ngay không?",
+                        "Thành công",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question
+                    );
+                    
+                    if (result == DialogResult.Yes)
                     {
                         using (var payment = new QLTN_LT.GUI.Order.FormPayment(orderId))
                         {
                             payment.ShowDialog(this);
                         }
                     }
+                    
                     _cartService.Clear();
                     ClearForm();
+                    this.DialogResult = DialogResult.OK;
                 }
                 else
                 {
-                    MessageBox.Show("Lỗi tạo đơn hàng");
+                    FormManagementHelper.ShowErrorMessage("Lỗi tạo đơn hàng. Vui lòng thử lại.");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message);
+                FormManagementHelper.ShowErrorMessage($"Lỗi tạo đơn hàng: {ex.Message}");
             }
         }
 
         private void ClearForm()
         {
             _selectedCustomer = null;
-            txtNotes.Clear();
-            lblCustomer.Text = "Chưa chọn khách hàng";
+            if (txtNotes != null) txtNotes.Clear();
+            if (lblCustomer != null) lblCustomer.Text = "Chưa chọn khách hàng";
+            if (cmbCustomer != null && cmbCustomer.Items.Count > 0)
+            {
+                cmbCustomer.SelectedIndex = 0;
+            }
+            if (cmbTable != null && cmbTable.Items.Count > 0)
+            {
+                cmbTable.SelectedIndex = 0;
+            }
         }
     }
 }

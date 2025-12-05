@@ -76,7 +76,7 @@ namespace QLTN_LT.GUI.Inventory
                     dgvInventory.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "SeafoodName", HeaderText = "TÊN SẢN PHẨM", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
                     dgvInventory.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Quantity", HeaderText = "SỐ LƯỢNG", Width = 100, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight } });
                     dgvInventory.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ReorderLevel", HeaderText = "MỨC TỐI THIỂU", Width = 110, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight } });
-                    dgvInventory.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Status", HeaderText = "TRẠNG THÁI", Width = 110 });
+                    dgvInventory.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", DataPropertyName = "Status", HeaderText = "TRẠNG THÁI", Width = 110 });
                     dgvInventory.Columns.Add(new DataGridViewButtonColumn { Name = "colEdit", HeaderText = "", Text = "Sửa", UseColumnTextForButtonValue = true, Width = 60 });
                     dgvInventory.CellContentClick += DgvInventory_CellContentClick;
                 }
