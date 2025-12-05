@@ -50,6 +50,11 @@ namespace QLTN_LT.GUI.User
             BtnCancel_Click(sender, e);
         }
 
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         private void FormUserAdd_KeyDown(object sender, KeyEventArgs e)
         {
             try

@@ -473,7 +473,7 @@ namespace QLTN_LT.GUI.Authentication
             }
         }
 
-        private async void btnLogin_Click(object sender, EventArgs e)
+        private async void BtnLogin_Click(object sender, EventArgs e)
         {
             lblError.Text = "";
             ValidateInputs();
@@ -585,7 +585,7 @@ namespace QLTN_LT.GUI.Authentication
             shakeTimer.Start();
         }
 
-        private void btnSettings_Click(object sender, EventArgs e)
+        private void BtnSettings_Click(object sender, EventArgs e)
         {
             try
             {

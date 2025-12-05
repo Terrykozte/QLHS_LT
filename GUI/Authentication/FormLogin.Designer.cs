@@ -101,7 +101,7 @@ namespace QLTN_LT.GUI.Authentication
             this.btnSettings.TabIndex = 0;
             this.btnSettings.Text = "⚙";
             this.btnSettings.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.btnSettings.Click += new System.EventHandler(this.btnSettings_Click);
+            this.btnSettings.Click += new System.EventHandler(this.BtnSettings_Click);
             // 
             // btnMinimize
             // 
@@ -373,7 +373,7 @@ namespace QLTN_LT.GUI.Authentication
             this.btnLogin.Animated = true;
             this.btnLogin.GradientMode = System.Drawing.Drawing2D.LinearGradientMode.Horizontal;
             this.btnLogin.UseTransparentBackground = false;
-            this.btnLogin.Click += new System.EventHandler(this.btnLogin_Click);
+            this.btnLogin.Click += new System.EventHandler(this.BtnLogin_Click);
             
             // 
             // lblError

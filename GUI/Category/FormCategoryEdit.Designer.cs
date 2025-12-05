@@ -22,7 +22,6 @@ namespace QLTN_LT.GUI.Category
             this.guna2ShadowForm1 = new Guna.UI2.WinForms.Guna2ShadowForm(this.components);
             this.pnlHeader = new Guna.UI2.WinForms.Guna2Panel();
             this.lblTitle = new System.Windows.Forms.Label();
-            this.btnClose = new Guna.UI2.WinForms.Guna2ControlBox();
             this.pnlBody = new Guna.UI2.WinForms.Guna2Panel();
             this.txtCategoryName = new Guna.UI2.WinForms.Guna2TextBox();
             this.txtDescription = new Guna.UI2.WinForms.Guna2TextBox();
@@ -41,7 +40,6 @@ namespace QLTN_LT.GUI.Category
             // pnlHeader
             // 
             this.pnlHeader.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.pnlHeader.Controls.Add(this.btnClose);
             this.pnlHeader.Controls.Add(this.lblTitle);
             this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlHeader.Location = new System.Drawing.Point(0, 0);
@@ -59,16 +57,6 @@ namespace QLTN_LT.GUI.Category
             this.lblTitle.Size = new System.Drawing.Size(155, 21);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "Cập nhật danh mục";
-            // 
-            // btnClose
-            // 
-            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClose.FillColor = System.Drawing.Color.Transparent;
-            this.btnClose.IconColor = System.Drawing.Color.Gray;
-            this.btnClose.Location = new System.Drawing.Point(350, 0);
-            this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(50, 50);
-            this.btnClose.TabIndex = 1;
             // 
             // pnlBody
             // 
@@ -165,7 +153,6 @@ namespace QLTN_LT.GUI.Category
         private Guna.UI2.WinForms.Guna2ShadowForm guna2ShadowForm1;
         private Guna.UI2.WinForms.Guna2Panel pnlHeader;
         private System.Windows.Forms.Label lblTitle;
-        private Guna.UI2.WinForms.Guna2ControlBox btnClose;
         private Guna.UI2.WinForms.Guna2Panel pnlBody;
         private Guna.UI2.WinForms.Guna2TextBox txtCategoryName;
         private Guna.UI2.WinForms.Guna2TextBox txtDescription;

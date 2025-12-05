@@ -14,10 +14,10 @@ namespace QLTN_LT.GUI.Menu
         private Guna.UI2.WinForms.Guna2Button btnCancel;
         private Guna.UI2.WinForms.Guna2BorderlessForm borderlessForm;
         private Guna.UI2.WinForms.Guna2DragControl dragControl;
-        private Guna.UI2.WinForms.Guna2ControlBox controlBoxClose;
-        private Guna.UI2.WinForms.Guna2HtmlLabel lblNameError;
+                private Guna.UI2.WinForms.Guna2HtmlLabel lblNameError;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblCategoryError;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblNameLabel;
+        private Guna.UI2.WinForms.Guna2ControlBox controlBoxClose;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblCodeLabel;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblCategoryLabel;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblPriceLabel;
@@ -43,14 +43,14 @@ namespace QLTN_LT.GUI.Menu
             this.btnCancel = new Guna.UI2.WinForms.Guna2Button();
             this.lblNameError = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblCategoryError = new Guna.UI2.WinForms.Guna2HtmlLabel();
-            this.controlBoxClose = new Guna.UI2.WinForms.Guna2ControlBox();
-            this.lblNameLabel = new Guna.UI2.WinForms.Guna2HtmlLabel();
+                        this.lblNameLabel = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblCodeLabel = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblCategoryLabel = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblPriceLabel = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblDescriptionLabel = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.borderlessForm = new Guna.UI2.WinForms.Guna2BorderlessForm(this.components);
             this.dragControl = new Guna.UI2.WinForms.Guna2DragControl(this.components);
+            this.controlBoxClose = new Guna.UI2.WinForms.Guna2ControlBox();
             ((System.ComponentModel.ISupportInitialize)(this.nudPrice)).BeginInit();
             this.SuspendLayout();
             // 
@@ -266,6 +266,7 @@ namespace QLTN_LT.GUI.Menu
             this.controlBoxClose.Name = "controlBoxClose";
             this.controlBoxClose.Size = new System.Drawing.Size(25, 25);
             this.controlBoxClose.TabIndex = 16;
+            this.controlBoxClose.Click += new System.EventHandler(this.controlBoxClose_Click);
             // 
             // borderlessForm
             // 

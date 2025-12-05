@@ -11,7 +11,6 @@ namespace QLTN_LT.GUI.Order
         private Guna.UI2.WinForms.Guna2Panel pnlRight;
         private Guna.UI2.WinForms.Guna2BorderlessForm borderlessForm;
         private Guna.UI2.WinForms.Guna2DragControl dragControl;
-        private Guna.UI2.WinForms.Guna2ControlBox controlBoxClose;
         private Guna.UI2.WinForms.Guna2DataGridView dgvProducts;
         private Guna.UI2.WinForms.Guna2TextBox txtSearchProduct;
         private Guna.UI2.WinForms.Guna2DataGridView dgvOrderDetails;
@@ -43,7 +42,6 @@ namespace QLTN_LT.GUI.Order
             this.txtSearchProduct = new Guna.UI2.WinForms.Guna2TextBox();
             this.nudQuantity = new Guna.UI2.WinForms.Guna2NumericUpDown();
             this.pnlRight = new Guna.UI2.WinForms.Guna2Panel();
-            this.controlBoxClose = new Guna.UI2.WinForms.Guna2ControlBox();
             this.lblTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblCustomer = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.cmbCustomer = new Guna.UI2.WinForms.Guna2ComboBox();
@@ -168,7 +166,6 @@ namespace QLTN_LT.GUI.Order
             // pnlRight
             // 
             this.pnlRight.BackColor = System.Drawing.Color.White;
-            this.pnlRight.Controls.Add(this.controlBoxClose);
             this.pnlRight.Controls.Add(this.lblTitle);
             this.pnlRight.Controls.Add(this.lblCustomer);
             this.pnlRight.Controls.Add(this.cmbCustomer);
@@ -184,16 +181,6 @@ namespace QLTN_LT.GUI.Order
             this.pnlRight.Padding = new System.Windows.Forms.Padding(20);
             this.pnlRight.Size = new System.Drawing.Size(570, 620);
             this.pnlRight.TabIndex = 1;
-            // 
-            // controlBoxClose
-            // 
-            this.controlBoxClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.controlBoxClose.FillColor = System.Drawing.Color.White;
-            this.controlBoxClose.IconColor = System.Drawing.Color.Black;
-            this.controlBoxClose.Location = new System.Drawing.Point(525, 12);
-            this.controlBoxClose.Name = "controlBoxClose";
-            this.controlBoxClose.Size = new System.Drawing.Size(33, 29);
-            this.controlBoxClose.TabIndex = 8;
             // 
             // lblTitle
             // 

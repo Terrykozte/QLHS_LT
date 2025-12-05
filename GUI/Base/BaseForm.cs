@@ -99,8 +99,10 @@ namespace QLTN_LT.GUI.Base
 
                     try
                     {
-                        if (ShadowForm != null) { ShadowForm.Dispose(); ShadowForm = null; }
-                        if (BorderlessForm != null) { BorderlessForm.Dispose(); BorderlessForm = null; }
+                        ShadowForm?.Dispose();
+                        ShadowForm = null;
+                        BorderlessForm?.Dispose();
+                        BorderlessForm = null;
                     }
                     catch { }
                 }
@@ -207,32 +209,16 @@ namespace QLTN_LT.GUI.Base
             try
             {
                 // Stop and dispose timers
-                if (_fadeTimer != null)
-                    {
-                    _fadeTimer.Stop();
-                    _fadeTimer.Dispose();
-                }
+                _fadeTimer?.Stop();
+                _fadeTimer?.Dispose();
+                _fadeTimer = null;
 
                 // Dispose Guna components
-                if (BorderlessForm != null)
-                {
-                    BorderlessForm.Dispose();
-                    BorderlessForm = null;
-                }
+                BorderlessForm?.Dispose();
+                BorderlessForm = null;
 
-                if (ShadowForm != null)
-                {
-                    ShadowForm.Dispose();
-                    ShadowForm = null;
-                }
-
-                // Dispose fade timer
-                if (_fadeTimer != null)
-                {
-                    _fadeTimer.Stop();
-                    _fadeTimer.Dispose();
-                    _fadeTimer = null;
-                }
+                ShadowForm?.Dispose();
+                ShadowForm = null;
             }
             catch (Exception ex)
             {

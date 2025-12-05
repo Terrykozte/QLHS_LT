@@ -18,7 +18,6 @@ namespace QLTN_LT.DAL
             using (var conn = DatabaseHelper.CreateAndOpenConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                conn.Open();
                 using (var rd = cmd.ExecuteReader())
                 {
                     while (rd.Read())
@@ -49,7 +48,6 @@ namespace QLTN_LT.DAL
             using (var conn = DatabaseHelper.CreateAndOpenConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
-                conn.Open();
                 using (var rd = cmd.ExecuteReader())
                 {
                     while (rd.Read())
@@ -87,7 +85,6 @@ namespace QLTN_LT.DAL
             using (var cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddWithValue("@ItemID", itemId);
-                conn.Open();
                 using (var rd = cmd.ExecuteReader())
                 {
                     if (rd.Read())
@@ -128,7 +125,6 @@ namespace QLTN_LT.DAL
                 cmd.Parameters.AddWithValue("@UnitName", (object)item.UnitName ?? System.DBNull.Value);
                 cmd.Parameters.AddWithValue("@Description", (object)item.Description ?? System.DBNull.Value);
                 cmd.Parameters.AddWithValue("@IsAvailable", item.IsAvailable);
-                conn.Open();
                 cmd.ExecuteNonQuery();
             }
         }
@@ -157,7 +153,6 @@ namespace QLTN_LT.DAL
                 cmd.Parameters.AddWithValue("@UnitName", (object)item.UnitName ?? System.DBNull.Value);
                 cmd.Parameters.AddWithValue("@Description", (object)item.Description ?? System.DBNull.Value);
                 cmd.Parameters.AddWithValue("@IsAvailable", item.IsAvailable);
-                conn.Open();
                 cmd.ExecuteNonQuery();
             }
         }
@@ -170,7 +165,6 @@ namespace QLTN_LT.DAL
             using (var cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddWithValue("@ItemID", itemId);
-                conn.Open();
                 cmd.ExecuteNonQuery();
             }
         }

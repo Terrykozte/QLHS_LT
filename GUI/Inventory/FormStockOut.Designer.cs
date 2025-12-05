@@ -11,12 +11,12 @@ namespace QLTN_LT.GUI.Inventory
         private Guna.UI2.WinForms.Guna2Button btnCancel;
         private Guna.UI2.WinForms.Guna2BorderlessForm borderlessForm;
         private Guna.UI2.WinForms.Guna2DragControl dragControl;
-        private Guna.UI2.WinForms.Guna2ControlBox controlBoxClose;
-        private Guna.UI2.WinForms.Guna2HtmlLabel lblProductError;
+                private Guna.UI2.WinForms.Guna2HtmlLabel lblProductError;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblQuantityError;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblProductLabel;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblQuantityLabel;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblNotesLabel;
+        private Guna.UI2.WinForms.Guna2ControlBox controlBoxClose;
 
         protected override void Dispose(bool disposing)
         {
@@ -41,7 +41,7 @@ namespace QLTN_LT.GUI.Inventory
             this.borderlessForm = new Guna.UI2.WinForms.Guna2BorderlessForm(this.components);
             this.dragControl = new Guna.UI2.WinForms.Guna2DragControl(this.components);
             this.controlBoxClose = new Guna.UI2.WinForms.Guna2ControlBox();
-            ((System.ComponentModel.ISupportInitialize)(this.nudQuantity)).BeginInit();
+                        ((System.ComponentModel.ISupportInitialize)(this.nudQuantity)).BeginInit();
             this.SuspendLayout();
             // 
             // lblTitle
@@ -201,6 +201,7 @@ namespace QLTN_LT.GUI.Inventory
             this.controlBoxClose.Name = "controlBoxClose";
             this.controlBoxClose.Size = new System.Drawing.Size(25, 25);
             this.controlBoxClose.TabIndex = 11;
+            this.controlBoxClose.Click += new System.EventHandler(this.controlBoxClose_Click);
             // 
             // FormStockOut
             // 

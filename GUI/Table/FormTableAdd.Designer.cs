@@ -9,9 +9,9 @@ namespace QLTN_LT.GUI.Table
         private Guna.UI2.WinForms.Guna2Button btnCancel;
         private Guna.UI2.WinForms.Guna2BorderlessForm borderlessForm;
         private Guna.UI2.WinForms.Guna2DragControl dragControl;
-        private Guna.UI2.WinForms.Guna2ControlBox controlBoxClose;
-        private Guna.UI2.WinForms.Guna2HtmlLabel lblNameLabel;
+                private Guna.UI2.WinForms.Guna2HtmlLabel lblNameLabel;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblNameError;
+        private Guna.UI2.WinForms.Guna2ControlBox controlBoxClose;
 
         protected override void Dispose(bool disposing)
         {
@@ -31,7 +31,7 @@ namespace QLTN_LT.GUI.Table
             this.borderlessForm = new Guna.UI2.WinForms.Guna2BorderlessForm(this.components);
             this.dragControl = new Guna.UI2.WinForms.Guna2DragControl(this.components);
             this.controlBoxClose = new Guna.UI2.WinForms.Guna2ControlBox();
-            this.SuspendLayout();
+                        this.SuspendLayout();
             // 
             // lblTitle
             // 
@@ -127,6 +127,7 @@ namespace QLTN_LT.GUI.Table
             this.controlBoxClose.Name = "controlBoxClose";
             this.controlBoxClose.Size = new System.Drawing.Size(25, 25);
             this.controlBoxClose.TabIndex = 6;
+            this.controlBoxClose.Click += new System.EventHandler(this.controlBoxClose_Click);
             // 
             // FormTableAdd
             // 

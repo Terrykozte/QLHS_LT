@@ -55,5 +55,10 @@ namespace QLTN_LT.GUI.Table
         {
             lblNameError.Visible = false;
         }
+
+        private void controlBoxClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }

@@ -81,6 +81,11 @@ namespace QLTN_LT.GUI.Seafood
             BtnCancel_Click(sender, e);
         }
 
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         protected override bool ValidateInputs()
         {
             if (string.IsNullOrWhiteSpace(txtSeafoodName.Text))

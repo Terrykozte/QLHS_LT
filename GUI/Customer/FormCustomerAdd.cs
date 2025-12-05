@@ -38,6 +38,11 @@ namespace QLTN_LT.GUI.Customer
             BtnCancel_Click(sender, e);
         }
 
+        private void controlBoxClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         protected override bool ValidateInputs()
         {
             bool valid = true;

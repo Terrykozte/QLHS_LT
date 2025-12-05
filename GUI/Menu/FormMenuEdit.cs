@@ -134,6 +134,11 @@ namespace QLTN_LT.GUI.Menu
             this.Close();
         }
 
+        private void controlBoxClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         private void txtName_TextChanged(object sender, EventArgs e)
         {
             lblNameError.Visible = false;

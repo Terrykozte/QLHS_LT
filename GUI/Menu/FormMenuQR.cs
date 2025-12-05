@@ -23,7 +23,7 @@ namespace QLTN_LT.GUI.Menu
         private readonly MenuBLL _menuBLL = new MenuBLL();
         private readonly CartService _cart = new CartService();
         private bool _cardView = true;
-        private string _selectedCategory = null;
+        private string _selectedCategory;
         private FlowLayoutPanel _catTabs;
         private Guna2Button _btnToggleView;
         private List<MenuItemDTO> _allItems = new List<MenuItemDTO>();
@@ -402,24 +402,42 @@ namespace QLTN_LT.GUI.Menu
 
         private void SetupGridStyles()
         {
+            // Setup Menu Grid
             dgvMenu.AutoGenerateColumns = false;
             dgvMenu.Columns.Clear();
-            dgvMenu.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "ItemID", HeaderText = "ID", Width = 60 });
-            dgvMenu.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "ItemName", HeaderText = "Món", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvMenu.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "CategoryName", HeaderText = "Danh mục", Width = 150 });
-            dgvMenu.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "UnitPrice", HeaderText = "Giá", Width = 120, DefaultCellStyle = new DataGridViewCellStyle{ Format = "N0" }});
+            dgvMenu.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "ItemID", HeaderText = "ID", Width = 50 });
+            dgvMenu.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "ItemName", HeaderText = "Tên Món", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            dgvMenu.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "CategoryName", HeaderText = "Danh mục", Width = 120 });
+            dgvMenu.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "UnitPrice", HeaderText = "Giá", Width = 100, DefaultCellStyle = new DataGridViewCellStyle{ Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight }});
             dgvMenu.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvMenu.MultiSelect = false;
+            dgvMenu.AllowUserToAddRows = false;
+            dgvMenu.AllowUserToDeleteRows = false;
+            dgvMenu.ReadOnly = true;
+            dgvMenu.RowHeadersVisible = false;
 
+            // Setup Cart Grid
             dgvCart.AutoGenerateColumns = false;
             dgvCart.Columns.Clear();
-            dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "ProductName", HeaderText = "Món", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "Quantity", HeaderText = "SL", Width = 60 });
-            dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "UnitPrice", HeaderText = "Đơn giá", Width = 120, DefaultCellStyle = new DataGridViewCellStyle{ Format = "N0" }});
-            dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "Total", HeaderText = "Thành tiền", Width = 140, DefaultCellStyle = new DataGridViewCellStyle{ Format = "N0" }});
+            dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "ProductName", HeaderText = "Tên Sản Phẩm", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "Quantity", HeaderText = "SL", Width = 50, DefaultCellStyle = new DataGridViewCellStyle{ Alignment = DataGridViewContentAlignment.MiddleCenter }});
+            dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "UnitPrice", HeaderText = "Đơn Giá", Width = 100, DefaultCellStyle = new DataGridViewCellStyle{ Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight }});
+            dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "Total", HeaderText = "Thành Tiền", Width = 120, DefaultCellStyle = new DataGridViewCellStyle{ Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight }});
 
-            var colDelete = new DataGridViewButtonColumn{ Name = "colDelete", HeaderText = "", Text = "✕", UseColumnTextForButtonValue = true, Width = 40 };
+            var colDelete = new DataGridViewButtonColumn
+            {
+                Name = "colDelete",
+                HeaderText = "",
+                Text = "✕",
+                UseColumnTextForButtonValue = true,
+                Width = 40,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
+            };
             dgvCart.Columns.Add(colDelete);
+            dgvCart.AllowUserToAddRows = false;
+            dgvCart.AllowUserToDeleteRows = false;
+            dgvCart.ReadOnly = false;
+            dgvCart.RowHeadersVisible = false;
             dgvCart.CellContentClick += DgvCart_CellContentClick;
         }
 
@@ -538,46 +556,112 @@ namespace QLTN_LT.GUI.Menu
 
         private void btnAddToCart_Click(object sender, EventArgs e)
         {
-            if (dgvMenu.SelectedRows.Count == 0) { UXInteractionHelper.ShowWarning("Chọn món", "Vui lòng chọn một món"); return; }
-            var row = dgvMenu.SelectedRows[0];
-            var item = row?.DataBoundItem as MenuItemDTO;
-            if (item == null) return;
-            var qty = (int)nudQty.Value;
-            if (qty <= 0) qty = 1;
-            _cart.AddItem(item, qty);
-            AnimationHelper.Pulse(btnAddToCart, 200);
-            nudQty.Value = 1;
+            try
+            {
+                MenuItemDTO item = null;
+
+                // Try to get from grid if visible
+                if (!_cardView && dgvMenu.SelectedRows.Count > 0)
+                {
+                    var row = dgvMenu.SelectedRows[0];
+                    item = row?.DataBoundItem as MenuItemDTO;
+                }
+
+                if (item == null)
+                {
+                    UXInteractionHelper.ShowWarning("Chọn món", "Vui lòng chọn một món từ danh sách hoặc nhấn nút trên thẻ");
+                    return;
+                }
+
+                var qty = (int)nudQty.Value;
+                if (qty <= 0) qty = 1;
+
+                _cart.AddItem(item, qty);
+                AnimationHelper.Pulse(btnAddToCart, 200);
+
+                // Show success toast with item details
+                UXInteractionHelper.ShowToast(this,
+                    $"✓ Đã thêm {qty}x {item.ItemName} ({qty * item.UnitPrice:N0} VNĐ)",
+                    2000,
+                    Color.FromArgb(34, 197, 94), Color.White);
+
+                nudQty.Value = 1;
+            }
+            catch (Exception ex)
+            {
+                UXInteractionHelper.ShowError("Lỗi", $"Không thể thêm vào giỏ: {ex.Message}");
+            }
         }
 
         private bool _notifiedCartChange = false;
 
         private void RefreshCart()
         {
-            var items = _cart.GetItems();
-            dgvCart.DataSource = null;
-            dgvCart.DataSource = items;
-            lblTotal.Text = $"Tổng: {_cart.GetTotalAmount():N0} VNĐ";
-
-            // Notify user to re-generate QR when cart changes
-            if (_lastQrPayload != null && !_notifiedCartChange)
+            try
             {
-                _lastQrPayload = null; // invalidate previous payload
-                _notifiedCartChange = true;
-                UXInteractionHelper.ShowToast(this, "Giỏ hàng thay đổi - vui lòng tạo lại mã QR.", 2000,
-                    Color.FromArgb(245, 158, 11), Color.White);
+                var items = _cart.GetItems();
+                dgvCart.DataSource = null;
+                dgvCart.DataSource = items;
+
+                // Calculate and display total with breakdown
+                decimal totalAmount = _cart.GetTotalAmount();
+                int totalItems = _cart.GetTotalQuantity();
+                int itemTypes = items.Count;
+
+                // Format total with breakdown
+                string totalDisplay = $"Tổng: {totalAmount:N0} VNĐ";
+                if (itemTypes > 0)
+                {
+                    totalDisplay += $" ({itemTypes} loại, {totalItems} món)";
+                }
+
+                lblTotal.Text = totalDisplay;
+                lblTotal.ForeColor = totalAmount > 0 ? Color.FromArgb(34, 197, 94) : Color.FromArgb(107, 114, 128);
+
+                // Notify user to re-generate QR when cart changes
+                if (_lastQrPayload != null && !_notifiedCartChange)
+                {
+                    _lastQrPayload = null; // invalidate previous payload
+                    _notifiedCartChange = true;
+                    UXInteractionHelper.ShowToast(this,
+                        $"⚠ Giỏ hàng thay đổi ({totalItems} món, {totalAmount:N0} VNĐ) - Vui lòng tạo lại mã QR",
+                        2500,
+                        Color.FromArgb(245, 158, 11), Color.White);
+                }
+            }
+            catch (Exception ex)
+            {
+                UXInteractionHelper.ShowError("Lỗi", $"Lỗi cập nhật giỏ hàng: {ex.Message}");
             }
         }
 
         private void DgvCart_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
-            if (dgvCart.Columns[e.ColumnIndex].Name == "colDelete")
+            try
             {
-                var item = dgvCart.Rows[e.RowIndex].DataBoundItem as CartItem;
-                if (item != null)
+                if (e.RowIndex < 0) return;
+                if (dgvCart.Columns[e.ColumnIndex].Name == "colDelete")
                 {
-                    _cart.RemoveItem(item.ProductId);
+                    var item = dgvCart.Rows[e.RowIndex].DataBoundItem as CartItem;
+                    if (item != null)
+                    {
+                        var itemName = item.ProductName;
+                        var itemQty = item.Quantity;
+                        var itemTotal = item.Total;
+
+                        _cart.RemoveItem(item.ProductId);
+
+                        // Show removal toast
+                        UXInteractionHelper.ShowToast(this,
+                            $"✓ Đã xóa {itemQty}x {itemName} ({itemTotal:N0} VNĐ)",
+                            1500,
+                            Color.FromArgb(239, 68, 68), Color.White);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                UXInteractionHelper.ShowError("Lỗi", $"Không thể xóa sản phẩm: {ex.Message}");
             }
         }
 
@@ -593,8 +677,17 @@ namespace QLTN_LT.GUI.Menu
             {
                 if (_isGenerating) return;
 
-                var total = _cart.GetTotalAmount();
-                if (total <= 0) { UXInteractionHelper.ShowWarning("Giỏ hàng", "Giỏ hàng trống"); return; }
+                var items = _cart.GetItems();
+                var totalAmount = _cart.GetTotalAmount();
+                var totalQty = _cart.GetTotalQuantity();
+
+                // Validate cart
+                if (items.Count == 0 || totalAmount <= 0)
+                {
+                    UXInteractionHelper.ShowWarning("Giỏ hàng trống",
+                        "Vui lòng thêm ít nhất một sản phẩm vào giỏ hàng trước khi tạo QR");
+                    return;
+                }
 
                 _isGenerating = true;
                 if (sender is Guna2Button btn)
@@ -607,7 +700,7 @@ namespace QLTN_LT.GUI.Menu
                 TryLoadVietQrConfig(ref bankCode, ref acc, ref accName);
 
                 var desc = $"Thanh toan MENU {DateTime.Now:HHmmss}";
-                var vietQR = new VietQRService(bankCode, acc, accName, total, desc);
+                var vietQR = new VietQRService(bankCode, acc, accName, totalAmount, desc);
                 var data = vietQR.GenerateQRCode();
                 _lastQrPayload = data;
 
@@ -622,16 +715,26 @@ namespace QLTN_LT.GUI.Menu
                         AnimationHelper.ScaleIn(picQR, 250);
                     }
                 }
-                txtQRInfo.Text = vietQR.GeneratePaymentInfo();
+
+                // Build detailed payment info
+                var paymentInfo = vietQR.GeneratePaymentInfo();
+                var cartDetails = BuildCartDetails(items);
+                txtQRInfo.Text = $"{paymentInfo}\n\n--- CHI TIẾT GIỎ HÀNG ---\n{cartDetails}";
                 AnimationHelper.FadeIn(txtQRInfo, 200);
 
-                UXInteractionHelper.ShowToast(this, "Tạo QR thành công! Nhấp chuột phải để lưu/copy.", 2500,
+                // Show success with details
+                UXInteractionHelper.ShowToast(this,
+                    $"✓ QR tạo thành công!\n{items.Count} loại, {totalQty} món, {totalAmount:N0} VNĐ\n(Nhấp chuột phải để lưu/copy)",
+                    3000,
                     Color.FromArgb(34, 197, 94), Color.White);
+
+                _notifiedCartChange = false; // Reset notification flag
             }
             catch (Exception ex)
             {
                 AnimationHelper.Shake(btnGenerateQR, 300);
-                UXInteractionHelper.ShowError("Lỗi tạo QR", ex.Message);
+                UXInteractionHelper.ShowError("Lỗi tạo QR",
+                    $"{ex.Message}\n\nVui lòng kiểm tra:\n- Giỏ hàng không trống\n- Kết nối mạng\n- Cấu hình VietQR");
             }
             finally
             {
@@ -640,6 +743,26 @@ namespace QLTN_LT.GUI.Menu
                 {
                     UXInteractionHelper.HideLoadingState(btn, "Tạo mã QR");
                 }
+            }
+        }
+
+        private string BuildCartDetails(List<CartItem> items)
+        {
+            try
+            {
+                var sb = new System.Text.StringBuilder();
+                int index = 1;
+                foreach (var item in items)
+                {
+                    sb.AppendLine($"{index}. {item.ProductName}");
+                    sb.AppendLine($"   SL: {item.Quantity} x {item.UnitPrice:N0} = {item.Total:N0} VNĐ");
+                    index++;
+                }
+                return sb.ToString();
+            }
+            catch
+            {
+                return "Không thể hiển thị chi tiết giỏ hàng";
             }
         }
 
@@ -879,7 +1002,10 @@ namespace QLTN_LT.GUI.Menu
                     };
                     pnlLeft.Controls.Add(_catTabs);
                 }
-                _catTabs.Controls.Clear();
+                else
+                {
+                    _catTabs.Controls.Clear();
+                }
 
                 void addTab(string text, string cat)
                 {

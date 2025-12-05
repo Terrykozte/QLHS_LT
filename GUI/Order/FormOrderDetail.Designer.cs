@@ -13,7 +13,6 @@ namespace QLTN_LT.GUI.Order
         private Guna.UI2.WinForms.Guna2Button btnClose;
         private Guna.UI2.WinForms.Guna2BorderlessForm borderlessForm;
         private Guna.UI2.WinForms.Guna2DragControl dragControl;
-        private Guna.UI2.WinForms.Guna2ControlBox controlBoxClose;
         private Guna.UI2.WinForms.Guna2Panel pnlInfo;
 
         protected override void Dispose(bool disposing)
@@ -39,7 +38,6 @@ namespace QLTN_LT.GUI.Order
             this.pnlInfo = new Guna.UI2.WinForms.Guna2Panel();
             this.borderlessForm = new Guna.UI2.WinForms.Guna2BorderlessForm(this.components);
             this.dragControl = new Guna.UI2.WinForms.Guna2DragControl(this.components);
-            this.controlBoxClose = new Guna.UI2.WinForms.Guna2ControlBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvOrderDetails)).BeginInit();
             this.pnlInfo.SuspendLayout();
             this.SuspendLayout();
@@ -212,23 +210,12 @@ namespace QLTN_LT.GUI.Order
             this.dragControl.TargetControl = this;
             this.dragControl.UseTransparentDrag = true;
             // 
-            // controlBoxClose
-            // 
-            this.controlBoxClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.controlBoxClose.FillColor = System.Drawing.Color.White;
-            this.controlBoxClose.IconColor = System.Drawing.Color.Black;
-            this.controlBoxClose.Location = new System.Drawing.Point(763, 12);
-            this.controlBoxClose.Name = "controlBoxClose";
-            this.controlBoxClose.Size = new System.Drawing.Size(25, 25);
-            this.controlBoxClose.TabIndex = 13;
-            // 
             // FormOrderDetail
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(800, 550);
-            this.Controls.Add(this.controlBoxClose);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.lblTotalAmount);
             this.Controls.Add(this.dgvOrderDetails);

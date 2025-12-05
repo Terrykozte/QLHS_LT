@@ -85,6 +85,11 @@ namespace QLTN_LT.GUI.Seafood
             BtnCancel_Click(sender, e);
         }
 
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         private void btnAddCategory_Click(object sender, EventArgs e)
         {
             try

@@ -17,7 +17,7 @@ namespace QLTN_LT.GUI.Menu
         private Timer _searchDebounceTimer;
 
         // Pagination
-        private int _pageSize = 15;
+        // private int _pageSize = 15; // Reserved for future pagination feature
         private int _currentPage = 1;
 
         // Context menu
@@ -41,7 +41,11 @@ namespace QLTN_LT.GUI.Menu
 
             // Debounce search
             _searchDebounceTimer = new Timer { Interval = 350 };
-            _searchDebounceTimer.Tick += (s, e) => { _searchDebounceTimer.Stop(); ApplyFilter(); };
+            _searchDebounceTimer.Tick += (s, e) =>
+            {
+                _searchDebounceTimer.Stop();
+                ApplyFilter();
+            };
 
             // Events
             this.Load += FormMenuList_Load;

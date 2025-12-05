@@ -23,7 +23,7 @@ namespace QLTN_LT.GUI.User
             this.pnlHeader = new Guna.UI2.WinForms.Guna2Panel();
             this.lblTitle = new System.Windows.Forms.Label();
             this.btnClose = new Guna.UI2.WinForms.Guna2ControlBox();
-            this.pnlBody = new Guna.UI2.WinForms.Guna2Panel();
+                        this.pnlBody = new Guna.UI2.WinForms.Guna2Panel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.txtUsername = new Guna.UI2.WinForms.Guna2TextBox();
             this.txtPassword = new Guna.UI2.WinForms.Guna2TextBox();
@@ -79,6 +79,7 @@ namespace QLTN_LT.GUI.User
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(50, 50);
             this.btnClose.TabIndex = 1;
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
             // 
             // pnlBody
             // 
@@ -302,8 +303,7 @@ namespace QLTN_LT.GUI.User
         private Guna.UI2.WinForms.Guna2ShadowForm guna2ShadowForm1;
         private Guna.UI2.WinForms.Guna2Panel pnlHeader;
         private System.Windows.Forms.Label lblTitle;
-        private Guna.UI2.WinForms.Guna2ControlBox btnClose;
-        private Guna.UI2.WinForms.Guna2Panel pnlBody;
+                private Guna.UI2.WinForms.Guna2Panel pnlBody;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private Guna.UI2.WinForms.Guna2TextBox txtUsername;
         private Guna.UI2.WinForms.Guna2TextBox txtPassword;
@@ -317,5 +317,6 @@ namespace QLTN_LT.GUI.User
         private Guna.UI2.WinForms.Guna2Button btnSave;
         private Guna.UI2.WinForms.Guna2Button btnCancel;
         private Guna.UI2.WinForms.Guna2DragControl guna2DragControl1;
+        private Guna.UI2.WinForms.Guna2ControlBox btnClose;
     }
 }

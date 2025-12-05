@@ -14,11 +14,11 @@ namespace QLTN_LT.GUI.Supplier
         private Guna.UI2.WinForms.Guna2Button btnCancel;
         private Guna.UI2.WinForms.Guna2BorderlessForm borderlessForm;
         private Guna.UI2.WinForms.Guna2DragControl dragControl;
-        private Guna.UI2.WinForms.Guna2ControlBox controlBoxClose;
-        private Guna.UI2.WinForms.Guna2HtmlLabel lblNameError;
+                private Guna.UI2.WinForms.Guna2HtmlLabel lblNameError;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblPhoneError;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblNameLabel;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblContactLabel;
+        private Guna.UI2.WinForms.Guna2ControlBox controlBoxClose;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblPhoneLabel;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblEmailLabel;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblAddressLabel;
@@ -51,7 +51,7 @@ namespace QLTN_LT.GUI.Supplier
             this.borderlessForm = new Guna.UI2.WinForms.Guna2BorderlessForm(this.components);
             this.dragControl = new Guna.UI2.WinForms.Guna2DragControl(this.components);
             this.controlBoxClose = new Guna.UI2.WinForms.Guna2ControlBox();
-            this.SuspendLayout();
+                        this.SuspendLayout();
             // 
             // lblTitle
             // 
@@ -277,6 +277,7 @@ namespace QLTN_LT.GUI.Supplier
             this.controlBoxClose.Name = "controlBoxClose";
             this.controlBoxClose.Size = new System.Drawing.Size(25, 25);
             this.controlBoxClose.TabIndex = 16;
+            this.controlBoxClose.Click += new System.EventHandler(this.controlBoxClose_Click);
             // 
             // FormSupplierEdit
             // 

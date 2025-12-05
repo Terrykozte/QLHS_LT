@@ -169,6 +169,11 @@ namespace QLTN_LT.GUI.User
             BtnCancel_Click(sender, e);
         }
 
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         private bool IsValidEmail(string email)
         {
             try

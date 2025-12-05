@@ -9,8 +9,8 @@ namespace QLTN_LT.GUI.Inventory
 {
     public partial class FormStockIn : BaseForm
     {
-        private InventoryBLL _inventoryBll = new InventoryBLL();
-        private SeafoodBLL _seafoodBll = new SeafoodBLL();
+        private readonly InventoryBLL _inventoryBll = new InventoryBLL();
+        private readonly SeafoodBLL _seafoodBll = new SeafoodBLL();
 
         public FormStockIn()
         {
@@ -101,6 +101,11 @@ namespace QLTN_LT.GUI.Inventory
             this.Close();
         }
 
+        private void controlBoxClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         private void cmbProduct_SelectedIndexChanged(object sender, EventArgs e)
         {
             lblProductError.Visible = false;
@@ -113,7 +118,7 @@ namespace QLTN_LT.GUI.Inventory
 
         protected override void CleanupResources()
         {
-            try { _inventoryBll = null; _seafoodBll = null; }
+            try { }
             catch { }
             finally { base.CleanupResources(); }
         }
