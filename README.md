@@ -1,3 +1,7 @@
+## Update 2025-12-07
+- Repository history da duoc clean va cac script tam da duoc go bo.
+- Commit nay chi thay doi README.md de thong bao tinh trang moi nhat.
+
 # MainSystem - Quản Lý Cửa Hàng Hải Sản Lẩu Tươi
 
 ## 🎯 Mục Đích
