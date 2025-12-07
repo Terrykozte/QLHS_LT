@@ -12,9 +12,14 @@ namespace QLTN_LT.GUI.Table
 {
     public partial class FormTableList : BaseForm
     {
-        private TableBLL _bll = new TableBLL();
+        private readonly TableBLL _bll = new TableBLL();
         private List<TableDTO> _allData = new List<TableDTO>();
         private Timer _searchDebounceTimer;
+
+        // Pagination
+        private int _currentPage = 1;
+        private int _pageSize = 15;
+        private int _totalRecords = 0;
 
         public FormTableList()
         {
@@ -23,29 +28,20 @@ namespace QLTN_LT.GUI.Table
             // UX & Styling
             this.KeyPreview = true;
             this.KeyDown += FormTableList_KeyDown;
-            try
-            {
-                UIHelper.ApplyFormStyle(this);
-                if (dgvTable != null) UIHelper.ApplyGridStyle(dgvTable);
-                if (btnAdd != null) UIHelper.ApplyGunaButtonStyle(btnAdd, isPrimary: true);
-                if (btnGenerateQR != null) UIHelper.ApplyGunaButtonStyle(btnGenerateQR, isPrimary: false);
-            }
-            catch { }
 
             // Debounce search
             _searchDebounceTimer = new Timer { Interval = 350 };
-            _searchDebounceTimer.Tick += (s, e) => { _searchDebounceTimer.Stop(); LoadData(); };
+            _searchDebounceTimer.Tick += (s, e) => { _searchDebounceTimer.Stop(); _currentPage = 1; ApplyFiltersAndPagination(); };
 
             // Events
             this.Load += FormTableList_Load;
-            if (txtSearch != null)
-            {
-                txtSearch.TextChanged += (s, e) => { _searchDebounceTimer.Stop(); _searchDebounceTimer.Start(); };
-                txtSearch.KeyDown += TxtSearch_KeyDown;
-            }
-            if (btnAdd != null) btnAdd.Click += BtnAdd_Click;
-            if (btnGenerateQR != null) btnGenerateQR.Click += btnGenerateQr_Click;
-            if (dgvTable != null) dgvTable.CellDoubleClick += DgvTable_CellDoubleClick;
+            txtSearch.TextChanged += (s, e) => { _searchDebounceTimer.Stop(); _searchDebounceTimer.Start(); };
+            txtSearch.KeyDown += TxtSearch_KeyDown;
+            btnAdd.Click += BtnAdd_Click;
+            btnGenerateQR.Click += btnGenerateQr_Click;
+            dgvTable.CellDoubleClick += DgvTable_CellDoubleClick;
+            btnPrevious.Click += btnPrevious_Click;
+            btnNext.Click += btnNext_Click;
         }
 
         private void FormTableList_Load(object sender, EventArgs e)
@@ -63,42 +59,12 @@ namespace QLTN_LT.GUI.Table
 
         private void ConfigureGrid()
         {
-            try
-            {
-                if (dgvTable == null) return;
+            dgvTable.AutoGenerateColumns = false;
+            dgvTable.Columns.Clear();
 
-                dgvTable.AutoGenerateColumns = false;
-                dgvTable.Columns.Clear();
-
-                dgvTable.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "TableID", HeaderText = "ID", Width = 60 });
-                dgvTable.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "TableName", HeaderText = "TÊN BÀN", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-                dgvTable.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Status", HeaderText = "TRẠNG THÁI", Width = 150 });
-            }
-            catch (Exception ex)
-            {
-                ExceptionHandler.Handle(ex, "ConfigureGrid");
-            }
-        }
-
-        private void DgvTable_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            try
-            {
-                if (e.RowIndex < 0 || dgvTable?.Rows.Count <= e.RowIndex) return;
-                if (!(dgvTable.Rows[e.RowIndex].DataBoundItem is TableDTO table)) return;
-
-                using (var form = new FormTableEdit(table.TableID))
-                {
-                    if (form.ShowDialog(this) == DialogResult.OK)
-                    {
-                        LoadData();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionHandler.Handle(ex, "DgvTable_CellDoubleClick");
-            }
+            dgvTable.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "TableID", HeaderText = "ID", Width = 60 });
+            dgvTable.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "TableName", HeaderText = "TÊN BÀN", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+            dgvTable.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Status", HeaderText = "TRẠNG THÁI", Width = 150 });
         }
 
         private void LoadData()
@@ -106,15 +72,9 @@ namespace QLTN_LT.GUI.Table
             try
             {
                 Wait(true);
-                var keyword = txtSearch?.Text?.Trim().ToLower() ?? string.Empty;
                 _allData = _bll.GetAll() ?? new List<TableDTO>();
-
-                var data = string.IsNullOrEmpty(keyword)
-                    ? _allData
-                    : _allData.Where(t => (t.TableName?.ToLower().Contains(keyword) ?? false) || (t.Status?.ToLower().Contains(keyword) ?? false)).ToList();
-
-                if (dgvTable != null) dgvTable.DataSource = data;
-                if (lblPageInfo != null) lblPageInfo.Text = $"Tổng: {data.Count} bàn";
+                _currentPage = 1;
+                ApplyFiltersAndPagination();
             }
             catch (Exception ex)
             {
@@ -123,90 +83,132 @@ namespace QLTN_LT.GUI.Table
             finally { Wait(false); }
         }
 
+        private void ApplyFiltersAndPagination()
+        {
+            try
+            {
+                var keyword = txtSearch?.Text?.Trim().ToLower() ?? string.Empty;
+                var filteredData = string.IsNullOrEmpty(keyword)
+                    ? _allData
+                    : _allData.Where(t => (t.TableName?.ToLower().Contains(keyword) ?? false) || (t.Status?.ToLower().Contains(keyword) ?? false)).ToList();
+
+                _totalRecords = filteredData.Count;
+
+                var pagedData = filteredData
+                    .Skip((_currentPage - 1) * _pageSize)
+                    .Take(_pageSize)
+                    .ToList();
+
+                dgvTable.DataSource = pagedData;
+                UpdatePagination();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error applying filters: {ex.Message}");
+            }
+        }
+
+        private void UpdatePagination()
+        {
+            btnPrevious.Enabled = _currentPage > 1;
+            btnNext.Enabled = _currentPage * _pageSize < _totalRecords;
+
+            if (_totalRecords == 0)
+            {
+                lblPageInfo.Text = "Không có dữ liệu";
+            }
+            else
+            {
+                int from = (_currentPage - 1) * _pageSize + 1;
+                int to = Math.Min(_currentPage * _pageSize, _totalRecords);
+                lblPageInfo.Text = $"Hiển thị {from} - {to} / {_totalRecords} bàn";
+            }
+        }
+
+        private void DgvTable_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex >= 0 && dgvTable?.Rows[e.RowIndex].DataBoundItem is TableDTO table)
+                {
+                    using (var form = new FormTableEdit(table.TableID))
+                    {
+                        if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
+                        {
+                            LoadData();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { ExceptionHandler.Handle(ex, "DgvTable_CellDoubleClick"); }
+        }
+
         private void BtnAdd_Click(object sender, EventArgs e)
         {
             try
             {
                 using (var form = new FormTableAdd())
                 {
-                    if (form.ShowDialog(this) == DialogResult.OK)
+                    if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
                     {
                         LoadData();
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                ExceptionHandler.Handle(ex, "BtnAdd_Click");
-            }
+            catch (Exception ex) { ExceptionHandler.Handle(ex, "BtnAdd_Click"); }
         }
 
         private void btnGenerateQr_Click(object sender, EventArgs e)
         {
             try
             {
-                if (dgvTable?.CurrentRow == null)
+                if (dgvTable?.CurrentRow?.DataBoundItem is TableDTO selected)
+                {
+                    using (var f = new FormGenerateQR(selected.TableName))
+                    {
+                        UIHelper.ShowFormDialog(this, f);
+                    }
+                }
+                else
                 {
                     MessageBox.Show("Vui lòng chọn một bàn để tạo mã QR.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                var selected = dgvTable.CurrentRow.DataBoundItem as TableDTO;
-                if (selected == null) return;
-                using (var f = new FormGenerateQR(selected.TableName))
-                {
-                    f.ShowDialog(this);
                 }
             }
-            catch (Exception ex)
-            {
-                ExceptionHandler.Handle(ex, "btnGenerateQr_Click");
-            }
-        }
-
-        // Designer-bound alias (case-sensitive in designer)
-        private void BtnGenerateQr_Click(object sender, EventArgs e)
-        {
-            btnGenerateQr_Click(sender, e);
+            catch (Exception ex) { ExceptionHandler.Handle(ex, "btnGenerateQr_Click"); }
         }
 
         private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
+            if (e.KeyCode == Keys.Enter) { _currentPage = 1; ApplyFiltersAndPagination(); e.Handled = true; }
+            else if (e.KeyCode == Keys.Escape) { txtSearch.Clear(); e.Handled = true; }
+        }
+
+        private void btnPrevious_Click(object sender, EventArgs e)
+        {
+            if (_currentPage > 1)
             {
-                LoadData();
-                e.Handled = true;
+                _currentPage--;
+                ApplyFiltersAndPagination();
             }
-            else if (e.KeyCode == Keys.Escape)
+        }
+
+        private void btnNext_Click(object sender, EventArgs e)
+        {
+            if (_currentPage * _pageSize < _totalRecords)
             {
-                txtSearch.Clear();
-                e.Handled = true;
+                _currentPage++;
+                ApplyFiltersAndPagination();
             }
         }
 
         private void FormTableList_KeyDown(object sender, KeyEventArgs e)
         {
-            try
+            if (e.KeyCode == Keys.F5) { LoadData(); e.Handled = true; }
+            else if (e.Control && e.KeyCode == Keys.N) { BtnAdd_Click(sender, EventArgs.Empty); e.Handled = true; }
+            else if (e.KeyCode == Keys.Enter && dgvTable?.CurrentRow != null)
             {
-                if (e.KeyCode == Keys.F5)
-                {
-                    LoadData();
-                    e.Handled = true;
-                }
-                else if (e.Control && e.KeyCode == Keys.N)
-                {
-                    BtnAdd_Click(sender, EventArgs.Empty);
-                    e.Handled = true;
-                }
-                else if (e.KeyCode == Keys.Enter && dgvTable?.CurrentRow != null)
-                {
-                    DgvTable_CellDoubleClick(sender, new DataGridViewCellEventArgs(0, dgvTable.CurrentRow.Index));
-                    e.Handled = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"KeyDown error: {ex.Message}");
+                DgvTable_CellDoubleClick(sender, new DataGridViewCellEventArgs(0, dgvTable.CurrentRow.Index));
+                e.Handled = true;
             }
         }
 
@@ -216,10 +218,15 @@ namespace QLTN_LT.GUI.Table
             {
                 _searchDebounceTimer?.Stop();
                 _searchDebounceTimer?.Dispose();
+                _searchDebounceTimer = null;
+
                 _allData?.Clear();
-                _bll = null;
+                _allData = null;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in CleanupResources: {ex.Message}");
+            }
             finally { base.CleanupResources(); }
         }
     }

@@ -48,7 +48,7 @@ namespace QLTN_LT.GUI.Seafood
                 {
                     using (var frm = new QLTN_LT.GUI.Category.FormCategoryAdd())
                     {
-                        if (frm.ShowDialog(this) == DialogResult.OK)
+                        if (QLTN_LT.GUI.Helper.UIHelper.ShowFormDialog(this, frm) == DialogResult.OK)
                         {
                             LoadCategories();
                         }
@@ -96,7 +96,7 @@ namespace QLTN_LT.GUI.Seafood
             {
                 using (var frm = new QLTN_LT.GUI.Category.FormCategoryAdd())
                 {
-                    if (frm.ShowDialog(this) == DialogResult.OK)
+                    if (QLTN_LT.GUI.Helper.UIHelper.ShowFormDialog(this, frm) == DialogResult.OK)
                     {
                         var prevSelected = cboCategory.SelectedValue;
                         LoadCategories();

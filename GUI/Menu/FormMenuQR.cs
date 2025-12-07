@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Windows.Forms;
 using System.Data;
 using System.Data.SqlClient;
@@ -32,10 +33,10 @@ namespace QLTN_LT.GUI.Menu
         private ContextMenuStrip _qrMenu;
         private bool _isGenerating = false;
 
-        // Hardcode account info as requested
-        private const string VietQR_BankCode = "970436"; // Vietcombank (default)
-        private const string VietQR_AccountNo = "1031839610";
-        private const string VietQR_AccountName = "PHAM HOAI THUONG";
+        // VietQR account info is loaded from DB (dbo.VietQRConfig). No hardcoded fallback.
+        private string _vietqrBankCode;
+        private string _vietqrAccountNo;
+        private string _vietqrAccountName;
 
         private string _lastQrPayload;
         private Bitmap _lastQrBitmap;
@@ -91,11 +92,24 @@ namespace QLTN_LT.GUI.Menu
                     _btnToggleView.Left = Math.Max(0, txtSearch.Right - _btnToggleView.Width);
                     _btnToggleView.Top = txtSearch.Top + 5;
                     _btnToggleView.Click += (s, e2) => ToggleView();
+                    _btnToggleView.Visible = false; // ép dùng Card (chiều dọc)
                     pnlLeft.Controls.Add(_btnToggleView);
                 }
                 catch { }
 
                 BuildCategoryTabs();
+
+                // Left: sản phẩm theo chiều dọc, có thể cuộn
+                try
+                {
+                    if (flpMenuCards != null)
+                    {
+                        flpMenuCards.FlowDirection = FlowDirection.TopDown;
+                        flpMenuCards.WrapContents = false;
+                        flpMenuCards.AutoScroll = true;
+                    }
+                }
+                catch { }
 
                 LoadMenu();
                 SetupGridStyles();
@@ -169,31 +183,31 @@ namespace QLTN_LT.GUI.Menu
                 btnGenerateQR.Top = lblTotal.Top - 6;
                 btnGenerateQR.Left = width - btnGenerateQR.Width - padding;
 
-                // QR and info at bottom
-                int bottomHeight = height - (lblTotal.Bottom + 10) - padding;
-                int qrWidth = Math.Max(260, (int)(width * 0.45));
-                int infoWidth = Math.Max(180, width - qrWidth - padding * 3);
+                // QR and info stacked vertically on the right panel
+                int panelInnerWidth = width - padding * 2;
 
+                // QR image takes full width area below total
                 picQR.Top = lblTotal.Bottom + 10;
                 picQR.Left = padding;
-                picQR.Width = qrWidth;
-                picQR.Height = bottomHeight;
+                picQR.Width = panelInnerWidth;
+                picQR.Height = Math.Max(240, (int)(height * 0.35));
 
-                txtQRInfo.Top = picQR.Top;
-                txtQRInfo.Left = picQR.Right + padding;
-                txtQRInfo.Width = infoWidth;
-                txtQRInfo.Height = bottomHeight;
-
-                // Place fixed QR action buttons at bottom-right
+                // Action buttons row below QR
                 if (btnSaveQR != null && btnCopyPayload != null)
                 {
-                    int btnTop = picQR.Bottom - btnSaveQR.Height - 4;
+                    int btnTop = picQR.Bottom + 8;
                     btnSaveQR.Top = btnTop;
-                    btnSaveQR.Left = width - btnSaveQR.Width - padding;
-
                     btnCopyPayload.Top = btnTop;
+                    btnSaveQR.Left = padding + panelInnerWidth - btnSaveQR.Width;
                     btnCopyPayload.Left = btnSaveQR.Left - btnCopyPayload.Width - 8;
                 }
+
+                // QR info below buttons, full width
+                int infoTop = (btnSaveQR != null) ? btnSaveQR.Bottom + 8 : picQR.Bottom + 8;
+                txtQRInfo.Top = infoTop;
+                txtQRInfo.Left = padding;
+                txtQRInfo.Width = panelInnerWidth;
+                txtQRInfo.Height = Math.Max(120, height - infoTop - padding);
             }
             catch { }
         }
@@ -275,7 +289,7 @@ namespace QLTN_LT.GUI.Menu
             {
                 sfd.Filter = "PNG Image (*.png)|*.png";
                 sfd.FileName = $"VietQR_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-                if (sfd.ShowDialog(this) == DialogResult.OK)
+                if (QLTN_LT.GUI.Helper.UIHelper.ShowSaveFileDialog(this, sfd) == DialogResult.OK)
                 {
                     _lastQrBitmap.Save(sfd.FileName, ImageFormat.Png);
                     UXInteractionHelper.ShowToast(this, "Đã lưu ảnh QR", 2000,
@@ -419,6 +433,17 @@ namespace QLTN_LT.GUI.Menu
             // Setup Cart Grid
             dgvCart.AutoGenerateColumns = false;
             dgvCart.Columns.Clear();
+            // STT column
+            var colIndex = new DataGridViewTextBoxColumn
+            {
+                Name = "STT",
+                HeaderText = "#",
+                Width = 40,
+                ReadOnly = true,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
+            };
+            dgvCart.Columns.Add(colIndex);
+            // Data columns
             dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "ProductName", HeaderText = "Tên Sản Phẩm", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "Quantity", HeaderText = "SL", Width = 50, DefaultCellStyle = new DataGridViewCellStyle{ Alignment = DataGridViewContentAlignment.MiddleCenter }});
             dgvCart.Columns.Add(new DataGridViewTextBoxColumn{ DataPropertyName = "UnitPrice", HeaderText = "Đơn Giá", Width = 100, DefaultCellStyle = new DataGridViewCellStyle{ Format = "N0", Alignment = DataGridViewContentAlignment.MiddleRight }});
@@ -505,12 +530,9 @@ namespace QLTN_LT.GUI.Menu
             var card = new CardItemControl
             {
                 Title = item.ItemName,
-                Subtitle = string.IsNullOrWhiteSpace(item.Description) ? item.CategoryName : item.Description,
+                Subtitle = item.CategoryName,
                 Value = string.Format("{0:N0} VNĐ", item.UnitPrice),
-                ActionText = "Chọn",
-                Width = 240,
-                Height = 150,
-                Margin = new Padding(8)
+                ActionText = "+", // Use '+' for the main action button
             };
 
             // Image binding with fallback
@@ -518,38 +540,36 @@ namespace QLTN_LT.GUI.Menu
             {
                 if (!string.IsNullOrWhiteSpace(item.ImagePath) && File.Exists(item.ImagePath))
                 {
-                    using (var bmp = new Bitmap(item.ImagePath))
-                    {
-                        card.Icon = new Bitmap(bmp);
-                    }
+                    card.Icon = new Bitmap(item.ImagePath);
                 }
                 else
                 {
-                    card.Icon = SystemIcons.Application.ToBitmap();
+                    // Fallback to a default image or icon
+                    card.Icon = SystemIcons.Application.ToBitmap(); // Placeholder
                 }
             }
-            catch { card.Icon = SystemIcons.Application.ToBitmap(); }
+            catch
+            {
+                card.Icon = SystemIcons.Application.ToBitmap(); // Error fallback
+            }
 
+            // Main action button (+) adds one item to the cart
             card.ActionButtonClick += (s, e) =>
             {
                 try
                 {
-                    int qty = 1;
-                    try { qty = (int)nudQty.Value; } catch { }
-                    if (qty <= 0) qty = 1;
-                    _cart.AddItem(item, qty);
+                    _cart.AddItem(item, 1);
+                    AnimationHelper.Pulse(card, 150); // Visual feedback
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    UXInteractionHelper.ShowError("Lỗi", $"Không thể thêm vào giỏ: {ex.Message}");
+                }
             };
 
-            card.PlusClicked += (s, e) =>
-            {
-                try { _cart.AddItem(item, 1); } catch { }
-            };
-            card.MinusClicked += (s, e) =>
-            {
-                try { _cart.DecrementItem(item.ItemID, 1); } catch { }
-            };
+            // Remove old Plus/Minus handlers as they are no longer visible
+            card.PlusClicked -= (s, e) => { };
+            card.MinusClicked -= (s, e) => { };
 
             return card;
         }
@@ -602,6 +622,15 @@ namespace QLTN_LT.GUI.Menu
                 var items = _cart.GetItems();
                 dgvCart.DataSource = null;
                 dgvCart.DataSource = items;
+
+                // Re-number index column (STT)
+                if (dgvCart.Columns.Contains("STT"))
+                {
+                    for (int i = 0; i < dgvCart.Rows.Count; i++)
+                    {
+                        dgvCart.Rows[i].Cells["STT"].Value = i + 1;
+                    }
+                }
 
                 // Calculate and display total with breakdown
                 decimal totalAmount = _cart.GetTotalAmount();
@@ -695,31 +724,43 @@ namespace QLTN_LT.GUI.Menu
                     UXInteractionHelper.ShowLoadingState(btn, "Đang tạo...");
                 }
 
-                // Prefer config from DB if available
-                string bankCode = VietQR_BankCode, acc = VietQR_AccountNo, accName = VietQR_AccountName;
-                TryLoadVietQrConfig(ref bankCode, ref acc, ref accName);
-
-                var desc = $"Thanh toan MENU {DateTime.Now:HHmmss}";
-                var vietQR = new VietQRService(bankCode, acc, accName, totalAmount, desc);
-                var data = vietQR.GenerateQRCode();
-                _lastQrPayload = data;
-
-                using (var gen = new QRCodeGenerator())
+                // Load VietQR config strictly from DB
+                string bankCode = null, acc = null, accName = null;
+                if (!TryLoadVietQrConfig(ref bankCode, ref acc, ref accName))
                 {
-                    var qrData = gen.CreateQrCode(data, QRCodeGenerator.ECCLevel.Q);
-                    using (var qr = new QRCode(qrData))
-                    {
+                    UXInteractionHelper.ShowWarning("Thiếu cấu hình VietQR", "Vui lòng cấu hình bảng dbo.VietQRConfig (IsActive=1)");
+                    return;
+                }
+
+                // Build description with underscores and no diacritics
+                string desc = BuildQuickLinkDescription();
+
+                // Use Quick Link with fixed VCB account
+                const string bankId = "vietcombank"; // or 970407
+                const string accountNo = "1031839610";
+                const string accountName = "PHAM HOAI THUONG";
+
+                var service = new VietQRIntegrationService();
+                var quick = service.GenerateQuickLink(accountNo, accountName, totalAmount, desc, bankId, VietQRIntegrationService.QRTemplate.Compact2);
+                if (!quick.IsSuccess)
+                {
+                    UXInteractionHelper.ShowError("VietQR", quick.Message);
+                    return;
+                }
+                _lastQrPayload = quick.Data;
+
+                // Download image and show
                         _lastQrBitmap?.Dispose();
-                        _lastQrBitmap = qr.GetGraphic(10);
+                _lastQrBitmap = DownloadImage(quick.Data);
+                if (_lastQrBitmap != null)
+                {
                         picQR.Image = _lastQrBitmap;
                         AnimationHelper.ScaleIn(picQR, 250);
-                    }
                 }
 
                 // Build detailed payment info
-                var paymentInfo = vietQR.GeneratePaymentInfo();
                 var cartDetails = BuildCartDetails(items);
-                txtQRInfo.Text = $"{paymentInfo}\n\n--- CHI TIẾT GIỎ HÀNG ---\n{cartDetails}";
+                txtQRInfo.Text = $"Ngan hang: {bankId}\nSo tai khoan: {accountNo}\nTen tai khoan: {accountName}\nSo tien: {totalAmount:N0} VNĐ\nNoi dung: {desc}\n\n--- CHI TIET GIO HANG ---\n{cartDetails}";
                 AnimationHelper.FadeIn(txtQRInfo, 200);
 
                 // Show success with details
@@ -860,6 +901,16 @@ namespace QLTN_LT.GUI.Menu
                         }
 
                         UXInteractionHelper.ShowToast(this, $"Đã tạo đơn hàng #{newId}" + (isReserve?" (Đặt trước)":""), 2500, Color.FromArgb(34, 197, 94), Color.White);
+
+                        // Hỏi thanh toán ngay
+                        var ask = MessageBox.Show($"Tạo đơn hàng thành công!\nMã đơn: {newId}\n\nBạn có muốn thanh toán ngay không?", "Thanh toán", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                        if (!isReserve && ask == DialogResult.Yes)
+                        {
+                            using (var payment = new QLTN_LT.GUI.Order.FormPayment(newId))
+                            {
+                                QLTN_LT.GUI.Helper.UIHelper.ShowFormDialog(this, payment);
+                            }
+                        }
                     }
                 }
             }
@@ -869,7 +920,7 @@ namespace QLTN_LT.GUI.Menu
             }
         }
 
-        private void TryLoadVietQrConfig(ref string bankCode, ref string accountNo, ref string accountName)
+        private bool TryLoadVietQrConfig(ref string bankCode, ref string accountNo, ref string accountName)
         {
             try
             {
@@ -884,11 +935,13 @@ namespace QLTN_LT.GUI.Menu
                             bankCode = r.GetString(0);
                             accountNo = r.GetString(1);
                             accountName = r.GetString(2);
+                            return true;
                         }
                     }
                 }
             }
             catch { }
+            return false;
         }
 
         private int? EnsureTable(SqlConnection conn, string branchCode, int tableNumber)
@@ -949,12 +1002,15 @@ namespace QLTN_LT.GUI.Menu
                 }
                 if (!methodId.HasValue) return;
 
-                // Ensure payload
-                string bankCode = VietQR_BankCode, acc = VietQR_AccountNo, accName = VietQR_AccountName;
-                TryLoadVietQrConfig(ref bankCode, ref acc, ref accName);
-                var desc = $"Thanh toan MENU {DateTime.Now:HHmmss}";
-                var vietQR = new VietQRService(bankCode, acc, accName, amount, desc);
-                var payload = vietQR.GenerateQRCode();
+                // Build Quick Link payload with fixed VCB account
+                const string bankId = "vietcombank"; // or 970407
+                const string acc = "1031839610";
+                const string bankCode = bankId;
+                const string accName = "PHAM HOAI THUONG";
+                string desc = BuildQuickLinkDescription();
+                var service = new VietQRIntegrationService();
+                var quick = service.GenerateQuickLink(acc, accName, amount, desc, bankId, VietQRIntegrationService.QRTemplate.Compact2);
+                var payload = quick.IsSuccess ? quick.Data : null;
 
                 using (var cmd = new SqlCommand("dbo.sp_InsertPayment", conn))
                 {
@@ -1050,6 +1106,35 @@ namespace QLTN_LT.GUI.Menu
             catch { }
         }
 
+        private string BuildQuickLinkDescription()
+        {
+            try
+            {
+                // Build description: DON_HANG_YYYYMMDD_HHMMSS with underscores, no diacritics
+                string code = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string s = $"DON_HANG_{code}";
+                if (s.Length > 50) s = s.Substring(0, 50);
+                return s;
+            }
+            catch { return "DON_HANG"; }
+        }
+
+        private Bitmap DownloadImage(string url)
+        {
+            try
+            {
+                using (var http = new HttpClient())
+                {
+                    var bytes = http.GetByteArrayAsync(url).GetAwaiter().GetResult();
+                    using (var ms = new MemoryStream(bytes))
+                    {
+                        return new Bitmap(ms);
+                    }
+                }
+            }
+            catch { return null; }
+        }
+
         private void AdjustBreakpoints()
         {
             try { UpdateCardWidths(); } catch { }
@@ -1059,12 +1144,10 @@ namespace QLTN_LT.GUI.Menu
         {
             try
             {
-                int w = this.Width;
-                if (w <= 1100) return 2; // ~1024
-                if (w <= 1600) return 3; // ~1366
-                return 4; // >=1920
+                // Yêu cầu: danh sách sản phẩm theo chiều dọc (một cột)
+                return 1;
             }
-            catch { return 3; }
+            catch { return 1; }
         }
 
         private void UpdateCardWidths()

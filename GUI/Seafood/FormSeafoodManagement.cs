@@ -203,7 +203,7 @@ namespace QLTN_LT.GUI.Seafood
             {
                 using (var form = new FormSeafoodAdd())
                 {
-                    if (form.ShowDialog(this) == DialogResult.OK)
+                    if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
                     {
                         LoadSeafood();
                     }
@@ -230,7 +230,7 @@ namespace QLTN_LT.GUI.Seafood
 
                 using (var form = new FormSeafoodEdit(item))
                 {
-                    if (form.ShowDialog(this) == DialogResult.OK)
+                    if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
                     {
                         LoadSeafood();
                     }

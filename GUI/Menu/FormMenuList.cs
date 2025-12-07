@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
 using QLTN_LT.GUI.Base;
 using QLTN_LT.GUI.Helper;
+using System.Diagnostics;
 
 namespace QLTN_LT.GUI.Menu
 {
@@ -13,15 +15,19 @@ namespace QLTN_LT.GUI.Menu
     {
         private readonly MenuBLL _bll = new MenuBLL();
         private List<MenuItemDTO> _allItems = new List<MenuItemDTO>();
-        private List<MenuItemDTO> _filteredItems = new List<MenuItemDTO>();
         private Timer _searchDebounceTimer;
 
         // Pagination
-        // private int _pageSize = 15; // Reserved for future pagination feature
         private int _currentPage = 1;
+        private int _pageSize = 15;
+        private int _totalRecords = 0;
 
         // Context menu
         private ContextMenuStrip _rowMenu;
+
+        // UI helpers
+        private Label _lblEmptyState;
+        private Label _lblLoadingIndicator;
 
         public FormMenuList()
         {
@@ -30,34 +36,27 @@ namespace QLTN_LT.GUI.Menu
             // UX & Styling
             this.KeyPreview = true;
             this.KeyDown += FormMenuList_KeyDown;
-            try
-            {
-                UIHelper.ApplyFormStyle(this);
-                if (dgvMenu != null) UIHelper.ApplyGridStyle(dgvMenu);
-                if (btnAdd != null) UIHelper.ApplyGunaButtonStyle(btnAdd, isPrimary: true);
-                if (btnReload != null) UIHelper.ApplyGunaButtonStyle(btnReload, isPrimary: false);
-            }
-            catch { }
 
             // Debounce search
             _searchDebounceTimer = new Timer { Interval = 350 };
             _searchDebounceTimer.Tick += (s, e) =>
             {
                 _searchDebounceTimer.Stop();
-                ApplyFilter();
+                _currentPage = 1;
+                ApplyFiltersAndPagination();
             };
 
             // Events
             this.Load += FormMenuList_Load;
-            if (txtSearch != null)
-            {
-                txtSearch.TextChanged += (s, e) => { _searchDebounceTimer.Stop(); _searchDebounceTimer.Start(); };
-                txtSearch.KeyDown += txtSearch_KeyDown;
-            }
-            if (cboCategory != null) cboCategory.SelectedIndexChanged += cboCategory_SelectedIndexChanged;
-            if (btnAdd != null) btnAdd.Click += btnAdd_Click;
-            if (btnReload != null) btnReload.Click += btnReload_Click;
-            if (dgvMenu != null) dgvMenu.CellDoubleClick += dgvMenu_CellDoubleClick;
+            this.Shown += (s, e) => { try { txtSearch?.Focus(); } catch { } };
+            txtSearch.TextChanged += (s, e) => { _searchDebounceTimer.Stop(); _searchDebounceTimer.Start(); };
+            txtSearch.KeyDown += txtSearch_KeyDown;
+            cboCategory.SelectedIndexChanged += (s, e) => { _currentPage = 1; ApplyFiltersAndPagination(); };
+            btnAdd.Click += btnAdd_Click;
+            btnReload.Click += btnReload_Click;
+            dgvMenu.CellDoubleClick += dgvMenu_CellDoubleClick;
+            btnNext.Click += BtnNext_Click;
+            btnPrevious.Click += BtnPrevious_Click;
         }
 
         private void FormMenuList_Load(object sender, EventArgs e)
@@ -66,11 +65,9 @@ namespace QLTN_LT.GUI.Menu
             {
                 ConfigureGrid();
                 InitRowContextMenu();
-                if (btnNext != null) btnNext.Click += BtnNext_Click;
-                if (btnPrevious != null) btnPrevious.Click += BtnPrevious_Click;
-
+                BuildEmptyState();
+                BuildLoadingIndicator();
                 LoadData();
-                AddHelpButtonAndTooltips();
             }
             catch (Exception ex)
             {
@@ -78,46 +75,10 @@ namespace QLTN_LT.GUI.Menu
             }
         }
 
-        private void AddHelpButtonAndTooltips()
-        {
-            try
-            {
-                // Nút Hướng dẫn (F1) góc phải trên
-                var btnHelp = new Button
-                {
-                    Text = "F1",
-                    Width = 36,
-                    Height = 28,
-                    FlatStyle = FlatStyle.Flat,
-                    BackColor = System.Drawing.Color.FromArgb(107,114,128),
-                    ForeColor = System.Drawing.Color.White,
-                    Anchor = AnchorStyles.Top | AnchorStyles.Right,
-                };
-                btnHelp.FlatAppearance.BorderSize = 0;
-                btnHelp.Left = this.ClientSize.Width - btnHelp.Width - 12;
-                btnHelp.Top = 10;
-                btnHelp.Click += (s, e) => { try { new QLTN_LT.GUI.Helper.FormShortcuts().ShowDialog(this); } catch { } };
-                this.Controls.Add(btnHelp);
-
-                // Tooltips
-                var tip = new ToolTip { AutoPopDelay = 4000, InitialDelay = 400, ReshowDelay = 200, ShowAlways = true };
-                if (btnHelp != null) tip.SetToolTip(btnHelp, "Hướng dẫn phím tắt (F1)");
-                if (txtSearch != null) tip.SetToolTip(txtSearch, "Tìm kiếm\nMẹo: Enter để áp dụng, Esc để xóa");
-                if (cboCategory != null) tip.SetToolTip(cboCategory, "Lọc theo danh mục");
-                var miBtnAdd = this.GetType().GetField("btnAdd", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(this) as Control;
-                var miBtnReload = this.GetType().GetField("btnReload", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(this) as Control;
-                if (miBtnAdd != null) tip.SetToolTip(miBtnAdd, "Thêm mới (Ctrl+N)");
-                if (miBtnReload != null) tip.SetToolTip(miBtnReload, "Làm mới (F5)");
-                if (dgvMenu != null) tip.SetToolTip(dgvMenu, "Double‑click để sửa\nEnter để mở chi tiết");
-            }
-            catch { }
-        }
-
         private void ConfigureGrid()
         {
             try
             {
-                if (dgvMenu == null) return;
                 dgvMenu.AutoGenerateColumns = false;
                 dgvMenu.Columns.Clear();
                 dgvMenu.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ItemID", HeaderText = "ID", Width = 60 });
@@ -137,22 +98,23 @@ namespace QLTN_LT.GUI.Menu
             try
             {
                 Wait(true);
+                ShowLoadingState(true);
                 _allItems = _bll.GetAllItems() ?? new List<MenuItemDTO>();
                 PopulateCategoryFilter();
-                ApplyFilter();
+                _currentPage = 1;
+                ApplyFiltersAndPagination();
             }
             catch (Exception ex)
             {
                 ExceptionHandler.Handle(ex, "LoadData");
             }
-            finally { Wait(false); }
+            finally { ShowLoadingState(false); Wait(false); }
         }
 
         private void PopulateCategoryFilter()
         {
             try
             {
-                if (cboCategory == null) return;
                 var categories = _allItems.Select(item => item.CategoryName).Distinct().Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
                 categories.Insert(0, "Tất cả");
                 cboCategory.DataSource = categories;
@@ -164,7 +126,7 @@ namespace QLTN_LT.GUI.Menu
             }
         }
 
-        private void ApplyFilter()
+        private void ApplyFiltersAndPagination()
         {
             try
             {
@@ -179,26 +141,46 @@ namespace QLTN_LT.GUI.Menu
                 if (!string.IsNullOrEmpty(keyword))
                     filtered = filtered.Where(item => (item.ItemName?.ToLower().Contains(keyword) ?? false) || (item.Description?.ToLower().Contains(keyword) ?? false));
 
-                var list = filtered.ToList();
-                if (dgvMenu != null) dgvMenu.DataSource = list;
-                if (lblPageInfo != null) lblPageInfo.Text = $"Tổng: {list.Count} món";
+                var filteredList = filtered.ToList();
+                _totalRecords = filteredList.Count;
+
+                var pagedData = filteredList
+                    .Skip((_currentPage - 1) * _pageSize)
+                    .Take(_pageSize)
+                    .ToList();
+
+                dgvMenu.DataSource = pagedData;
+                UpdatePagination();
+                UpdateEmptyState(_totalRecords == 0);
             }
             catch (Exception ex)
             {
-                ExceptionHandler.Handle(ex, "ApplyFilter");
+                ExceptionHandler.Handle(ex, "ApplyFiltersAndPagination");
             }
         }
 
-        private void cboCategory_SelectedIndexChanged(object sender, EventArgs e)
+        private void UpdatePagination()
         {
-            ApplyFilter();
+            btnPrevious.Enabled = _currentPage > 1;
+            btnNext.Enabled = _currentPage * _pageSize < _totalRecords;
+
+            if (_totalRecords == 0)
+            {
+                lblPageInfo.Text = "Không có dữ liệu";
+            }
+            else
+            {
+                int from = (_currentPage - 1) * _pageSize + 1;
+                int to = Math.Min(_currentPage * _pageSize, _totalRecords);
+                lblPageInfo.Text = $"Hiển thị {from} - {to} / {_totalRecords} món";
+            }
         }
 
         private void txtSearch_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
-                ApplyFilter();
+                ApplyFiltersAndPagination();
                 e.SuppressKeyPress = true;
             }
             else if (e.KeyCode == Keys.Escape)
@@ -214,7 +196,7 @@ namespace QLTN_LT.GUI.Menu
             {
                 using (var form = new FormMenuEdit(0)) // 0 => new item
                 {
-                    if (form.ShowDialog(this) == DialogResult.OK)
+                    if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
                     {
                         LoadData();
                     }
@@ -249,7 +231,7 @@ namespace QLTN_LT.GUI.Menu
                     if (selectedItem == null) return;
                     using (var form = new FormMenuEdit(selectedItem.ItemID))
                     {
-                        if (form.ShowDialog(this) == DialogResult.OK)
+                        if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
                         {
                             LoadData();
                         }
@@ -301,7 +283,7 @@ namespace QLTN_LT.GUI.Menu
                 {
                     sfd.Filter = "Excel (*.xls)|*.xls|CSV (*.csv)|*.csv";
                     sfd.FileName = $"ThucDon_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
-                    if (sfd.ShowDialog(this) == DialogResult.OK)
+                    if (UIHelper.ShowSaveFileDialog(this, sfd) == DialogResult.OK)
                     {
                         var list = dgvMenu?.DataSource as IEnumerable<MenuItemDTO> ?? _allItems ?? new List<MenuItemDTO>();
                         if (sfd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
@@ -310,7 +292,7 @@ namespace QLTN_LT.GUI.Menu
                             lines.Add("ID,TenMon,DanhMuc,Gia,MoTa,TrangThai");
                             foreach (var m in list)
                             {
-                                lines.Add($"{m.ItemID},{EscapeCsv(m.ItemName)},{EscapeCsv(m.CategoryName)},{m.UnitPrice},{EscapeCsv(m.Description)},{(m.IsAvailable?"Available":"Unavailable")}");
+                                lines.Add($"{m.ItemID},{EscapeCsv(m.ItemName)},{EscapeCsv(m.CategoryName)},{m.UnitPrice},{EscapeCsv(m.Description)},{(m.IsAvailable ? "Available" : "Unavailable")}");
                             }
                             System.IO.File.WriteAllLines(sfd.FileName, lines, System.Text.Encoding.UTF8);
                         }
@@ -323,7 +305,7 @@ namespace QLTN_LT.GUI.Menu
                             sb.AppendLine("<tr style='background:#e5e7eb'><th>ID</th><th>Tên món</th><th>Danh mục</th><th>Giá</th><th>Mô tả</th><th>Trạng thái</th></tr>");
                             foreach (var m in list)
                             {
-                                sb.AppendLine($"<tr><td>{m.ItemID}</td><td>{Html(m.ItemName)}</td><td>{Html(m.CategoryName)}</td><td align='right'>{m.UnitPrice:N0}</td><td>{Html(m.Description)}</td><td>{(m.IsAvailable?"Available":"Unavailable")}</td></tr>");
+                                sb.AppendLine($"<tr><td>{m.ItemID}</td><td>{Html(m.ItemName)}</td><td>{Html(m.CategoryName)}</td><td align='right'>{m.UnitPrice:N0}</td><td>{Html(m.Description)}</td><td>{(m.IsAvailable ? "Available" : "Unavailable")}</td></tr>");
                             }
                             sb.AppendLine("</table></body></html>");
                             System.IO.File.WriteAllText(sfd.FileName, sb.ToString(), System.Text.Encoding.UTF8);
@@ -353,9 +335,6 @@ namespace QLTN_LT.GUI.Menu
             return sb.ToString();
         }
 
-        /// <summary>
-        /// Khởi tạo context menu cho các hàng trong DataGridView
-        /// </summary>
         private void InitRowContextMenu()
         {
             try
@@ -363,7 +342,7 @@ namespace QLTN_LT.GUI.Menu
                 if (dgvMenu == null) return;
 
                 _rowMenu = new ContextMenuStrip();
-                
+
                 var itemEdit = new ToolStripMenuItem("Sửa (Enter)", null, (s, e) =>
                 {
                     if (dgvMenu.CurrentRow != null)
@@ -371,7 +350,7 @@ namespace QLTN_LT.GUI.Menu
                         dgvMenu_CellDoubleClick(dgvMenu, new DataGridViewCellEventArgs(0, dgvMenu.CurrentRow.Index));
                     }
                 });
-                
+
                 var itemDelete = new ToolStripMenuItem("Xóa (Delete)", null, (s, e) =>
                 {
                     try
@@ -418,39 +397,74 @@ namespace QLTN_LT.GUI.Menu
             }
         }
 
-        /// <summary>
-        /// Xử lý nút Next cho phân trang
-        /// </summary>
         private void BtnNext_Click(object sender, EventArgs e)
         {
-            try
+            if (_currentPage * _pageSize < _totalRecords)
             {
                 _currentPage++;
-                ApplyFilter();
-            }
-            catch (Exception ex)
-            {
-                ExceptionHandler.Handle(ex, "BtnNext_Click");
+                ApplyFiltersAndPagination();
             }
         }
 
-        /// <summary>
-        /// Xử lý nút Previous cho phân trang
-        /// </summary>
         private void BtnPrevious_Click(object sender, EventArgs e)
+        {
+            if (_currentPage > 1)
+            {
+                _currentPage--;
+                ApplyFiltersAndPagination();
+            }
+        }
+
+        private void BuildEmptyState()
         {
             try
             {
-                if (_currentPage > 1)
+                _lblEmptyState = new Label
                 {
-                    _currentPage--;
-                    ApplyFilter();
-                }
+                    Text = "📭 Không có dữ liệu thực đơn",
+                    AutoSize = false,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Dock = DockStyle.Fill,
+                    ForeColor = Color.FromArgb(150, 150, 150),
+                    Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                    Visible = false,
+                    BackColor = Color.FromArgb(250, 250, 250)
+                };
+                this.Controls.Add(_lblEmptyState);
+                _lblEmptyState.BringToFront();
             }
-            catch (Exception ex)
+            catch { }
+        }
+
+        private void BuildLoadingIndicator()
+        {
+            try
             {
-                ExceptionHandler.Handle(ex, "BtnPrevious_Click");
+                _lblLoadingIndicator = new Label
+                {
+                    Text = "⏳ Đang tải dữ liệu...",
+                    AutoSize = false,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Dock = DockStyle.Fill,
+                    ForeColor = Color.FromArgb(52, 152, 219),
+                    Font = new Font("Segoe UI", 11, FontStyle.Regular),
+                    BackColor = Color.FromArgb(240, 248, 255),
+                    Visible = false
+                };
+                this.Controls.Add(_lblLoadingIndicator);
+                _lblLoadingIndicator.BringToFront();
             }
+            catch { }
+        }
+
+        private void UpdateEmptyState(bool isEmpty)
+        {
+            try { if (_lblEmptyState != null) _lblEmptyState.Visible = isEmpty; } catch { }
+        }
+
+        private void ShowLoadingState(bool isLoading)
+        {
+            try { if (_lblLoadingIndicator != null) _lblLoadingIndicator.Visible = isLoading; } catch { }
         }
 
         protected override void CleanupResources()
@@ -459,10 +473,24 @@ namespace QLTN_LT.GUI.Menu
             {
                 _searchDebounceTimer?.Stop();
                 _searchDebounceTimer?.Dispose();
+                _searchDebounceTimer = null;
+
                 _allItems?.Clear();
+                _allItems = null;
+
                 _rowMenu?.Dispose();
+                _rowMenu = null;
+
+                _lblEmptyState?.Dispose();
+                _lblEmptyState = null;
+
+                _lblLoadingIndicator?.Dispose();
+                _lblLoadingIndicator = null;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in CleanupResources: {ex.Message}");
+            }
             finally { base.CleanupResources(); }
         }
     }

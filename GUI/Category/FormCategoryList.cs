@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using System.IO;
+using System.Text;
+using System.Globalization;
 using QLTN_LT.DTO;
 using QLTN_LT.BLL;
 using System.Diagnostics;
@@ -13,8 +16,12 @@ namespace QLTN_LT.GUI.Category
     public partial class FormCategoryList : BaseForm
     {
         private CategoryBLL _categoryBLL;
-        private Timer _searchDebounceTimer;
         private List<CategoryDTO> _allData = new List<CategoryDTO>();
+        private Label _lblEmptyState;
+        private ListEnhancer _listEnhancer;
+        private int _currentPage = 1;
+        private int _pageSize = 15;
+        private int _totalRecords = 0;
 
         public FormCategoryList()
         {
@@ -25,33 +32,30 @@ namespace QLTN_LT.GUI.Category
             this.KeyPreview = true;
             this.KeyDown += FormCategoryList_KeyDown;
 
-            // Debounce search
-            _searchDebounceTimer = new Timer { Interval = 400 };
-            _searchDebounceTimer.Tick += (s, e) =>
-            {
-                _searchDebounceTimer.Stop();
-                ApplyFilters();
-            };
-
-            // Styling
-            try
-            {
-                UIHelper.ApplyFormStyle(this);
-                if (dgvCategory != null) UIHelper.ApplyGridStyle(dgvCategory);
-                if (btnAdd != null) UIHelper.ApplyGunaButtonStyle(btnAdd, isPrimary: true);
-            }
-            catch { }
+            // Initialize ListEnhancer
+            _listEnhancer = new ListEnhancer(dgvCategory, txtSearch, lblPageInfo, _pageSize);
+            _listEnhancer.SetLoadDataCallback(page => { _currentPage = page; ApplyFilters(); });
+            _listEnhancer.SetRefreshCallback(() => LoadData());
+            _listEnhancer.OnColumnSort += (colName, ascending) => ApplySorting(colName, ascending);
+            _listEnhancer.OnEditClick += OpenEditForSelectedRow;
+            _listEnhancer.OnDeleteRequested += DeleteSingleCategory;
+            _listEnhancer.OnBatchDeleteRequested += DeleteMultipleCategories;
+            _listEnhancer.OnExportCurrentPage += ExportCurrentPage;
+            _listEnhancer.OnExportSelected += ExportSelected;
+            _listEnhancer.OnExportAll += ExportAll;
+            _listEnhancer.OnAddNew += () => btnAdd_Click(null, EventArgs.Empty);
+            _listEnhancer.OnCopySuccess += () => ShowInfo("✅ Đã sao chép!");
 
             // Events
             this.Load += FormCategoryList_Load;
-            if (txtSearch != null) txtSearch.TextChanged += txtSearch_TextChanged;
-            if (dgvCategory != null) dgvCategory.CellDoubleClick += dgvCategory_CellDoubleClick;
         }
 
         private void FormCategoryList_Load(object sender, EventArgs e)
         {
             try
             {
+                ConfigureGrid();
+                BuildEmptyState();
                 LoadData();
             }
             catch (Exception ex)
@@ -66,6 +70,7 @@ namespace QLTN_LT.GUI.Category
             {
                 Wait(true);
                 _allData = _categoryBLL.GetAll() ?? new List<CategoryDTO>();
+                _currentPage = 1;
                 ApplyFilters();
             }
             catch (Exception ex)
@@ -79,26 +84,89 @@ namespace QLTN_LT.GUI.Category
             }
         }
 
+        private void ConfigureGrid()
+        {
+            try
+            {
+                if (dgvCategory == null) return;
+
+                dgvCategory.AutoGenerateColumns = false;
+                dgvCategory.Columns.Clear();
+
+                // Grid styling
+                dgvCategory.EnableHeadersVisualStyles = false;
+                dgvCategory.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
+                {
+                    BackColor = System.Drawing.Color.FromArgb(41, 128, 185),
+                    ForeColor = System.Drawing.Color.White,
+                    Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold),
+                    Alignment = DataGridViewContentAlignment.MiddleCenter,
+                    Padding = new Padding(5),
+                    WrapMode = DataGridViewTriState.False
+                };
+                dgvCategory.ColumnHeadersHeight = 45;
+                dgvCategory.RowTemplate.Height = 38;
+                dgvCategory.AlternatingRowsDefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(245, 248, 250);
+                dgvCategory.DefaultCellStyle.SelectionBackColor = System.Drawing.Color.FromArgb(52, 152, 219);
+                dgvCategory.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.White;
+                dgvCategory.DefaultCellStyle.Font = new System.Drawing.Font("Segoe UI", 9);
+                dgvCategory.DefaultCellStyle.Padding = new Padding(5);
+                dgvCategory.GridColor = System.Drawing.Color.FromArgb(220, 220, 220);
+                dgvCategory.AllowUserToAddRows = false;
+                dgvCategory.AllowUserToDeleteRows = false;
+                dgvCategory.AllowUserToResizeRows = false;
+                dgvCategory.ReadOnly = false;
+                dgvCategory.MultiSelect = false;
+                dgvCategory.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+
+                // Checkbox column
+                var chkCol = new DataGridViewCheckBoxColumn { HeaderText = "✓", Width = 40, ReadOnly = false, Name = "colCheck", ThreeState = false };
+                chkCol.TrueValue = true; chkCol.FalseValue = false;
+                chkCol.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                dgvCategory.Columns.Add(chkCol);
+
+                // STT column
+                var sttCol = new DataGridViewTextBoxColumn { Name = "colSTT", HeaderText = "STT", Width = 50, ReadOnly = true };
+                dgvCategory.Columns.Add(sttCol);
+
+                dgvCategory.Columns.Add(new DataGridViewTextBoxColumn { Name = "CategoryID", DataPropertyName = "CategoryID", HeaderText = "ID", Width = 60 });
+                dgvCategory.Columns.Add(new DataGridViewTextBoxColumn { Name = "CategoryName", DataPropertyName = "CategoryName", HeaderText = "TÊN DANH MỤC", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+                dgvCategory.Columns.Add(new DataGridViewTextBoxColumn { Name = "Description", DataPropertyName = "Description", HeaderText = "MÔ TẢ", Width = 240 });
+                dgvCategory.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", DataPropertyName = "Status", HeaderText = "TRẠNG THÁI", Width = 120 });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error configuring columns: {ex.Message}");
+            }
+        }
+
         private void ApplyFilters()
         {
             try
             {
-                var list = _allData;
+                string keyword = _listEnhancer.GetSearchKeyword();
+                string kwNorm = ListEnhancer.RemoveDiacritics(keyword).ToLowerInvariant();
 
-                // Apply search filter
-                string keyword = txtSearch?.Text?.Trim().ToLower() ?? string.Empty;
-                if (!string.IsNullOrEmpty(keyword))
+                var filteredData = _allData.FindAll(x =>
                 {
-                    list = list.Where(c =>
-                        (c.CategoryName?.ToLower().Contains(keyword) ?? false) ||
-                        (c.Description?.ToLower().Contains(keyword) ?? false)
-                    ).ToList();
-                }
+                    if (string.IsNullOrEmpty(kwNorm)) return true;
+                    string name = ListEnhancer.RemoveDiacritics(x.CategoryName ?? string.Empty).ToLowerInvariant();
+                    string desc = ListEnhancer.RemoveDiacritics(x.Description ?? string.Empty).ToLowerInvariant();
+                    return name.Contains(kwNorm) || desc.Contains(kwNorm);
+                });
+
+                _totalRecords = filteredData.Count;
+
+                var pagedData = filteredData
+                    .Skip((_currentPage - 1) * _pageSize)
+                    .Take(_pageSize)
+                    .ToList();
 
                 if (dgvCategory != null)
                 {
-                    dgvCategory.DataSource = list;
-                    ConfigureColumns();
+                    dgvCategory.DataSource = pagedData;
+                    UpdatePagination();
+                    UpdateEmptyState(pagedData.Count == 0);
                 }
             }
             catch (Exception ex)
@@ -107,26 +175,51 @@ namespace QLTN_LT.GUI.Category
             }
         }
 
-        private void ConfigureColumns()
+        private void UpdatePagination()
+        {
+            string pageInfo;
+            if (_totalRecords == 0)
+            {
+                pageInfo = "Tong cong: 0 danh muc";
+            }
+            else
+            {
+                int from = (_currentPage - 1) * _pageSize + 1;
+                int to = Math.Min(_currentPage * _pageSize, _totalRecords);
+                int totalPages = (int)Math.Ceiling((double)_totalRecords / _pageSize);
+                pageInfo = $"Hien thi {from} - {to} / {_totalRecords} danh muc | Trang {_currentPage}/{totalPages}";
+            }
+            _listEnhancer.UpdatePageInfoDisplay(pageInfo);
+        }
+
+        private void ApplySorting(string columnName, bool ascending)
         {
             try
             {
-                if (dgvCategory == null) return;
+                if (_allData == null || _allData.Count == 0) return;
 
-                if (dgvCategory.AutoGenerateColumns)
+                switch (columnName)
                 {
-                    dgvCategory.AutoGenerateColumns = false;
-                    dgvCategory.Columns.Clear();
-
-                    dgvCategory.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "CategoryID", HeaderText = "ID", Width = 60 });
-                    dgvCategory.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "CategoryName", HeaderText = "Tên danh mục", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-                    dgvCategory.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Description", HeaderText = "Mô tả", Width = 240 });
-                    dgvCategory.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Status", HeaderText = "Trạng thái", Width = 120 });
+                    case "CategoryID":
+                        _allData = ascending ? _allData.OrderBy(x => x.CategoryID).ToList() : _allData.OrderByDescending(x => x.CategoryID).ToList();
+                        break;
+                    case "CategoryName":
+                        _allData = ascending ? _allData.OrderBy(x => x.CategoryName).ToList() : _allData.OrderByDescending(x => x.CategoryName).ToList();
+                        break;
+                    case "Description":
+                        _allData = ascending ? _allData.OrderBy(x => x.Description).ToList() : _allData.OrderByDescending(x => x.Description).ToList();
+                        break;
+                    case "Status":
+                        _allData = ascending ? _allData.OrderBy(x => x.Status).ToList() : _allData.OrderByDescending(x => x.Status).ToList();
+                        break;
                 }
+
+                _currentPage = 1;
+                ApplyFilters();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error configuring columns: {ex.Message}");
+                Debug.WriteLine($"Error applying sorting: {ex.Message}");
             }
         }
 
@@ -136,7 +229,7 @@ namespace QLTN_LT.GUI.Category
             {
                 using (var form = new FormCategoryAdd())
                 {
-                    if (form.ShowDialog(this) == DialogResult.OK)
+                    if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
                     {
                         LoadData();
                     }
@@ -149,21 +242,17 @@ namespace QLTN_LT.GUI.Category
             }
         }
 
-        private void dgvCategory_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        private void OpenEditForSelectedRow()
         {
             try
             {
-                if (e.RowIndex >= 0 && dgvCategory?.Rows.Count > e.RowIndex)
+                if (dgvCategory?.CurrentRow?.DataBoundItem is CategoryDTO item)
                 {
-                    var item = dgvCategory.Rows[e.RowIndex].DataBoundItem as CategoryDTO;
-                    if (item != null)
+                    using (var form = new FormCategoryEdit(item))
                     {
-                        using (var form = new FormCategoryEdit(item))
+                        if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
                         {
-                            if (form.ShowDialog(this) == DialogResult.OK)
-                            {
-                                LoadData();
-                            }
+                            LoadData();
                         }
                     }
                 }
@@ -175,56 +264,188 @@ namespace QLTN_LT.GUI.Category
             }
         }
 
-        private void txtSearch_TextChanged(object sender, EventArgs e)
-        {
-            _searchDebounceTimer.Stop();
-            _searchDebounceTimer.Start();
-        }
-
-        private void FormCategoryList_KeyDown(object sender, KeyEventArgs e)
+        private bool DeleteSingleCategory(int categoryId)
         {
             try
             {
-                if (e.KeyCode == Keys.F5)
+                var category = _allData.FirstOrDefault(x => x.CategoryID == categoryId);
+                if (category == null) return false;
+
+                if (!ShowConfirm($"🗑️ Bạn có chắc muốn xóa danh mục '{category.CategoryName}'?\n\nHành động này không thể hoàn tác!", "Xác nhận xóa"))
+                    return false;
+
+                Wait(true);
+                _categoryBLL.Delete(categoryId);
+                ShowInfo("✅ Xóa danh mục thành công!");
+                _listEnhancer.OnDeleteSuccess();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"❌ Lỗi xóa: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+            finally { Wait(false); }
+        }
+
+        private bool DeleteMultipleCategories(List<int> categoryIds)
+        {
+            try
+            {
+                if (categoryIds == null || categoryIds.Count == 0) return false;
+
+                if (!ShowConfirm($"🗑️ Bạn có chắc muốn xóa {categoryIds.Count} danh mục đã chọn?\n\nHành động này không thể hoàn tác!", "Xác nhận xóa"))
+                    return false;
+
+                Wait(true);
+                int ok = 0, fail = 0;
+                foreach (var id in categoryIds)
                 {
-                    LoadData();
-                    e.Handled = true;
+                    try { _categoryBLL.Delete(id); ok++; }
+                    catch { fail++; }
                 }
-                else if (e.Control && e.KeyCode == Keys.N)
+                ShowInfo($"✅ Đã xóa {ok} | ❌ Lỗi {fail}");
+                _listEnhancer.OnBatchDeleteSuccess();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"❌ Lỗi xóa: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+            finally { Wait(false); }
+        }
+
+        private void ExportCurrentPage()
+        {
+            try
+            {
+                var current = dgvCategory?.DataSource as IEnumerable<CategoryDTO> ?? Enumerable.Empty<CategoryDTO>();
+                DoExport(current, "TrangHienTai");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"❌ Lỗi xuất: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ExportSelected()
+        {
+            try
+            {
+                var selected = _allData.Where(x => _listEnhancer.GetSelectedIds().Contains(x.CategoryID));
+                if (!selected.Any())
                 {
-                    btnAdd_Click(sender, EventArgs.Empty);
-                    e.Handled = true;
+                    MessageBox.Show("⚠️ Chưa có mục nào được chọn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
                 }
-                else if (e.KeyCode == Keys.Enter && dgvCategory?.CurrentRow != null)
+                DoExport(selected, "DaChon");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"❌ Lỗi xuất: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ExportAll()
+        {
+            try
+            {
+                DoExport(_allData, "TatCa");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"❌ Lỗi xuất: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void DoExport(IEnumerable<CategoryDTO> list, string baseFileName)
+        {
+            try
+            {
+                using (var sfd = new SaveFileDialog())
                 {
-                    var item = dgvCategory.CurrentRow.DataBoundItem as CategoryDTO;
-                    if (item != null)
+                    sfd.Filter = "Excel (*.xls)|*.xls|CSV (*.csv)|*.csv";
+                    sfd.FileName = $"{baseFileName}_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
+                    if (UIHelper.ShowSaveFileDialog(this, sfd) == DialogResult.OK)
                     {
-                        using (var form = new FormCategoryEdit(item))
+                        Wait(true);
+                        if (sfd.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
                         {
-                            if (form.ShowDialog(this) == DialogResult.OK)
-                                LoadData();
+                            var lines = new List<string> { "ID,Tên danh mục,Mô tả,Trạng thái" };
+                            foreach (var c in list)
+                            {
+                                lines.Add($"{c.CategoryID},{ListEnhancer.EscapeCsv(c.CategoryName)},{ListEnhancer.EscapeCsv(c.Description)},{ListEnhancer.EscapeCsv(c.Status)}");
+                            }
+                            File.WriteAllLines(sfd.FileName, lines, Encoding.UTF8);
                         }
-                        e.Handled = true;
+                        else
+                        {
+                            var sb = new StringBuilder();
+                            sb.AppendLine("<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /><style>body{font-family:Segoe UI;margin:20px;background:#f9f9f9;} h3{color:#2980b9;border-bottom:2px solid #2980b9;padding-bottom:10px;} table{border-collapse:collapse;width:100%;background:white;box-shadow:0 2px 4px rgba(0,0,0,0.1);} th{background:#2980b9;color:white;padding:12px;text-align:left;font-weight:bold;} td{border:1px solid #ddd;padding:10px;} tr:nth-child(even){background:#f5f5f5;} tr:hover{background:#e8f4f8;transition:background 0.3s;} p{color:#666;font-size:12px;}</style></head><body>");
+                            sb.AppendLine($"<h3>📋 Danh sách danh mục ({list.Count()} bản ghi)</h3>");
+                            sb.AppendLine($"<p>Xuất lúc: {DateTime.Now:dd/MM/yyyy HH:mm:ss}</p>");
+                            sb.AppendLine("<table border='1' cellspacing='0' cellpadding='6'>");
+                            sb.AppendLine("<tr><th>ID</th><th>Tên danh mục</th><th>Mô tả</th><th>Trạng thái</th></tr>");
+                            foreach (var c in list)
+                            {
+                                sb.AppendLine($"<tr><td>{c.CategoryID}</td><td>{ListEnhancer.HtmlEncode(c.CategoryName)}</td><td>{ListEnhancer.HtmlEncode(c.Description)}</td><td>{ListEnhancer.HtmlEncode(c.Status)}</td></tr>");
+                            }
+                            sb.AppendLine("</table></body></html>");
+                            File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
+                        }
+                        Wait(false);
+                        MessageBox.Show($"✅ Xuất danh sách danh mục thành công!\n\nFile: {Path.GetFileName(sfd.FileName)}", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"KeyDown error: {ex.Message}");
+                Wait(false);
+                MessageBox.Show($"❌ Lỗi xuất: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void BuildEmptyState()
+        {
+            _lblEmptyState = new Label
+            {
+                Text = "📭 Không có dữ liệu danh mục\n\nNhấn '➕ Thêm danh mục' để bắt đầu",
+                AutoSize = false,
+                Dock = DockStyle.Fill,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+                ForeColor = System.Drawing.Color.Gray,
+                Font = new System.Drawing.Font("Segoe UI", 12),
+                Visible = false
+            };
+            this.Controls.Add(_lblEmptyState);
+            _lblEmptyState.BringToFront();
+        }
+
+        private void UpdateEmptyState(bool isEmpty) => _lblEmptyState.Visible = isEmpty;
+
+        private void FormCategoryList_KeyDown(object sender, KeyEventArgs e)
+        {
+            _listEnhancer.HandleFormKeyDown(e);
         }
 
         protected override void CleanupResources()
         {
             try
             {
-                _searchDebounceTimer?.Stop();
-                _searchDebounceTimer?.Dispose();
+                _listEnhancer?.Dispose();
+                _listEnhancer = null;
+
                 _allData?.Clear();
-                _categoryBLL = null;
+                _allData = null;
+
+                _lblEmptyState?.Dispose();
+                _lblEmptyState = null;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in CleanupResources: {ex.Message}");
+            }
             finally
             {
                 base.CleanupResources();

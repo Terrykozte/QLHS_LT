@@ -195,7 +195,7 @@ namespace QLTN_LT.BLL
         /// <summary>
         /// Tạo đơn hàng từ giỏ hàng
         /// </summary>
-        public OrderDTO CreateOrder(int customerId, string customerName, string customerPhone, int? tableId = null, string notes = "")
+        public OrderDTO CreateOrder(int? customerId, string customerName, string customerPhone, int? tableId = null, string notes = "")
         {
             if (_items.Count == 0) return null;
 

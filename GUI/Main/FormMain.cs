@@ -9,6 +9,7 @@ using QLTN_LT.BLL;
 using System.Drawing.Drawing2D;
 using QLTN_LT.GUI.Base;
 using QLTN_LT.GUI.Utilities;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Main
 {
@@ -27,25 +28,22 @@ namespace QLTN_LT.GUI.Main
             InitializeComponent();
             _currentUser = user;
             this.Padding = new Padding(0);
-            // Cho phép resize - không cố định kích thước
-            this.MinimumSize = new Size(800, 500); // Kích thước tối thiểu hợp lý
+            this.MinimumSize = new Size(800, 500);
             this.Size = new Size(DefaultWidth, DefaultHeight);
 
-            // Sử dụng custom title bar với Guna UI2
             this.FormBorderStyle = FormBorderStyle.None;
+            this.ConfirmationMessage = "Bạn có chắc chắn muốn thoát ứng dụng?"; // Set confirmation message
 
             _sidebarTimer = new Timer();
             _sidebarTimer.Interval = 15;
             _sidebarTimer.Tick += SidebarTimer_Tick;
             
-            // Setup form events
             this.Resize += FormMain_Resize;
             this.KeyDown += FormMain_KeyDown;
         }
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            // Áp dụng theme từ UserPreferences
             try
             {
                 var prefs = QLTN_LT.BLL.UserPreferences.Load();
@@ -54,7 +52,6 @@ namespace QLTN_LT.GUI.Main
                 else
                     ThemeHelper.SetTheme(ThemeHelper.Theme.Light);
                 ThemeHelper.ApplyThemeToForm(this);
-                // Force sidebar to always use dark palette regardless of global theme
                 ThemeHelper.ApplySidebarTheme(
                     pnlSidebar,
                     flowSidebar,
@@ -72,18 +69,14 @@ namespace QLTN_LT.GUI.Main
             SetupKeyboardNavigation();
             SetupAnimations();
             ActivateButton(btnDashboard);
-            // Mở trang Tổng quan khi vào MainSystem
             try { OpenChildForm(new QLTN_LT.GUI.Dashboard.FormDashboard()); } catch { }
 
             UpdateBorderRadius();
             UpdateTitle();
             PositionTitleButtons();
             
-            // Apply responsive design
             ApplyResponsiveDesign();
         }
-
-
 
         private void FormMain_Resize(object sender, EventArgs e)
         {
@@ -98,7 +91,6 @@ namespace QLTN_LT.GUI.Main
                 if (pnlTitleBar == null || btnClose == null || btnMaximize == null || btnMinimize == null || btnSettings == null) return;
                 int marginRight = 12;
                 int gap = 2;
-                // place from right to left
                 btnClose.Left = pnlTitleBar.Width - btnClose.Width - marginRight;
                 btnMaximize.Left = btnClose.Left - btnMaximize.Width - gap;
                 btnMinimize.Left = btnMaximize.Left - btnMinimize.Width - gap;
@@ -113,7 +105,6 @@ namespace QLTN_LT.GUI.Main
 
         private void UpdateBorderRadius()
         {
-            // Đảm bảo các panel không có border radius
             pnlSidebar.BorderRadius = 0;
             pnlContent.BorderRadius = 0;
             pnlTitleBar.BorderRadius = 0;
@@ -151,8 +142,13 @@ namespace QLTN_LT.GUI.Main
 
         private void btnToggleSidebar_Click(object sender, EventArgs e)
         {
-            // Sidebar animation/toggle disabled per requirement
-            // Keep fixed width and no sliding animation
+            try
+            {
+                if (_sidebarTimer == null) return;
+                _sidebarTimer.Stop();
+                _sidebarTimer.Start();
+            }
+            catch { }
         }
 
         private void SetupUserInfo()
@@ -167,17 +163,28 @@ namespace QLTN_LT.GUI.Main
         {
             try
             {
-                var roles = (_currentUser?.Roles ?? new System.Collections.Generic.List<string>()).Select(r => r?.Trim().ToLower()).ToList();
-                bool isAdmin = roles.Contains("admin");
-                bool isStaff = roles.Contains("staff") ;
+                var roles = (_currentUser?.Roles ?? new System.Collections.Generic.List<string>())
+                    .Select(r => NormalizeRole(r))
+                    .ToList();
 
-                // Default: show all
+                bool isAdmin = roles.Contains("admin") || roles.Contains("quanly") || roles.Contains("manager");
+                bool isStaff = roles.Contains("staff") || roles.Contains("nhanvien") || roles.Count == 0;
+
                 Action<Guna2Button, bool> setVisible = (btn, visible) => { if (btn != null) btn.Visible = visible; };
                 Action<Guna2Button, bool> setEnabled = (btn, enabled) => { if (btn != null) btn.Enabled = enabled; };
 
+                // Mặc định bật các mục chính, chỉ ẩn mục quản trị nếu không phải admin
+                setEnabled(btnDashboard, true);
+                setEnabled(btnOrders, true);
+                setEnabled(btnSeafood, true);
+                setEnabled(btnCustomer, true);
+                setEnabled(btnTable, true);
+                setEnabled(btnMenu, true);
+                setEnabled(btnInventory, true);
+                setEnabled(btnMenuQR, true);
+
                 if (isAdmin)
                 {
-                    // Admin full access
                     setVisible(btnUser, true);
                     setVisible(btnReports, true);
                     setVisible(btnSupplier, true);
@@ -191,27 +198,17 @@ namespace QLTN_LT.GUI.Main
                 }
                 else if (isStaff)
                 {
-                    // Staff limited
+                    setVisible(btnUser, false);
+                    setVisible(btnReports, false);
+                    setVisible(btnSupplier, true);
+                    setVisible(btnCategory, true);
+                }
+                else
+                {
                     setVisible(btnUser, false);
                     setVisible(btnReports, false);
                     setVisible(btnSupplier, false);
                     setVisible(btnCategory, false);
-
-                    setEnabled(btnDashboard, true);
-                    setEnabled(btnOrders, true);
-                    setEnabled(btnSeafood, true);
-                    setEnabled(btnCustomer, true);
-                    setEnabled(btnTable, true);
-                    setEnabled(btnMenu, true);
-                    setEnabled(btnInventory, true);
-                    setEnabled(btnMenuQR, true);
-                }
-                else
-                {
-                    // Unknown role -> safest limited
-                    setVisible(btnUser, false);
-                    setVisible(btnReports, false);
-                    setVisible(btnSupplier, false);
                 }
             }
             catch (Exception ex)
@@ -220,17 +217,28 @@ namespace QLTN_LT.GUI.Main
             }
         }
 
+        private string NormalizeRole(string role)
+        {
+            if (string.IsNullOrWhiteSpace(role)) return string.Empty;
+            role = role.Trim().ToLowerInvariant();
+            if (role == "administrator" || role == "admin") return "admin";
+            if (role == "manager" || role == "quanly" || role == "quản lý") return "manager";
+            if (role == "staff" || role == "employee" || role == "nhanvien" || role == "nhân viên") return "staff";
+            return role;
+        }
+
         private bool HasAccessForButton(string buttonName)
         {
-            var roles = (_currentUser?.Roles ?? new System.Collections.Generic.List<string>()).Select(r => r?.Trim().ToLower()).ToList();
+            var roles = (_currentUser?.Roles ?? new System.Collections.Generic.List<string>())
+                .Select(r => NormalizeRole(r))
+                .ToList();
             bool isAdmin = roles.Contains("admin") || roles.Contains("quanly") || roles.Contains("manager");
-            bool isStaff = roles.Contains("staff") || roles.Contains("nhanvien");
+            bool isStaff = roles.Contains("staff") || roles.Contains("nhanvien") || roles.Count == 0;
 
-            if (isAdmin) return true; // Admin full access
+            if (isAdmin) return true;
 
             if (isStaff)
             {
-                // Staff allowed pages only:
                 switch (buttonName)
                 {
                     case "btnDashboard":
@@ -243,11 +251,10 @@ namespace QLTN_LT.GUI.Main
                     case "btnMenuQR":
                         return true;
                     default:
-                        return false; // Block: Users, Reports, Supplier, Category, etc.
+                        return false;
                 }
             }
 
-            // Unknown role: safest is deny except Dashboard
             return buttonName == "btnDashboard";
         }
 
@@ -257,17 +264,14 @@ namespace QLTN_LT.GUI.Main
 
             try
             {
-                // Hard RBAC check
                 if (!HasAccessForButton(button.Name))
                 {
                     MessageBox.Show("Bạn không có quyền truy cập chức năng này.", "Truy cập bị từ chối", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                // Show loading
                 Wait(true);
 
-                // Validate before navigation
                 if (!ValidateBeforeNavigation(button.Name))
                 {
                     Wait(false);
@@ -296,9 +300,6 @@ namespace QLTN_LT.GUI.Main
             }
         }
 
-        /// <summary>
-        /// Creates the appropriate form for the given button.
-        /// </summary>
         private Form CreateFormForButton(string buttonName)
         {
             try
@@ -327,9 +328,6 @@ namespace QLTN_LT.GUI.Main
             }
         }
 
-        /// <summary>
-        /// Validates conditions before navigating to a page.
-        /// </summary>
         private bool ValidateBeforeNavigation(string buttonName)
         {
             try
@@ -337,7 +335,6 @@ namespace QLTN_LT.GUI.Main
                 switch (buttonName)
                 {
                     case "btnOrders":
-                        // Check if there are any tables
                         var tables = new TableBLL().GetAll();
                         if (tables == null || tables.Count == 0)
                         {
@@ -347,12 +344,10 @@ namespace QLTN_LT.GUI.Main
                         break;
 
                     case "btnMenu":
-                        // Check if there are any categories
                         var categories = new CategoryBLL().GetAll();
                         if (categories == null || categories.Count == 0)
                         {
-                            MessageBox.Show("Vui lòng tạo danh mục trước khi tạo thực đơn.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            return false;
+                            MessageBox.Show("Chưa có danh mục. Bạn vẫn có thể vào trang Thực đơn và thêm danh mục sau.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                         break;
                 }
@@ -361,7 +356,7 @@ namespace QLTN_LT.GUI.Main
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error validating navigation: {ex.Message}");
-                return true; // Allow navigation even if validation fails
+                return true;
             }
         }
 
@@ -402,37 +397,53 @@ namespace QLTN_LT.GUI.Main
             {
                 Wait(true);
 
-                // Đóng form hiện tại nếu có
+                // Đóng form cũ một cách an toàn
                 if (_activeForm != null)
                 {
                     try
                     {
-                        _activeForm.Hide();
-                        _activeForm.Close();
-                        _activeForm.Dispose();
+                        if (!_activeForm.IsDisposed)
+                        {
+                            _activeForm.Hide();
+                            _activeForm.Close();
+                        }
                     }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine($"Error closing previous form: {ex.Message}");
                     }
+                    finally
+                    {
+                        try
+                        {
+                            if (!_activeForm.IsDisposed)
+                                _activeForm.Dispose();
+                        }
+                        catch { }
+                        _activeForm = null;
+                    }
                 }
 
-                // Hiển thị form mới (không animation để tránh flicker/màn phụ)
-                _activeForm = childForm;
-                childForm.TopLevel = false;
-                childForm.FormBorderStyle = FormBorderStyle.None;
-                childForm.BackColor = pnlContent.FillColor; // Match content background
+                // Cấu hình form con
+                if (childForm != null)
+                {
+                    _activeForm = childForm;
+                    childForm.TopLevel = false;
+                    childForm.FormBorderStyle = FormBorderStyle.None;
+                    childForm.BackColor = pnlContent.FillColor;
 
-                pnlContent.Controls.Clear();
-                pnlContent.Controls.Add(childForm);
-                pnlContent.Tag = childForm;
+                    // Xóa các control cũ
+                    pnlContent.Controls.Clear();
+                    pnlContent.Controls.Add(childForm);
+                    pnlContent.Tag = childForm;
 
-                childForm.Dock = DockStyle.Fill;
-                childForm.Show();
-                childForm.BringToFront();
+                    childForm.Dock = DockStyle.Fill;
+                    childForm.Show();
+                    childForm.BringToFront();
+                }
 
-                        UpdateTitle();
-                        Wait(false);
+                UpdateTitle();
+                Wait(false);
             }
             catch (Exception ex)
             {
@@ -447,22 +458,25 @@ namespace QLTN_LT.GUI.Main
             if (_currentButton != null)
             {
                 _currentButton.Checked = false;
-                _currentButton.ForeColor = Color.FromArgb(156, 163, 175); // Reset to Gray
+                _currentButton.ForeColor = Color.FromArgb(156, 163, 175);
                 _currentButton.FillColor = Color.Transparent;
             }
 
             _currentButton = button;
             _currentButton.Checked = true;
-            _currentButton.ForeColor = Color.FromArgb(59, 130, 246); // Active Blue-500
-            _currentButton.FillColor = Color.FromArgb(31, 41, 55); // Active background
+            _currentButton.ForeColor = Color.FromArgb(59, 130, 246);
+            _currentButton.FillColor = Color.FromArgb(31, 41, 55);
             _currentButton.CheckedState.FillColor = Color.FromArgb(31, 41, 55);
             _currentButton.CheckedState.ForeColor = Color.FromArgb(59, 130, 246);
         }
 
         private void BtnLogout_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.OK;
-            Close();
+            if (ShowConfirm("Bạn có chắc chắn muốn đăng xuất?", "Xác nhận đăng xuất"))
+            {
+                this.DialogResult = DialogResult.OK;
+                ForceClose(); // Bypass confirmation message on logout
+            }
         }
 
         private void BtnSettings_Click(object sender, EventArgs e)
@@ -471,9 +485,8 @@ namespace QLTN_LT.GUI.Main
             {
                 using (var frm = new QLTN_LT.GUI.Authentication.FormConfig())
                 {
-                    frm.ShowDialog(this);
+                    UIHelper.ShowFormDialog(this, frm);
                 }
-                // After closing settings, reload and apply theme
                 try
                 {
                     var prefs = QLTN_LT.BLL.UserPreferences.Load();
@@ -511,12 +524,12 @@ namespace QLTN_LT.GUI.Main
             if (this.WindowState == FormWindowState.Maximized)
             {
                 this.WindowState = FormWindowState.Normal;
-                btnMaximize.Text = "□"; // Maximize icon
+                btnMaximize.Text = "□";
             }
             else
             {
                 this.WindowState = FormWindowState.Maximized;
-                btnMaximize.Text = "❐"; // Restore icon
+                btnMaximize.Text = "❐";
             }
         }
 
@@ -527,12 +540,9 @@ namespace QLTN_LT.GUI.Main
 
         private void BtnHelp_Click(object sender, EventArgs e)
         {
-            try { new QLTN_LT.GUI.Helper.FormShortcuts().ShowDialog(this); } catch { }
+            try { UIHelper.ShowFormDialog(this, new QLTN_LT.GUI.Helper.FormShortcuts()); } catch { }
         }
 
-        /// <summary>
-        /// Setup keyboard navigation (Tab, Arrow keys)
-        /// </summary>
         private void SetupKeyboardNavigation()
         {
             try
@@ -552,9 +562,6 @@ namespace QLTN_LT.GUI.Main
             }
         }
 
-        /// <summary>
-        /// Setup hover phóng to/thu nhỏ chữ cho các nút sidebar (không dùng animation slide)
-        /// </summary>
         private readonly Dictionary<Guna2Button, Timer> _hoverTimers = new Dictionary<Guna2Button, Timer>();
         private void SetupAnimations()
         {
@@ -568,7 +575,6 @@ namespace QLTN_LT.GUI.Main
                 {
                     if (btn == null) continue;
 
-                    // store base font size
                     if (btn.Tag == null && btn.Font != null)
                         btn.Tag = btn.Font.Size;
 
@@ -621,30 +627,18 @@ namespace QLTN_LT.GUI.Main
             catch { }
         }
 
-        /// <summary>
-        /// Apply responsive design
-        /// </summary>
         private void ApplyResponsiveDesign()
         {
             try
             {
                 var screenSize = ResponsiveHelper.GetCurrentScreenSize(this);
                 
-                // Adjust sidebar width
                 int sidebarWidth = ResponsiveHelper.GetResponsiveSidebarWidth(this);
                 if (pnlSidebar != null)
                 {
                     pnlSidebar.Width = sidebarWidth;
                 }
 
-                // Adjust font sizes (skip to avoid font fallback issues)
-                // if (lblBrand != null)
-                // {
-                //     lblBrand.Font = new Font(lblBrand.Font.FontFamily,
-                //         ResponsiveHelper.GetResponsiveFontSize(12, this));
-                // }
-
-                // Adjust button sizes
                 var buttons = new[] { btnDashboard, btnSeafood, btnOrders, btnCustomer, 
                     btnTable, btnMenu, btnInventory, btnReports, btnSupplier, 
                     btnCategory, btnUser, btnMenuQR, btnLogout };
@@ -667,7 +661,7 @@ namespace QLTN_LT.GUI.Main
             {
                 if (e.KeyCode == Keys.F1)
                 {
-                    try { new QLTN_LT.GUI.Helper.FormShortcuts().ShowDialog(this); } catch { }
+                    try { UIHelper.ShowFormDialog(this, new QLTN_LT.GUI.Helper.FormShortcuts()); } catch { }
                     e.Handled = true;
                 }
                 else if (e.Control && e.KeyCode == Keys.D)
@@ -697,4 +691,3 @@ namespace QLTN_LT.GUI.Main
         }
     }
 }
-

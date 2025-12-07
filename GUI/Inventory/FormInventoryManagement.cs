@@ -168,7 +168,7 @@ namespace QLTN_LT.GUI.Inventory
         {
             using (var form = new FormInventoryTransaction(inventoryId))
             {
-                if (form.ShowDialog(this) == DialogResult.OK)
+                if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
                 {
                     LoadInventoryData();
                 }
@@ -273,7 +273,7 @@ namespace QLTN_LT.GUI.Inventory
                 {
                     saveDialog.Filter = "Excel (*.xls)|*.xls|CSV (*.csv)|*.csv";
                     saveDialog.FileName = $"BaoCaoKho_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
-                    if (saveDialog.ShowDialog() == DialogResult.OK)
+                    if (UIHelper.ShowSaveFileDialog(this, saveDialog) == DialogResult.OK)
                     {
                         var path = saveDialog.FileName;
                         if (path.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))

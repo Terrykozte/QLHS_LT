@@ -102,7 +102,7 @@ namespace QLTN_LT.GUI.User
             {
                 using (var form = new FormUserAdd())
                 {
-                    if (form.ShowDialog(this) == DialogResult.OK)
+                    if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
                     {
                         LoadData();
                     }
@@ -125,7 +125,7 @@ namespace QLTN_LT.GUI.User
                     {
                         using (var form = new FormUserEdit(user))
                         {
-                            if (form.ShowDialog(this) == DialogResult.OK)
+                            if (UIHelper.ShowFormDialog(this, form) == DialogResult.OK)
                             {
                                 LoadData();
                             }
@@ -176,9 +176,15 @@ namespace QLTN_LT.GUI.User
             {
                 _searchDebounce?.Stop();
                 _searchDebounce?.Dispose();
-                _userBLL = null;
+                _searchDebounce = null;
+
+                _allData?.Clear();
+                _allData = null;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in CleanupResources: {ex.Message}");
+            }
             finally { base.CleanupResources(); }
         }
     }

@@ -351,6 +351,175 @@ namespace QLTN_LT.GUI.Helper
             }
             catch { }
         }
+
+        /// <summary>
+        /// Hiển thị SaveFileDialog một cách an toàn (tránh vấn đề dialog hiển thị lại)
+        /// </summary>
+        public static DialogResult ShowSaveFileDialog(Form owner, SaveFileDialog dialog)
+        {
+            try
+            {
+                // Tạm thời vô hiệu hóa KeyPreview của form chính
+                bool originalKeyPreview = owner?.KeyPreview ?? false;
+                if (owner != null)
+                    owner.KeyPreview = false;
+
+                try
+                {
+                    return dialog.ShowDialog(owner);
+                }
+                finally
+                {
+                    // Khôi phục KeyPreview
+                    if (owner != null)
+                        owner.KeyPreview = originalKeyPreview;
+                }
+            }
+            catch
+            {
+                return DialogResult.Cancel;
+            }
+        }
+
+        /// <summary>
+        /// Hiển thị OpenFileDialog một cách an toàn (tránh vấn đề dialog hiển thị lại)
+        /// </summary>
+        public static DialogResult ShowOpenFileDialog(Form owner, OpenFileDialog dialog)
+        {
+            try
+            {
+                // Tạm thời vô hiệu hóa KeyPreview của form chính
+                bool originalKeyPreview = owner?.KeyPreview ?? false;
+                if (owner != null)
+                    owner.KeyPreview = false;
+
+                try
+                {
+                    return dialog.ShowDialog(owner);
+                }
+                finally
+                {
+                    // Khôi phục KeyPreview
+                    if (owner != null)
+                        owner.KeyPreview = originalKeyPreview;
+                }
+            }
+            catch
+            {
+                return DialogResult.Cancel;
+            }
+        }
+
+        /// <summary>
+        /// Hiển thị FolderBrowserDialog một cách an toàn (tránh vấn đề dialog hiển thị lại)
+        /// </summary>
+        public static DialogResult ShowFolderBrowserDialog(Form owner, FolderBrowserDialog dialog)
+        {
+            try
+            {
+                // Tạm thời vô hiệu hóa KeyPreview của form chính
+                bool originalKeyPreview = owner?.KeyPreview ?? false;
+                if (owner != null)
+                    owner.KeyPreview = false;
+
+                try
+                {
+                    return dialog.ShowDialog(owner);
+                }
+                finally
+                {
+                    // Khôi phục KeyPreview
+                    if (owner != null)
+                        owner.KeyPreview = originalKeyPreview;
+                }
+            }
+            catch
+            {
+                return DialogResult.Cancel;
+            }
+        }
+
+        /// <summary>
+        /// Hiển thị MessageBox một cách an toàn (tránh vấn đề dialog hiển thị lại)
+        /// </summary>
+        public static DialogResult ShowMessageBox(Form owner, string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon)
+        {
+            try
+            {
+                // Tạm thời vô hiệu hóa KeyPreview của form chính
+                bool originalKeyPreview = owner?.KeyPreview ?? false;
+                if (owner != null)
+                    owner.KeyPreview = false;
+
+                try
+                {
+                    return MessageBox.Show(owner, text, caption, buttons, icon);
+                }
+                finally
+                {
+                    // Khôi phục KeyPreview
+                    if (owner != null)
+                        owner.KeyPreview = originalKeyPreview;
+                }
+            }
+            catch
+            {
+                return DialogResult.Cancel;
+            }
+        }
+
+        /// <summary>
+        /// Hiển thị form dialog một cách an toàn (tránh vấn đề dialog hiển thị lại)
+        /// </summary>
+        public static DialogResult ShowFormDialog(Form owner, Form dialog)
+        {
+            try
+            {
+                // Tạm thời vô hiệu hóa KeyPreview của form chính
+                bool originalKeyPreview = owner?.KeyPreview ?? false;
+                if (owner != null)
+                    owner.KeyPreview = false;
+
+                try
+                {
+                    return dialog.ShowDialog(owner);
+                }
+                finally
+                {
+                    // Khôi phục KeyPreview
+                    if (owner != null)
+                        owner.KeyPreview = originalKeyPreview;
+                }
+            }
+            catch
+            {
+                return DialogResult.Cancel;
+            }
+        }
+
+        /// <summary>
+        /// Hiển thị PrintDialog một cách an toàn (tránh vấn đề dialog hiển thị lại)
+        /// </summary>
+        public static DialogResult ShowPrintDialog(Form owner, PrintDialog dialog)
+        {
+            try
+            {
+                bool originalKeyPreview = owner?.KeyPreview ?? false;
+                if (owner != null) owner.KeyPreview = false;
+                try
+                {
+                    return dialog.ShowDialog(owner);
+                }
+                finally
+                {
+                    if (owner != null) owner.KeyPreview = originalKeyPreview;
+                }
+            }
+            catch
+            {
+                return DialogResult.Cancel;
+            }
+        }
     }
 }
 

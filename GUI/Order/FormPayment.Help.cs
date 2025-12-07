@@ -10,7 +10,7 @@ namespace QLTN_LT.GUI.Order
             try
             {
                 var frm = new QLTN_LT.GUI.Helper.FormShortcuts();
-                frm.ShowDialog(this);
+                QLTN_LT.GUI.Helper.UIHelper.ShowFormDialog(this, frm);
             }
             catch { }
         }

@@ -43,6 +43,7 @@ namespace QLTN_LT.DAL
                        mi.UnitPrice, mi.UnitName, mi.Description, mi.IsAvailable, mi.CreatedAt
                 FROM dbo.MenuItems mi
                 INNER JOIN dbo.MenuCategories mc ON mi.CategoryID = mc.CategoryID
+                WHERE mc.IsActive = 1 AND mi.IsAvailable = 1
                 ORDER BY mc.DisplayOrder, mi.ItemName";
 
             using (var conn = DatabaseHelper.CreateAndOpenConnection())

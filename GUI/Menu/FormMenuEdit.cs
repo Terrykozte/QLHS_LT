@@ -2,10 +2,11 @@ using System;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Menu
 {
-    public partial class FormMenuEdit : Form
+    public partial class FormMenuEdit : FormTemplate
     {
         private readonly MenuBLL _menuBll = new MenuBLL();
         private readonly CategoryBLL _categoryBll = new CategoryBLL();
@@ -15,22 +16,28 @@ namespace QLTN_LT.GUI.Menu
         {
             InitializeComponent();
             _itemId = itemId;
+            this.Load += FormMenuEdit_Load;
         }
 
         private void FormMenuEdit_Load(object sender, EventArgs e)
         {
-            LoadCategories();
-            if (_itemId > 0)
+            try
             {
-                this.Text = "Sửa món ăn";
-                lblTitle.Text = "Sửa món ăn";
-                LoadItemData();
+                LoadCategories();
+                if (_itemId > 0)
+                {
+                    InitializeEditMode();
+                    LoadData();
+                }
+                else
+                {
+                    InitializeAddMode();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                this.Text = "Thêm món ăn";
-                lblTitle.Text = "Thêm món ăn";
-                chkIsAvailable.Checked = true;
+                ExceptionHandler.Handle(ex, "FormMenuEdit_Load");
+                this.Close();
             }
         }
 
@@ -48,90 +55,86 @@ namespace QLTN_LT.GUI.Menu
             }
         }
 
-        private void LoadItemData()
+        protected override void LoadData()
         {
-            try
+            var item = _menuBll.GetItemById(_itemId);
+            if (item == null)
             {
-                var item = _menuBll.GetItemById(_itemId);
-                if (item == null)
-                {
-                    MessageBox.Show("Không tìm thấy món ăn này.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    this.Close();
-                    return;
-                }
-                txtName.Text = item.ItemName;
-                txtCode.Text = item.ItemCode;
-                nudPrice.Value = item.UnitPrice;
-                cboCategory.SelectedValue = item.CategoryID;
-                txtDescription.Text = item.Description;
-                chkIsAvailable.Checked = item.IsAvailable;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi tải thông tin món ăn: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError("Không tìm thấy món ăn này.");
                 this.Close();
+                return;
+            }
+            txtName.Text = item.ItemName;
+            txtCode.Text = item.ItemCode;
+            nudPrice.Value = item.UnitPrice;
+            cboCategory.SelectedValue = item.CategoryID;
+            txtDescription.Text = item.Description;
+            chkIsAvailable.Checked = item.IsAvailable;
+        }
+
+        protected override void InitializeAddMode()
+        {
+            base.InitializeAddMode();
+            lblTitle.Text = "Thêm món ăn";
+            chkIsAvailable.Checked = true;
+        }
+
+        protected override void InitializeEditMode()
+        {
+            base.InitializeEditMode();
+            lblTitle.Text = "Sửa món ăn";
+        }
+
+        protected override bool ValidateInputs()
+        {
+            if (string.IsNullOrWhiteSpace(txtName.Text))
+            {
+                UIHelper.ShowValidationError(txtName, "Tên món không được để trống.");
+                return false;
+            }
+            UIHelper.ClearValidationError(txtName);
+
+            if (cboCategory.SelectedValue == null || !(cboCategory.SelectedValue is int) || (int)cboCategory.SelectedValue <= 0)
+            {
+                UIHelper.ShowValidationError(cboCategory, "Vui lòng chọn danh mục.");
+                return false;
+            }
+            UIHelper.ClearValidationError(cboCategory);
+
+            return true;
+        }
+
+        protected override void SaveData()
+        {
+            var menuItem = new MenuItemDTO
+            {
+                ItemID = _itemId,
+                ItemName = txtName.Text.Trim(),
+                ItemCode = txtCode.Text.Trim(),
+                UnitPrice = nudPrice.Value,
+                CategoryID = (int)cboCategory.SelectedValue,
+                Description = txtDescription.Text.Trim(),
+                IsAvailable = chkIsAvailable.Checked
+            };
+
+            if (IsEditMode)
+            {
+                _menuBll.UpdateItem(menuItem);
+            }
+            else
+            {
+                _menuBll.InsertItem(menuItem);
             }
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            try
-            {
-                bool isValid = true;
-                lblNameError.Visible = false;
-                lblCategoryError.Visible = false;
-
-                if (string.IsNullOrWhiteSpace(txtName.Text))
-                {
-                    lblNameError.Text = "Tên món không được để trống.";
-                    lblNameError.Visible = true;
-                    isValid = false;
-                }
-
-                if (cboCategory.SelectedValue == null || !(cboCategory.SelectedValue is int) || (int)cboCategory.SelectedValue <= 0)
-                {
-                    lblCategoryError.Text = "Vui lòng chọn danh mục.";
-                    lblCategoryError.Visible = true;
-                    isValid = false;
-                }
-
-                if (!isValid) return;
-
-                var menuItem = new MenuItemDTO
-                {
-                    ItemID = _itemId,
-                    ItemName = txtName.Text.Trim(),
-                    ItemCode = txtCode.Text.Trim(),
-                    UnitPrice = nudPrice.Value,
-                    CategoryID = (int)cboCategory.SelectedValue,
-                    Description = txtDescription.Text.Trim(),
-                    IsAvailable = chkIsAvailable.Checked
-                };
-
-                if (_itemId > 0)
-                {
-                    _menuBll.UpdateItem(menuItem);
-                    MessageBox.Show("Cập nhật món ăn thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    _menuBll.InsertItem(menuItem);
-                    MessageBox.Show("Thêm món ăn thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-
-                this.DialogResult = DialogResult.OK;
-                this.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi khi lưu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            BtnSave_Click(sender, e);
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
+            BtnCancel_Click(sender, e);
         }
 
         private void controlBoxClose_Click(object sender, EventArgs e)
@@ -141,12 +144,12 @@ namespace QLTN_LT.GUI.Menu
 
         private void txtName_TextChanged(object sender, EventArgs e)
         {
-            lblNameError.Visible = false;
+            if (sender is Control c) UIHelper.ClearValidationError(c);
         }
 
         private void cboCategory_SelectedIndexChanged(object sender, EventArgs e)
         {
-            lblCategoryError.Visible = false;
+            if (sender is Control c) UIHelper.ClearValidationError(c);
         }
     }
 }

@@ -143,10 +143,16 @@ namespace QLTN_LT.GUI.Dashboard
 
         private void FormDashboard_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _debounceTimer?.Stop();
-            _debounceTimer?.Dispose();
-            KeyboardNavigationHelper.UnregisterForm(this);
-            DataBindingHelper.ClearCache();
+            try
+            {
+                _debounceTimer?.Stop();
+                _debounceTimer?.Dispose();
+                _debounceTimer = null;
+
+                KeyboardNavigationHelper.UnregisterForm(this);
+                DataBindingHelper.ClearCache();
+            }
+            catch { }
         }
 
         protected override void CleanupResources()

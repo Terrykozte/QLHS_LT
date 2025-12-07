@@ -14,7 +14,7 @@ namespace QLTN_LT.GUI.Supplier
         private Guna.UI2.WinForms.Guna2Button btnCancel;
         private Guna.UI2.WinForms.Guna2BorderlessForm borderlessForm;
         private Guna.UI2.WinForms.Guna2DragControl dragControl;
-                private Guna.UI2.WinForms.Guna2HtmlLabel lblNameError;
+        private Guna.UI2.WinForms.Guna2HtmlLabel lblNameError;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblPhoneError;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblNameLabel;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblContactLabel;
@@ -51,76 +51,84 @@ namespace QLTN_LT.GUI.Supplier
             this.borderlessForm = new Guna.UI2.WinForms.Guna2BorderlessForm(this.components);
             this.dragControl = new Guna.UI2.WinForms.Guna2DragControl(this.components);
             this.controlBoxClose = new Guna.UI2.WinForms.Guna2ControlBox();
-                        this.SuspendLayout();
+            this.SuspendLayout();
             // 
             // lblTitle
             // 
             this.lblTitle.BackColor = System.Drawing.Color.Transparent;
             this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.Location = new System.Drawing.Point(24, 20);
+            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.lblTitle.Location = new System.Drawing.Point(30, 25);
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(276, 32);
-            this.lblTitle.TabIndex = 0;
+            this.lblTitle.TabIndex = 10;
             this.lblTitle.Text = "Chỉnh sửa nhà cung cấp";
             // 
             // lblNameLabel
             // 
             this.lblNameLabel.BackColor = System.Drawing.Color.Transparent;
             this.lblNameLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblNameLabel.Location = new System.Drawing.Point(24, 70);
+            this.lblNameLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.lblNameLabel.Location = new System.Drawing.Point(30, 80);
             this.lblNameLabel.Name = "lblNameLabel";
-            this.lblNameLabel.Size = new System.Drawing.Size(98, 17);
-            this.lblNameLabel.TabIndex = 1;
-            this.lblNameLabel.Text = "Tên nhà cung cấp";
+            this.lblNameLabel.Size = new System.Drawing.Size(120, 17);
+            this.lblNameLabel.TabIndex = 11;
+            this.lblNameLabel.Text = "Tên nhà cung cấp (*)";
             // 
             // txtName
             // 
+            this.txtName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtName.BorderRadius = 6;
             this.txtName.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.txtName.DefaultText = "";
             this.txtName.FocusedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
             this.txtName.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.txtName.HoverState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
-            this.txtName.Location = new System.Drawing.Point(24, 90);
+            this.txtName.Location = new System.Drawing.Point(30, 100);
             this.txtName.Name = "txtName";
             this.txtName.PlaceholderText = "Nhập tên nhà cung cấp";
-            this.txtName.Size = new System.Drawing.Size(420, 36);
-            this.txtName.TabIndex = 2;
+            this.txtName.Size = new System.Drawing.Size(408, 36);
+            this.txtName.TabIndex = 0;
             this.txtName.TextChanged += new System.EventHandler(this.txtName_TextChanged);
             // 
             // lblContactLabel
             // 
             this.lblContactLabel.BackColor = System.Drawing.Color.Transparent;
             this.lblContactLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblContactLabel.Location = new System.Drawing.Point(24, 140);
+            this.lblContactLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.lblContactLabel.Location = new System.Drawing.Point(30, 155);
             this.lblContactLabel.Name = "lblContactLabel";
             this.lblContactLabel.Size = new System.Drawing.Size(80, 17);
-            this.lblContactLabel.TabIndex = 3;
+            this.lblContactLabel.TabIndex = 12;
             this.lblContactLabel.Text = "Người liên hệ";
             // 
             // txtContactPerson
             // 
+            this.txtContactPerson.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtContactPerson.BorderRadius = 6;
             this.txtContactPerson.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.txtContactPerson.DefaultText = "";
             this.txtContactPerson.FocusedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
             this.txtContactPerson.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.txtContactPerson.HoverState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
-            this.txtContactPerson.Location = new System.Drawing.Point(24, 160);
+            this.txtContactPerson.Location = new System.Drawing.Point(30, 175);
             this.txtContactPerson.Name = "txtContactPerson";
             this.txtContactPerson.PlaceholderText = "Nhập tên người liên hệ";
-            this.txtContactPerson.Size = new System.Drawing.Size(420, 36);
-            this.txtContactPerson.TabIndex = 4;
+            this.txtContactPerson.Size = new System.Drawing.Size(408, 36);
+            this.txtContactPerson.TabIndex = 1;
             // 
             // lblPhoneLabel
             // 
             this.lblPhoneLabel.BackColor = System.Drawing.Color.Transparent;
             this.lblPhoneLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblPhoneLabel.Location = new System.Drawing.Point(24, 210);
+            this.lblPhoneLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.lblPhoneLabel.Location = new System.Drawing.Point(30, 230);
             this.lblPhoneLabel.Name = "lblPhoneLabel";
-            this.lblPhoneLabel.Size = new System.Drawing.Size(77, 17);
-            this.lblPhoneLabel.TabIndex = 5;
-            this.lblPhoneLabel.Text = "Số điện thoại";
+            this.lblPhoneLabel.Size = new System.Drawing.Size(91, 17);
+            this.lblPhoneLabel.TabIndex = 13;
+            this.lblPhoneLabel.Text = "Số điện thoại (*)";
             // 
             // txtPhone
             // 
@@ -130,64 +138,71 @@ namespace QLTN_LT.GUI.Supplier
             this.txtPhone.FocusedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
             this.txtPhone.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.txtPhone.HoverState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
-            this.txtPhone.Location = new System.Drawing.Point(24, 230);
+            this.txtPhone.Location = new System.Drawing.Point(30, 250);
             this.txtPhone.Name = "txtPhone";
             this.txtPhone.PlaceholderText = "Nhập số điện thoại";
             this.txtPhone.Size = new System.Drawing.Size(200, 36);
-            this.txtPhone.TabIndex = 6;
+            this.txtPhone.TabIndex = 2;
             this.txtPhone.TextChanged += new System.EventHandler(this.txtPhone_TextChanged);
             // 
             // lblEmailLabel
             // 
+            this.lblEmailLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblEmailLabel.BackColor = System.Drawing.Color.Transparent;
             this.lblEmailLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblEmailLabel.Location = new System.Drawing.Point(244, 210);
+            this.lblEmailLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.lblEmailLabel.Location = new System.Drawing.Point(242, 230);
             this.lblEmailLabel.Name = "lblEmailLabel";
             this.lblEmailLabel.Size = new System.Drawing.Size(32, 17);
-            this.lblEmailLabel.TabIndex = 7;
+            this.lblEmailLabel.TabIndex = 14;
             this.lblEmailLabel.Text = "Email";
             // 
             // txtEmail
             // 
+            this.txtEmail.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.txtEmail.BorderRadius = 6;
             this.txtEmail.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.txtEmail.DefaultText = "";
             this.txtEmail.FocusedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
             this.txtEmail.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.txtEmail.HoverState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
-            this.txtEmail.Location = new System.Drawing.Point(244, 230);
+            this.txtEmail.Location = new System.Drawing.Point(238, 250);
             this.txtEmail.Name = "txtEmail";
             this.txtEmail.PlaceholderText = "Nhập email";
             this.txtEmail.Size = new System.Drawing.Size(200, 36);
-            this.txtEmail.TabIndex = 8;
+            this.txtEmail.TabIndex = 3;
             // 
             // lblAddressLabel
             // 
             this.lblAddressLabel.BackColor = System.Drawing.Color.Transparent;
             this.lblAddressLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblAddressLabel.Location = new System.Drawing.Point(24, 280);
+            this.lblAddressLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.lblAddressLabel.Location = new System.Drawing.Point(30, 305);
             this.lblAddressLabel.Name = "lblAddressLabel";
             this.lblAddressLabel.Size = new System.Drawing.Size(42, 17);
-            this.lblAddressLabel.TabIndex = 9;
+            this.lblAddressLabel.TabIndex = 15;
             this.lblAddressLabel.Text = "Địa chỉ";
             // 
             // txtAddress
             // 
+            this.txtAddress.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtAddress.BorderRadius = 6;
             this.txtAddress.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.txtAddress.DefaultText = "";
             this.txtAddress.FocusedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
             this.txtAddress.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.txtAddress.HoverState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
-            this.txtAddress.Location = new System.Drawing.Point(24, 300);
+            this.txtAddress.Location = new System.Drawing.Point(30, 325);
             this.txtAddress.Multiline = true;
             this.txtAddress.Name = "txtAddress";
             this.txtAddress.PlaceholderText = "Nhập địa chỉ";
-            this.txtAddress.Size = new System.Drawing.Size(420, 60);
-            this.txtAddress.TabIndex = 10;
+            this.txtAddress.Size = new System.Drawing.Size(408, 70);
+            this.txtAddress.TabIndex = 4;
             // 
             // chkIsActive
             // 
+            this.chkIsActive.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkIsActive.AutoSize = true;
             this.chkIsActive.Checked = true;
             this.chkIsActive.CheckedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
@@ -196,10 +211,11 @@ namespace QLTN_LT.GUI.Supplier
             this.chkIsActive.CheckedState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
             this.chkIsActive.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkIsActive.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.chkIsActive.Location = new System.Drawing.Point(24, 370);
+            this.chkIsActive.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.chkIsActive.Location = new System.Drawing.Point(30, 415);
             this.chkIsActive.Name = "chkIsActive";
             this.chkIsActive.Size = new System.Drawing.Size(83, 19);
-            this.chkIsActive.TabIndex = 11;
+            this.chkIsActive.TabIndex = 5;
             this.chkIsActive.Text = "Hoạt động";
             this.chkIsActive.UncheckedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(125)))), ((int)(((byte)(137)))), ((int)(((byte)(149)))));
             this.chkIsActive.UncheckedState.BorderRadius = 2;
@@ -208,27 +224,31 @@ namespace QLTN_LT.GUI.Supplier
             // 
             // btnSave
             // 
+            this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSave.BorderRadius = 6;
             this.btnSave.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(19)))), ((int)(((byte)(146)))), ((int)(((byte)(236)))));
             this.btnSave.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.btnSave.ForeColor = System.Drawing.Color.White;
-            this.btnSave.Location = new System.Drawing.Point(224, 400);
+            this.btnSave.Location = new System.Drawing.Point(222, 452);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(100, 36);
-            this.btnSave.TabIndex = 12;
-            this.btnSave.Text = "Lưu";
+            this.btnSave.TabIndex = 6;
+            this.btnSave.Text = "Cập nhật";
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
             // btnCancel
             // 
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCancel.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(229)))), ((int)(((byte)(231)))), ((int)(((byte)(235)))));
             this.btnCancel.BorderRadius = 6;
-            this.btnCancel.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(243)))), ((int)(((byte)(244)))), ((int)(((byte)(246)))));
+            this.btnCancel.BorderThickness = 1;
+            this.btnCancel.FillColor = System.Drawing.Color.White;
             this.btnCancel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.btnCancel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
-            this.btnCancel.Location = new System.Drawing.Point(344, 400);
+            this.btnCancel.Location = new System.Drawing.Point(338, 452);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(100, 36);
-            this.btnCancel.TabIndex = 13;
+            this.btnCancel.TabIndex = 7;
             this.btnCancel.Text = "Hủy";
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
@@ -237,7 +257,7 @@ namespace QLTN_LT.GUI.Supplier
             this.lblNameError.BackColor = System.Drawing.Color.Transparent;
             this.lblNameError.Font = new System.Drawing.Font("Segoe UI", 8F);
             this.lblNameError.ForeColor = System.Drawing.Color.Red;
-            this.lblNameError.Location = new System.Drawing.Point(24, 128);
+            this.lblNameError.Location = new System.Drawing.Point(30, 138);
             this.lblNameError.Name = "lblNameError";
             this.lblNameError.Size = new System.Drawing.Size(3, 2);
             this.lblNameError.TabIndex = 14;
@@ -249,7 +269,7 @@ namespace QLTN_LT.GUI.Supplier
             this.lblPhoneError.BackColor = System.Drawing.Color.Transparent;
             this.lblPhoneError.Font = new System.Drawing.Font("Segoe UI", 8F);
             this.lblPhoneError.ForeColor = System.Drawing.Color.Red;
-            this.lblPhoneError.Location = new System.Drawing.Point(24, 268);
+            this.lblPhoneError.Location = new System.Drawing.Point(30, 288);
             this.lblPhoneError.Name = "lblPhoneError";
             this.lblPhoneError.Size = new System.Drawing.Size(3, 2);
             this.lblPhoneError.TabIndex = 15;
@@ -265,7 +285,7 @@ namespace QLTN_LT.GUI.Supplier
             // dragControl
             // 
             this.dragControl.DockIndicatorTransparencyValue = 0.6D;
-            this.dragControl.TargetControl = this;
+            this.dragControl.TargetControl = this.lblTitle;
             this.dragControl.UseTransparentDrag = true;
             // 
             // controlBoxClose
@@ -276,15 +296,15 @@ namespace QLTN_LT.GUI.Supplier
             this.controlBoxClose.Location = new System.Drawing.Point(431, 12);
             this.controlBoxClose.Name = "controlBoxClose";
             this.controlBoxClose.Size = new System.Drawing.Size(25, 25);
-            this.controlBoxClose.TabIndex = 16;
+            this.controlBoxClose.TabIndex = 8;
             this.controlBoxClose.Click += new System.EventHandler(this.controlBoxClose_Click);
             // 
             // FormSupplierEdit
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(468, 460);
+            this.ClientSize = new System.Drawing.Size(468, 508);
             this.Controls.Add(this.controlBoxClose);
             this.Controls.Add(this.lblPhoneError);
             this.Controls.Add(this.lblNameError);
@@ -302,13 +322,16 @@ namespace QLTN_LT.GUI.Supplier
             this.Controls.Add(this.txtName);
             this.Controls.Add(this.lblNameLabel);
             this.Controls.Add(this.lblTitle);
+            this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "FormSupplierEdit";
+            this.Padding = new System.Windows.Forms.Padding(20);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Chỉnh sửa nhà cung cấp";
             this.Load += new System.EventHandler(this.FormSupplierEdit_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
     }
 }

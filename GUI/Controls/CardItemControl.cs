@@ -80,132 +80,99 @@ namespace QLTN_LT.GUI.Controls
 
         private void SetupUI()
         {
-            this.Size = new Size(250, 150);
+            this.Size = new Size(240, 320);
             this.BackColor = Color.Transparent;
+            this.Margin = new Padding(10);
 
             // Main card panel
             pnlCard = new Guna2Panel
             {
                 Dock = DockStyle.Fill,
-                FillColor = Color.FromArgb(31, 41, 55),
-                BorderRadius = 10,
-                Padding = new Padding(15)
+                FillColor = Color.White,
+                BorderRadius = 12,
+                BorderThickness = 1,
+                BorderColor = Color.FromArgb(229, 231, 235),
             };
-            // Enable shadow decoration if available
             try
             {
                 pnlCard.ShadowDecoration.Enabled = true;
-                pnlCard.ShadowDecoration.Color = Color.FromArgb(50, 0, 0, 0);
+                pnlCard.ShadowDecoration.Color = Color.FromArgb(20, 0, 0, 0);
+                pnlCard.ShadowDecoration.Depth = 5;
             }
             catch { }
 
-            // Icon/Image
+            // Image (larger)
             picIcon = new PictureBox
             {
-                Size = new Size(48, 48),
-                Location = new Point(15, 15),
-                SizeMode = PictureBoxSizeMode.Zoom,
-                BackColor = Color.Transparent
+                Dock = DockStyle.Top,
+                Height = 160,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                BackColor = Color.FromArgb(243, 244, 246),
+                Margin = new Padding(0)
             };
 
             // Title
             lblTitle = new Label
             {
-                Text = "Title",
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                AutoSize = false,
-                Location = new Point(65, 15),
-                Size = new Size(170, 25)
+                Text = "Tên Món Ăn",
+                ForeColor = Color.FromArgb(17, 24, 39),
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                Location = new Point(15, 175),
+                Size = new Size(this.Width - 30, 25)
             };
 
-            // Subtitle
+            // Subtitle/Category
             lblSubtitle = new Label
             {
-                Text = "Subtitle",
-                ForeColor = Color.FromArgb(156, 163, 175),
-                Font = new Font("Segoe UI", 9),
-                AutoSize = false,
-                Location = new Point(65, 40),
-                Size = new Size(170, 20)
+                Text = "Danh mục",
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Font = new Font("Segoe UI", 8.5f),
+                Location = new Point(15, 200),
+                Size = new Size(this.Width - 30, 20)
             };
 
-            // Value
+            // Price
             lblValue = new Label
             {
-                Text = "0",
-                ForeColor = Color.FromArgb(59, 130, 246),
-                Font = new Font("Segoe UI", 18, FontStyle.Bold),
-                AutoSize = false,
-                Location = new Point(15, 70),
-                Size = new Size(220, 35),
+                Text = "0 VNĐ",
+                ForeColor = Color.FromArgb(17, 24, 39),
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Location = new Point(15, 230),
+                Size = new Size(this.Width - 30, 30),
                 TextAlign = ContentAlignment.MiddleLeft
             };
 
-            // Action button
+            // Action button (now a general add button)
             btnAction = new Guna2Button
             {
-                Text = "Chọn",
-                Size = new Size(150, 30),
-                Location = new Point(15, 115),
-                FillColor = Color.FromArgb(59, 130, 246),
+                Text = "+",
+                Size = new Size(40, 40),
+                Location = new Point(this.Width - 55, 265),
+                FillColor = Color.FromArgb(37, 99, 235),
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                BorderRadius = 5,
-                Cursor = Cursors.Hand
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                BorderRadius = 8,
+                Cursor = Cursors.Hand,
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Right
             };
 
-            // Quantity +/-
-            btnMinus = new Guna2Button
-            {
-                Text = "-",
-                Size = new Size(30, 30),
-                Location = new Point(170, 115),
-                FillColor = Color.FromArgb(31, 41, 55),
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                BorderRadius = 5,
-                Cursor = Cursors.Hand,
-                Visible = _showQuantityControls
-            };
-            btnPlus = new Guna2Button
-            {
-                Text = "+",
-                Size = new Size(30, 30),
-                Location = new Point(205, 115),
-                FillColor = Color.FromArgb(31, 41, 55),
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                BorderRadius = 5,
-                Cursor = Cursors.Hand,
-                Visible = _showQuantityControls
-            };
+            // Hide old +/- buttons
+            btnMinus = new Guna2Button { Visible = false };
+            btnPlus = new Guna2Button { Visible = false };
 
             btnAction.Click += (s, e) => ActionButtonClick?.Invoke(this, e);
-            btnPlus.Click += (s, e) => PlusClicked?.Invoke(this, e);
-            btnMinus.Click += (s, e) => MinusClicked?.Invoke(this, e);
 
             pnlCard.Controls.Add(picIcon);
             pnlCard.Controls.Add(lblTitle);
             pnlCard.Controls.Add(lblSubtitle);
             pnlCard.Controls.Add(lblValue);
             pnlCard.Controls.Add(btnAction);
-            pnlCard.Controls.Add(btnMinus);
-            pnlCard.Controls.Add(btnPlus);
 
             this.Controls.Add(pnlCard);
 
             // Hover effect
-            this.MouseEnter += (s, e) =>
-            {
-                pnlCard.FillColor = Color.FromArgb(41, 51, 65);
-                AnimationHelper.ScaleIn(pnlCard, 200);
-            };
-
-            this.MouseLeave += (s, e) =>
-            {
-                pnlCard.FillColor = Color.FromArgb(31, 41, 55);
-            };
+            this.MouseEnter += (s, e) => { pnlCard.BorderColor = Color.FromArgb(59, 130, 246); };
+            this.MouseLeave += (s, e) => { pnlCard.BorderColor = Color.FromArgb(229, 231, 235); };
         }
 
         private void InitializeComponent()

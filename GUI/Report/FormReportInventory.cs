@@ -163,7 +163,7 @@ namespace QLTN_LT.GUI.Report
                     Title = "Xuất báo cáo"
                 };
 
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                if (UIHelper.ShowSaveFileDialog(this, saveFileDialog) == DialogResult.OK)
                 {
                     ExportToFile(saveFileDialog.FileName, saveFileDialog.FilterIndex);
                     MessageBox.Show("Xuất báo cáo thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);

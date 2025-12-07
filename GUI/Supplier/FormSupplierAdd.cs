@@ -15,11 +15,6 @@ namespace QLTN_LT.GUI.Supplier
         {
             InitializeComponent();
             _bll = new SupplierBLL();
-            try
-            {
-                UIHelper.ApplyFormStyle(this);
-            }
-            catch { }
         }
 
         // Designer-bound handlers (stubs)

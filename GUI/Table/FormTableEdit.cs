@@ -2,10 +2,11 @@ using System;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
 using QLTN_LT.DTO;
+using QLTN_LT.GUI.Helper;
 
 namespace QLTN_LT.GUI.Table
 {
-    public partial class FormTableEdit : Form
+    public partial class FormTableEdit : FormTemplate
     {
         private readonly TableBLL _bll = new TableBLL();
         private readonly int _tableId;
@@ -14,14 +15,16 @@ namespace QLTN_LT.GUI.Table
         {
             InitializeComponent();
             _tableId = tableId;
+            this.Load += FormTableEdit_Load;
         }
 
         private void FormTableEdit_Load(object sender, EventArgs e)
         {
-            LoadTableData();
+            InitializeEditMode();
+            LoadData();
         }
 
-        private void LoadTableData()
+        protected override void LoadData()
         {
             try
             {
@@ -44,38 +47,12 @@ namespace QLTN_LT.GUI.Table
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            try
-            {
-                lblNameError.Visible = false;
-                if (string.IsNullOrWhiteSpace(txtName.Text))
-                {
-                    lblNameError.Text = "Tên bàn không được để trống.";
-                    lblNameError.Visible = true;
-                    txtName.Focus();
-                    return;
-                }
-
-                var table = new TableDTO
-                {
-                    TableID = _tableId,
-                    TableName = txtName.Text.Trim()
-                };
-
-                _bll.Update(table);
-                MessageBox.Show("Cập nhật bàn thành công.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.DialogResult = DialogResult.OK;
-                this.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Không thể cập nhật bàn. Chi tiết: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            BtnSave_Click(sender, e);
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
+            BtnCancel_Click(sender, e);
         }
 
         private void controlBoxClose_Click(object sender, EventArgs e)
@@ -85,7 +62,29 @@ namespace QLTN_LT.GUI.Table
 
         private void txtName_TextChanged(object sender, EventArgs e)
         {
-            lblNameError.Visible = false;
+            if (sender is Control c) UIHelper.ClearValidationError(c);
+        }
+
+        protected override bool ValidateInputs()
+        {
+            if (string.IsNullOrWhiteSpace(txtName.Text))
+            {
+                UIHelper.ShowValidationError(txtName, "Tên bàn không được để trống.");
+                return false;
+            }
+            UIHelper.ClearValidationError(txtName);
+            return true;
+        }
+
+        protected override void SaveData()
+        {
+            var table = new TableDTO
+            {
+                TableID = _tableId,
+                TableName = txtName.Text.Trim()
+            };
+
+            _bll.Update(table);
         }
     }
 }

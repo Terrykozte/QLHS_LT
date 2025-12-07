@@ -530,7 +530,7 @@ namespace QLTN_LT.GUI.Authentication
             }
             catch (Exception ex)
             {
-                // Nếu lỗi kết nối DB → mời mở cấu hình
+                // Nếu lỗi kết nối DB  mở cấu hình
                 if (IsDbConnectivityException(ex))
                 {
                     OfferOpenConfig(ex);
@@ -591,7 +591,7 @@ namespace QLTN_LT.GUI.Authentication
             {
                 // Mở form cấu hình kết nối database
                 var configForm = new FormConfig();
-                configForm.ShowDialog(this);
+                QLTN_LT.GUI.Helper.UIHelper.ShowFormDialog(this, configForm);
             }
             catch (Exception ex)
             {
@@ -750,7 +750,7 @@ namespace QLTN_LT.GUI.Authentication
                     try
                     {
                         var configForm = new FormConfig();
-                        configForm.ShowDialog(this);
+                        QLTN_LT.GUI.Helper.UIHelper.ShowFormDialog(this, configForm);
                     }
                     catch (Exception configEx)
                     {

@@ -445,7 +445,7 @@ namespace QLTN_LT.GUI.Payment
                     FileName = $"VietQR_{DateTime.Now:yyyyMMdd_HHmmss}.png"
                 };
 
-                if (saveDialog.ShowDialog() == DialogResult.OK)
+                if (QLTN_LT.GUI.Helper.UIHelper.ShowSaveFileDialog(this, saveDialog) == DialogResult.OK)
                 {
                     _pictureBoxQR.Image.Save(saveDialog.FileName);
                     FormManagementHelper.ShowSuccessMessage($"Đã lưu mã QR tại:\n{saveDialog.FileName}");

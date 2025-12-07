@@ -15,7 +15,6 @@ namespace QLTN_LT.GUI.Customer
         {
             InitializeComponent();
             _bll = new CustomerBLL();
-            try { UIHelper.ApplyFormStyle(this); } catch { }
         }
 
         // Designer-bound handlers (stubs)

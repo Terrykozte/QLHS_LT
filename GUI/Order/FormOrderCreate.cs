@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -62,7 +63,15 @@ namespace QLTN_LT.GUI.Order
             this.KeyDown += FormOrderCreate_KeyDown;
 
             ApplyStyles();
+            BuildRuntimeUI();
             LoadData();
+        }
+
+        // Overload to preselect a customer (start ordering from Customer List)
+        public FormOrderCreate(CustomerDTO preselectedCustomer, UserDTO user = null) : this(user)
+        {
+            _selectedCustomer = preselectedCustomer;
+            UpdateCustomerLabel();
         }
 
         private void FormOrderCreate_Load(object sender, EventArgs e)
@@ -111,15 +120,31 @@ namespace QLTN_LT.GUI.Order
             this.BackColor = Color.FromArgb(245, 245, 245);
             
             // Panel styles
-            pnlMenuContainer.BackColor = Color.White;
-            pnlCartContainer.BackColor = Color.White;
-            pnlCustomerInfo.BackColor = Color.White;
+            if (pnlMenuContainer != null) pnlMenuContainer.BackColor = Color.White;
+            if (pnlCartContainer != null) pnlCartContainer.BackColor = Color.White;
+            if (pnlCustomerInfo != null) pnlCustomerInfo.BackColor = Color.White;
             
             // Button styles
+            if (btnAddOrder != null)
+            {
             btnAddOrder.FillColor = Color.FromArgb(59, 130, 246);
             btnAddOrder.ForeColor = Color.White;
+            }
+            if (btnClear != null)
+            {
             btnClear.FillColor = Color.FromArgb(239, 68, 68);
             btnClear.ForeColor = Color.White;
+            }
+        }
+
+        // In case some controls are missing from Designer in certain builds, build minimal UI at runtime
+        private void BuildRuntimeUI()
+        {
+            try
+            {
+                // Nothing required for now (Designer provides controls). Keep stub to avoid missing method issues.
+            }
+            catch { }
         }
 
         private void LoadData()
@@ -209,6 +234,7 @@ namespace QLTN_LT.GUI.Order
             if (dgvCart != null)
             {
                 dgvCart.CellContentClick += DgvCart_CellContentClick;
+                dgvCart.CellEndEdit += DgvCart_CellEndEdit;
             }
         }
 
@@ -334,6 +360,42 @@ namespace QLTN_LT.GUI.Order
             }
         }
 
+        private void DgvCart_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex < 0 || dgvCart == null) return;
+                var col = dgvCart.Columns[e.ColumnIndex];
+                if (col == null) return;
+                if (!string.Equals(col.DataPropertyName ?? col.Name, "Quantity", StringComparison.OrdinalIgnoreCase)) return;
+
+                var row = dgvCart.Rows[e.RowIndex];
+                var item = row.DataBoundItem as CartItem;
+                if (item == null) return;
+
+                int newQty = item.Quantity;
+                // Try parse from cell value in case binding not updated yet
+                var cellVal = row.Cells[e.ColumnIndex].Value;
+                if (cellVal != null && int.TryParse(cellVal.ToString(), out int parsed))
+                {
+                    newQty = parsed;
+                }
+
+                if (newQty <= 0)
+                {
+                    _cartService.RemoveItem(item.ProductId);
+                }
+                else
+                {
+                    _cartService.UpdateQuantity(item.ProductId, newQty);
+                }
+            }
+            catch (Exception ex)
+            {
+                FormManagementHelper.ShowErrorMessage($"Lỗi cập nhật số lượng: {ex.Message}");
+            }
+        }
+
         private void RemoveFromCart()
         {
             try
@@ -420,10 +482,14 @@ namespace QLTN_LT.GUI.Order
         {
             try
             {
-                var customers = _customerBLL.GetAll();
-                if (customers == null || customers.Count == 0)
+                var customers = _customerBLL.GetAll() ?? new List<CustomerDTO>();
+
+                // Hỗ trợ khách lẻ: nếu chưa có khách hàng nào, vẫn cho phép tạo đơn
+                if (customers.Count == 0)
                 {
-                    FormManagementHelper.ShowWarningMessage("Chưa có khách hàng nào trong hệ thống. Vui lòng thêm khách hàng trước.");
+                    cmbCustomer.DataSource = null;
+                    _selectedCustomer = null; // Khách lẻ
+                    if (lblCustomer != null) lblCustomer.Text = "Khách hàng: Khách lẻ";
                     return;
                 }
                 
@@ -431,15 +497,15 @@ namespace QLTN_LT.GUI.Order
                 cmbCustomer.DisplayMember = nameof(CustomerDTO.CustomerName);
                 cmbCustomer.ValueMember = nameof(CustomerDTO.CustomerID);
                 
-                if (customers.Count > 0)
-                {
-                    _selectedCustomer = customers.First();
+                _selectedCustomer = customers.FirstOrDefault();
                     UpdateCustomerLabel();
-                }
             }
             catch (Exception ex)
             {
-                FormManagementHelper.ShowErrorMessage($"Lỗi tải danh sách khách hàng: {ex.Message}");
+                // Nếu lỗi, vẫn cho phép khách lẻ
+                _selectedCustomer = null;
+                if (lblCustomer != null) lblCustomer.Text = "Khách hàng: Khách lẻ";
+                FormManagementHelper.ShowWarningMessage($"Không tải được danh sách khách hàng. Sẽ dùng khách lẻ. Chi tiết: {ex.Message}");
             }
         }
 
@@ -509,7 +575,7 @@ namespace QLTN_LT.GUI.Order
             {
                 using (var dlg = new FormSelectCustomer())
                 {
-                    if (dlg.ShowDialog(this) == DialogResult.OK && dlg.SelectedCustomer != null)
+                    if (UIHelper.ShowFormDialog(this, dlg) == DialogResult.OK && dlg.SelectedCustomer != null)
                     {
                         _selectedCustomer = dlg.SelectedCustomer;
                         UpdateCustomerLabel();
@@ -546,11 +612,10 @@ namespace QLTN_LT.GUI.Order
                     return;
                 }
 
-                if (_selectedCustomer == null)
-                {
-                    FormManagementHelper.ShowWarningMessage("Vui lòng chọn khách hàng");
-                    return;
-                }
+                // Hỗ trợ khách lẻ: nếu chưa chọn khách, dùng null và tên "Khách lẻ"
+                int? customerId = _selectedCustomer?.CustomerID;
+                string customerName = _selectedCustomer?.CustomerName ?? "Khách lẻ";
+                string customerPhone = _selectedCustomer?.PhoneNumber;
 
                 // Lấy TableID nếu có chọn bàn
                 int? tableId = null;
@@ -564,9 +629,9 @@ namespace QLTN_LT.GUI.Order
                 }
 
                 var order = _cartService.CreateOrder(
-                    _selectedCustomer.CustomerID,
-                    _selectedCustomer.CustomerName,
-                    _selectedCustomer.PhoneNumber,
+                    customerId,
+                    customerName,
+                    customerPhone,
                     tableId,
                     txtNotes?.Text ?? ""
                 );
@@ -582,19 +647,10 @@ namespace QLTN_LT.GUI.Order
                 {
                     FormManagementHelper.ShowSuccessMessage($"Tạo đơn hàng thành công!\nMã đơn: {orderId}");
                     
-                    var result = MessageBox.Show(
-                        $"Tạo đơn hàng thành công!\nMã đơn: {orderId}\n\nBạn có muốn thanh toán ngay không?",
-                        "Thành công",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question
-                    );
-                    
-                    if (result == DialogResult.Yes)
+                    // Tự động mở màn hình thanh toán ngay sau khi tạo đơn
+                    using (var payment = new QLTN_LT.GUI.Order.FormPayment(orderId))
                     {
-                        using (var payment = new QLTN_LT.GUI.Order.FormPayment(orderId))
-                        {
-                            payment.ShowDialog(this);
-                        }
+                        UIHelper.ShowFormDialog(this, payment);
                     }
                     
                     _cartService.Clear();

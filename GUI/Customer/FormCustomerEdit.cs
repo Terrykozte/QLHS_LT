@@ -17,7 +17,6 @@ namespace QLTN_LT.GUI.Customer
             InitializeComponent();
             _customerId = customerId;
             _bll = new CustomerBLL();
-            try { UIHelper.ApplyFormStyle(this); } catch { }
 
             this.Load += (s, e) =>
             {
@@ -114,7 +113,6 @@ namespace QLTN_LT.GUI.Customer
                 CustomerName = txtName.Text?.Trim(),
                 PhoneNumber = txtPhone.Text?.Trim(),
                 Address = txtAddress.Text?.Trim(),
-                // Email field not present on this form; leave as-is or handle elsewhere
             };
 
             _bll.Update(updatedCustomer);

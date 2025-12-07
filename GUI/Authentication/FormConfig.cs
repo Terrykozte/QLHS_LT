@@ -161,7 +161,7 @@ namespace QLTN_LT.GUI.Authentication
             btnShortcuts.Location = new Point(20, 650);
             btnShortcuts.Click += (s, e) =>
             {
-                try { new FormShortcuts().ShowDialog(this); } catch { }
+                try { QLTN_LT.GUI.Helper.UIHelper.ShowFormDialog(this, new FormShortcuts()); } catch { }
             };
             this.Controls.Add(btnShortcuts);
         }

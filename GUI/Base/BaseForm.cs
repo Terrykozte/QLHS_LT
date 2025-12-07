@@ -8,157 +8,197 @@ using System.Diagnostics;
 namespace QLTN_LT.GUI.Base
 {
     /// <summary>
-    /// Base form class with common styling and error handling for all forms in the application.
+    /// BaseForm - Lớp cơ sở cho tất cả form trong ứng dụng
+    /// - Xử lý lifecycle form an toàn
+    /// - Ngăn chặn double-close
+    /// - Quản lý resources tự động
+    /// - Hỗ trợ fade-in animation
     /// </summary>
     public class BaseForm : Form
     {
+        #region Fields
+
         protected Guna2BorderlessForm BorderlessForm;
         protected Guna2ShadowForm ShadowForm;
 
         private Timer _fadeTimer;
+        private bool _allowClose = false;
+        private bool _isClosing = false;
+        private bool _isDisposed = false;
+
+        #endregion
+
+        #region Properties
 
         public bool CloseOnEsc { get; set; } = true;
+        public string ConfirmationMessage { get; set; } = null;
+
+        #endregion
+
+        #region Constructor
 
         public BaseForm()
         {
             try
             {
-                // Initialize Guna Components (avoid using null Container)
-                BorderlessForm = new Guna2BorderlessForm();
-                ShadowForm = new Guna2ShadowForm();
-
-                // Default Style
-                this.FormBorderStyle = FormBorderStyle.None;
-                this.StartPosition = FormStartPosition.CenterScreen;
-                this.BackColor = Color.White;
-                this.Opacity = 0; // for fade-in
-                this.DoubleBuffered = true; // reduce flicker/ghosting
-                this.KeyPreview = true;
-                
-                // Borderless Settings
-                BorderlessForm.BorderRadius = 16;
-                BorderlessForm.ShadowColor = Color.Gray;
-                BorderlessForm.ContainerControl = this;
-                BorderlessForm.DockIndicatorTransparencyValue = 0.6;
-                BorderlessForm.TransparentWhileDrag = true;
-
-                // Fade-in timer
-                _fadeTimer = new Timer { Interval = 15 };
-                _fadeTimer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (this.Opacity < 1)
-                            this.Opacity += 0.05;
-                        else
-                            _fadeTimer.Stop();
-                    }
-                    catch { _fadeTimer.Stop(); }
-                };
-
-                // ESC to close popups
-                this.KeyDown += (s, e) =>
-                {
-                    try
-                    {
-                        if (e.KeyCode == Keys.Escape && CloseOnEsc)
-                        {
-                            SafeClose();
-                            e.Handled = true;
-                        }
-                    }
-                    catch { }
-                };
+                InitializeFormSettings();
+                InitializeGuna2Components();
+                InitializeFadeAnimation();
+                InitializeKeyboardHandling();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error initializing BaseForm: {ex.Message}");
-                // Continue with basic form setup if Guna initialization fails
-                this.FormBorderStyle = FormBorderStyle.Sizable;
-                this.BackColor = Color.White;
+                FallbackFormInitialization();
+            }
+        }
+
+        #endregion
+
+        #region Initialization
+
+        private void InitializeFormSettings()
+        {
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackColor = Color.White;
+            this.Opacity = 0;
+            this.DoubleBuffered = true;
+            this.KeyPreview = true;
+        }
+
+        private void InitializeGuna2Components()
+        {
+            BorderlessForm = new Guna2BorderlessForm();
+            ShadowForm = new Guna2ShadowForm();
+
+            BorderlessForm.BorderRadius = 16;
+            BorderlessForm.ShadowColor = Color.Gray;
+            BorderlessForm.ContainerControl = this;
+            BorderlessForm.DockIndicatorTransparencyValue = 0.6;
+            BorderlessForm.TransparentWhileDrag = true;
+        }
+
+        private void InitializeFadeAnimation()
+        {
+            _fadeTimer = new Timer { Interval = 15 };
+            _fadeTimer.Tick += FadeTimer_Tick;
+        }
+
+        private void InitializeKeyboardHandling()
+        {
+            this.KeyDown += BaseForm_KeyDown;
+        }
+
+        private void FallbackFormInitialization()
+        {
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            this.BackColor = Color.White;
+        }
+
+        #endregion
+
+        #region Event Handlers
+
+        private void FadeTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (this.Opacity < 1)
+                {
+                    this.Opacity += 0.05;
+                }
+                else
+                {
+                    _fadeTimer?.Stop();
+                }
+            }
+            catch
+            {
+                _fadeTimer?.Stop();
+            }
+        }
+
+        private void BaseForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape && CloseOnEsc && this.TopLevel && !_isClosing)
+            {
+                e.Handled = true;
+                this.Close();
             }
         }
 
         protected override void OnLoad(EventArgs e)
         {
-            try
+            base.OnLoad(e);
+
+            if (!this.TopLevel)
             {
-                base.OnLoad(e);
-
-                // If this form is hosted as child (TopLevel=false), disable fade and shadow to avoid overlay/ghost
-                if (!this.TopLevel)
-                {
-                    try
-                    {
-                        this.Opacity = 1;
-                        _fadeTimer?.Stop();
-                        _fadeTimer?.Dispose();
-                        _fadeTimer = null;
-                    }
-                    catch { }
-
-                    try
-                    {
-                        ShadowForm?.Dispose();
-                        ShadowForm = null;
-                        BorderlessForm?.Dispose();
-                        BorderlessForm = null;
-                    }
-                    catch { }
-                }
-                else
-                {
+                // Form con - không cần animation
+                DisposeFadeAnimation();
+                DisposeGuna2Components();
+                this.Opacity = 1;
+            }
+            else
+            {
+                // Form độc lập - bắt đầu fade-in
                 _fadeTimer?.Start();
-                }
+            }
 
-                // Log form load
-                Debug.WriteLine($"Form loaded: {this.GetType().Name}");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in BaseForm.OnLoad: {ex.Message}");
-                MessageBox.Show($"Lỗi tải form: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            Debug.WriteLine($"Form loaded: {this.GetType().Name}");
         }
 
-        /// <summary>
-        /// Shows an error message to the user.
-        /// </summary>
+        #endregion
+
+        #region Message Dialogs
+
         protected void ShowError(string message, string title = "Lỗi")
         {
-            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            Debug.WriteLine($"[ERROR] {title}: {message}");
+            if (_isDisposed) return;
+            try
+            {
+                MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Debug.WriteLine($"[ERROR] {title}: {message}");
+            }
+            catch { }
         }
 
-        /// <summary>
-        /// Shows an information message to the user.
-        /// </summary>
         protected void ShowInfo(string message, string title = "Thông báo")
         {
-            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
-            Debug.WriteLine($"[INFO] {title}: {message}");
+            if (_isDisposed) return;
+            try
+            {
+                MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Debug.WriteLine($"[INFO] {title}: {message}");
+            }
+            catch { }
         }
 
-        /// <summary>
-        /// Shows a warning message to the user.
-        /// </summary>
         protected void ShowWarning(string message, string title = "Cảnh báo")
         {
-            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            Debug.WriteLine($"[WARNING] {title}: {message}");
+            if (_isDisposed) return;
+            try
+            {
+                MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Debug.WriteLine($"[WARNING] {title}: {message}");
+            }
+            catch { }
         }
 
-        /// <summary>
-        /// Shows a confirmation dialog to the user.
-        /// </summary>
         protected bool ShowConfirm(string message, string title = "Xác nhận")
         {
-            return MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
+            if (_isDisposed) return false;
+            try
+            {
+                return MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
+            }
+            catch { return false; }
         }
 
-        /// <summary>
-        /// Enables or disables wait cursor for the form and its controls.
-        /// </summary>
+        #endregion
+
+        #region Utility Methods
+
         protected void Wait(bool isWaiting)
         {
             try
@@ -170,26 +210,38 @@ namespace QLTN_LT.GUI.Base
             catch { }
         }
 
-        /// <summary>
-        /// Safely closes the form with error handling.
-        /// </summary>
-        protected void SafeClose()
+        public void ForceClose()
         {
-            try
-            {
-                this.Close();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error closing form: {ex.Message}");
-            }
+            _allowClose = true;
+            this.Close();
         }
 
-        /// <summary>
-        /// Handles form closing event - cleanup resources.
-        /// </summary>
+        #endregion
+
+        #region Cleanup & Disposal
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            // Ngăn chặn double-close
+            if (_isClosing)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            _isClosing = true;
+
+            // Kiểm tra confirmation message
+            if (!_allowClose && !string.IsNullOrEmpty(ConfirmationMessage) && e.CloseReason == CloseReason.UserClosing)
+            {
+                if (MessageBox.Show(ConfirmationMessage, "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                {
+                    e.Cancel = true;
+                    _isClosing = false;
+                    return;
+                }
+            }
+
             try
             {
                 CleanupResources();
@@ -198,39 +250,45 @@ namespace QLTN_LT.GUI.Base
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error in OnFormClosing: {ex.Message}");
+                _isClosing = false;
             }
         }
 
-        /// <summary>
-        /// Cleanup resources when form is closing.
-        /// </summary>
         protected virtual void CleanupResources()
+        {
+            DisposeFadeAnimation();
+            DisposeGuna2Components();
+        }
+
+        private void DisposeFadeAnimation()
         {
             try
             {
-                // Stop and dispose timers
                 _fadeTimer?.Stop();
                 _fadeTimer?.Dispose();
                 _fadeTimer = null;
+            }
+            catch { }
+        }
 
-                // Dispose Guna components
+        private void DisposeGuna2Components()
+        {
+            try
+            {
                 BorderlessForm?.Dispose();
                 BorderlessForm = null;
 
                 ShadowForm?.Dispose();
                 ShadowForm = null;
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in CleanupResources: {ex.Message}");
-            }
+            catch { }
         }
 
-        /// <summary>
-        /// Disposes all resources.
-        /// </summary>
         protected override void Dispose(bool disposing)
         {
+            if (_isDisposed)
+                return;
+
             if (disposing)
             {
                 try
@@ -242,7 +300,11 @@ namespace QLTN_LT.GUI.Base
                     Debug.WriteLine($"Error in Dispose: {ex.Message}");
                 }
             }
+
+            _isDisposed = true;
             base.Dispose(disposing);
         }
+
+        #endregion
     }
 }

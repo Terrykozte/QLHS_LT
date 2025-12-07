@@ -6,6 +6,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Data.SqlClient;
+using QLTN_LT.DAL;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using QLTN_LT.BLL;
@@ -28,6 +30,7 @@ namespace QLTN_LT.GUI.Order
         private OrderDTO _order;
         private List<PaymentMethodDTO> _paymentMethods;
         private System.Windows.Forms.Timer _autoRefreshTimer;
+        private System.Windows.Forms.Timer _autoPayTimer;
         private bool _isProcessing = false;
         private LoadingOverlay _overlay;
 
@@ -49,12 +52,21 @@ namespace QLTN_LT.GUI.Order
             _autoRefreshTimer = new System.Windows.Forms.Timer();
             _autoRefreshTimer.Interval = 2000; // Refresh every 2 seconds
             _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
+            _autoRefreshTimer.Enabled = false; // Không tự động bật
+
+            // Auto pay timer (tự động xác nhận thanh toán tiền mặt)
+            _autoPayTimer = new System.Windows.Forms.Timer();
+            _autoPayTimer.Interval = 700; // 0.7s sau khi form sẵn sàng
+            _autoPayTimer.Tick += AutoPayTimer_Tick;
 
             this.KeyPreview = true;
             this.KeyDown += FormPayment_KeyDown;
 
             // Overlay
             _overlay = new LoadingOverlay(this, "Đang xử lý...");
+
+            // Đăng ký sự kiện đóng form
+            this.FormClosing += FormPayment_FormClosing;
         }
 
         private void FormPayment_Load(object sender, EventArgs e)
@@ -78,8 +90,13 @@ namespace QLTN_LT.GUI.Order
                 LoadPaymentMethods();
                 SetupUI();
                 
-                // Start auto-refresh timer
-                _autoRefreshTimer.Start();
+                // Start auto-refresh timer (chỉ sau khi tất cả đã sẵn sàng)
+                if (_autoRefreshTimer != null && !_autoRefreshTimer.Enabled)
+                {
+                    _autoRefreshTimer.Start();
+                }
+                // Bắt đầu auto-pay sau khi mọi thứ sẵn sàng
+                _autoPayTimer?.Start();
             }
             catch (Exception ex)
             {
@@ -89,15 +106,52 @@ namespace QLTN_LT.GUI.Order
         
         private void FormPayment_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _autoRefreshTimer?.Stop();
-            _autoRefreshTimer?.Dispose();
-            _overlay?.Dispose();
+            try
+            {
+                // Dừng timer ngay lập tức
+                if (_autoRefreshTimer != null)
+                {
+                    _autoRefreshTimer.Stop();
+                    _autoRefreshTimer.Tick -= AutoRefreshTimer_Tick;
+                    _autoRefreshTimer.Dispose();
+                    _autoRefreshTimer = null;
+                }
+
+                // Ẩn overlay nếu đang hiển thị
+                if (_overlay != null)
+                {
+                    try { _overlay.Hide(); } catch { }
+                    _overlay.Dispose();
+                    _overlay = null;
+                }
+
+                // Unregister keyboard navigation
             KeyboardNavigationHelper.UnregisterForm(this);
+
+                // Xóa tất cả event handlers
+                this.KeyDown -= FormPayment_KeyDown;
+                this.KeyPreview = false;
+
+                // Xóa các controls
+                if (cmbPaymentMethod != null)
+                    cmbPaymentMethod.SelectedIndexChanged -= CmbPaymentMethod_SelectedIndexChanged;
+
+                // Dispose các resources
+                if (picQRCode != null && picQRCode.Image != null)
+                {
+                    picQRCode.Image?.Dispose();
+                    picQRCode.Image = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in FormPayment_FormClosing: {ex.Message}");
+            }
         }
         
         private void AutoRefreshTimer_Tick(object sender, EventArgs e)
         {
-            // Tự động refresh dữ liệu đơn hàng mỗi 2 giây
+            // Tự động refresh dữ liệu đơn hàng mỗi 2 giây và kiểm tra trạng thái thanh toán
             try
             {
                 var updatedOrder = _orderBLL.GetById(_orderId);
@@ -112,11 +166,63 @@ namespace QLTN_LT.GUI.Order
                         GenerateVietQRCode();
                     }
                 }
+
+                // Kiểm tra trạng thái thanh toán qua service
+                RefreshPaymentStatus();
             }
             catch
             {
                 // Ignore errors in auto-refresh
             }
+        }
+
+        private void AutoPayTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                _autoPayTimer?.Stop();
+
+                // Chọn mặc định phương thức Tiền mặt/Cash nếu có
+                if (_paymentMethods == null || _paymentMethods.Count == 0)
+                {
+                    LoadPaymentMethods();
+                }
+                if (cmbPaymentMethod != null && _paymentMethods != null && _paymentMethods.Count > 0)
+                {
+                    var cash = _paymentMethods.FirstOrDefault(m =>
+                        m.MethodName != null && (m.MethodName.IndexOf("tiền", StringComparison.OrdinalIgnoreCase) >= 0
+                                              || m.MethodName.IndexOf("cash", StringComparison.OrdinalIgnoreCase) >= 0));
+                    if (cash != null)
+                    {
+                        for (int i = 0; i < cmbPaymentMethod.Items.Count; i++)
+                        {
+                            if (cmbPaymentMethod.Items[i] is PaymentMethodDTO pm && pm.PaymentMethodID == cash.PaymentMethodID)
+                            {
+                                cmbPaymentMethod.SelectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        cmbPaymentMethod.SelectedIndex = 0;
+                    }
+                }
+
+                // Set số tiền = còn lại
+                var paidAmount = _paymentBLL.CalculateTotalPaid(_orderId);
+                var remaining = _order.TotalAmount - paidAmount;
+                if (remaining <= 0)
+                {
+                    // Không cần auto-pay nếu không còn dư
+                    return;
+                }
+                txtPaymentAmount.Text = remaining.ToString("N0");
+
+                // Tự động xác nhận thanh toán
+                btnConfirmPayment_Click(sender, EventArgs.Empty);
+            }
+            catch { }
         }
         
         public void RefreshQRCode()
@@ -243,43 +349,38 @@ namespace QLTN_LT.GUI.Order
                     lblQRStatus.ForeColor = Color.FromArgb(59, 130, 246);
                 }
 
-                // Lấy thông tin tài khoản VietQR từ App.config (ưu tiên) hoặc mặc định VietinBank
-                string bankCode = ConfigurationManager.AppSettings["VietQR_BankId"] ?? "970415"; // VietinBank
-                string accountNumber = ConfigurationManager.AppSettings["VietQR_AccountNo"] ?? "113366668888";
-                string accountName = ConfigurationManager.AppSettings["VietQR_AccountName"] ?? "VIETQR ACCOUNT";
-                
+                // Sử dụng Quick Link với tài khoản cố định VCB
+                const string bankId = "vietcombank"; // hoặc 970407
+                const string accountNumber = "1031839610";
+                const string accountName = "PHAM HOAI THUONG";
+
                 decimal amount = decimal.Parse(txtPaymentAmount.Text.Replace(",", "").Replace(" VNĐ", ""));
                 string description = BuildVietQRDescription(_order);
 
-                var vietQRService = new VietQRService(bankCode, accountNumber, accountName, amount, description);
-                
-                // Tạo QR Code bằng QRCoder (dạng text EMVCo từ VietQRService)
-                string qrData = vietQRService.GenerateQRCode();
-                
-                using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+                var service = new VietQRIntegrationService();
+                var quick = service.GenerateQuickLink(accountNumber, accountName, amount, description, bankId, VietQRIntegrationService.QRTemplate.Compact2);
+                if (!quick.IsSuccess)
                 {
-                    QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrData, QRCodeGenerator.ECCLevel.Q);
-                    using (QRCode qrCode = new QRCode(qrCodeData))
-                    {
-                        Bitmap qrCodeImage = qrCode.GetGraphic(10);
-                        
-                        // Animate QR code display
-                        if (picQRCode != null)
-                        {
-                        picQRCode.Image = qrCodeImage;
-                            AnimationHelper.ScaleIn(picQRCode, 300);
-                        }
-                    }
+                    lblQRStatus.Text = "✗ Lỗi tạo Quick Link";
+                    lblQRStatus.ForeColor = Color.FromArgb(239, 68, 68);
+                    return;
+                }
+
+                // Tải ảnh QR từ Quick Link
+                var bmp = DownloadImageAsync(quick.Data).GetAwaiter().GetResult();
+                if (bmp != null && picQRCode != null)
+                {
+                    picQRCode.Image = bmp;
+                    AnimationHelper.ScaleIn(picQRCode, 300);
                 }
 
                 // Hiển thị thông tin thanh toán
                 if (txtPaymentInfo != null)
                 {
-                txtPaymentInfo.Text = vietQRService.GeneratePaymentInfo();
+                    txtPaymentInfo.Text = $"Ngân hàng: {bankId}\r\nSố tài khoản: {accountNumber}\r\nTên tài khoản: {accountName}\r\nSố tiền: {amount:N0} VNĐ\r\nNội dung: {description}";
                     AnimationHelper.FadeIn(txtPaymentInfo, 300);
                 }
 
-                // Show success status
                 if (lblQRStatus != null)
                 {
                     lblQRStatus.Text = "✓ QR Code được tạo thành công";
@@ -287,7 +388,6 @@ namespace QLTN_LT.GUI.Order
                     AnimationHelper.Pulse(lblQRStatus, 400);
                 }
 
-                // Show success toast
                 UXInteractionHelper.ShowToast(this, "QR Code được tạo thành công!", 2000,
                     Color.FromArgb(34, 197, 94), Color.White);
             }
@@ -346,14 +446,30 @@ namespace QLTN_LT.GUI.Order
                         Color.FromArgb(34, 197, 94),
                         Color.White);
                     
+                    // Dừng timer ngay lập tức
+                    if (_autoRefreshTimer != null)
+                    {
+                        _autoRefreshTimer.Stop();
+                    }
+
+                    // Ẩn overlay
+                    if (_overlay != null)
+                    {
+                        try { _overlay.Hide(); } catch { }
+                    }
+                    
                     // Delay before closing
                     var closeTimer = new Timer { Interval = 1500 };
                     closeTimer.Tick += (s, e2) =>
                     {
                         closeTimer.Stop();
                         closeTimer.Dispose();
+                        try
+                        {
                     this.DialogResult = DialogResult.OK;
                     this.Close();
+                        }
+                        catch { }
                     };
                     closeTimer.Start();
                 }
@@ -378,6 +494,12 @@ namespace QLTN_LT.GUI.Order
                     btnConfirmPayment.Enabled = true;
                     btnConfirmPayment.Text = "Xác Nhận Thanh Toán";
                     btnConfirmPayment.Cursor = Cursors.Hand;
+
+                    // Ẩn overlay nếu đang hiển thị
+                    if (_overlay != null)
+                    {
+                        try { _overlay.Hide(); } catch { }
+                    }
                 }
                 catch { }
             }
@@ -419,8 +541,28 @@ namespace QLTN_LT.GUI.Order
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
+            try
+            {
+                // Dừng timer trước khi đóng
+                if (_autoRefreshTimer != null)
+                {
+                    _autoRefreshTimer.Stop();
+                }
+
+                // Ẩn overlay
+                if (_overlay != null)
+                {
+                    try { _overlay.Hide(); } catch { }
+                }
+
             this.DialogResult = DialogResult.Cancel;
             this.Close();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in btnCancel_Click: {ex.Message}");
+                this.Close();
+            }
         }
 
         private void btnExportInvoice_Click(object sender, EventArgs e)
@@ -432,23 +574,23 @@ namespace QLTN_LT.GUI.Order
                     sfd.Title = "Xuất hóa đơn (Excel)";
                     sfd.Filter = "Excel (*.xls)|*.xls|All files (*.*)|*.*";
                     sfd.FileName = $"HoaDon_{_orderId}_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
-                    if (sfd.ShowDialog(this) == DialogResult.OK)
+                    if (UIHelper.ShowSaveFileDialog(this, sfd) == DialogResult.OK)
                     {
                         var exporter = new InvoiceExportService();
                         if (exporter.ExportToExcel(_orderId, sfd.FileName))
                         {
-                            MessageBox.Show("Xuất Excel thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            UIHelper.ShowMessageBox(this, "Xuất Excel thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                         else
                         {
-                            MessageBox.Show("Xuất Excel thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            UIHelper.ShowMessageBox(this, "Xuất Excel thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi xuất hóa đơn: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UIHelper.ShowMessageBox(this, "Lỗi xuất hóa đơn: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -471,23 +613,23 @@ namespace QLTN_LT.GUI.Order
                     sfd.Title = "Xuất hóa đơn (PDF)";
                     sfd.Filter = "PDF (*.pdf)|*.pdf|All files (*.*)|*.*";
                     sfd.FileName = $"HoaDon_{_orderId}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
-                    if (sfd.ShowDialog(this) == DialogResult.OK)
+                    if (UIHelper.ShowSaveFileDialog(this, sfd) == DialogResult.OK)
                     {
                         var exporter = new InvoiceExportService();
                         if (exporter.ExportToPdf(_orderId, sfd.FileName))
                         {
-                            MessageBox.Show("Xuất PDF thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            UIHelper.ShowMessageBox(this, "Xuất PDF thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                         else
                         {
-                            MessageBox.Show("Xuất PDF thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            UIHelper.ShowMessageBox(this, "Xuất PDF thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi xuất PDF: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UIHelper.ShowMessageBox(this, "Lỗi xuất PDF: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -498,10 +640,10 @@ namespace QLTN_LT.GUI.Order
             {
                 _overlay.Show("Đang tạo VietQR (Quick Link)...");
 
-                // Chuẩn bị thông tin VietQR
-                string bankId = ConfigurationManager.AppSettings["VietQR_BankId"] ?? "970415"; // VietinBank
-                string accountNo = ConfigurationManager.AppSettings["VietQR_AccountNo"] ?? "113366668888";
-                string accountName = ConfigurationManager.AppSettings["VietQR_AccountName"] ?? "VIETQR ACCOUNT";
+                // Chuẩn bị thông tin VietQR (gán cứng theo yêu cầu)
+                const string bankId = "vietcombank"; // hoặc 970407
+                const string accountNo = "1031839610";
+                const string accountName = "PHAM HOAI THUONG";
 
                 decimal amount = decimal.Parse(txtPaymentAmount.Text.Replace(",", "").Replace(" VNĐ", ""));
                 string desc = BuildVietQRDescription(_order);
@@ -570,14 +712,47 @@ namespace QLTN_LT.GUI.Order
 
         private string BuildVietQRDescription(OrderDTO order)
         {
-            // Mô tả tối đa 25 ký tự theo quy định
-            // Mặc định: TT_yyyyMMdd_suffix6
-            string suffix = order?.OrderNumber;
-            if (!string.IsNullOrEmpty(suffix) && suffix.Length > 6)
-                suffix = suffix.Substring(suffix.Length - 6);
-            string s = $"TT_{(order?.OrderDate ?? DateTime.Now):yyyyMMdd}_{suffix}";
-            if (s.Length > 25) s = s.Substring(0, 25);
+            // Không dấu + dùng dấu gạch dưới, tối đa 50 ký tự
+            string code = order?.OrderNumber ?? DateTime.Now.ToString("yyyyMMddHHmmss");
+            // Chuẩn hóa: chỉ chữ/số và _
+            var sb = new System.Text.StringBuilder();
+            sb.Append("DON_HANG_");
+            foreach (var ch in code)
+            {
+                if (char.IsLetterOrDigit(ch)) sb.Append(char.ToUpperInvariant(ch));
+                else sb.Append('_');
+            }
+            string s = sb.ToString();
+            if (s.Length > 50) s = s.Substring(0, 50);
             return s;
+        }
+
+        private void RefreshPaymentStatus()
+        {
+            try
+            {
+                var status = _confirmationService.GetPaymentStatus(_orderId);
+                if (status == null) return;
+
+                if (lblTotalAmount != null)
+                    lblTotalAmount.Text = $"Tổng tiền: {status.TotalAmount:N0} VNĐ";
+                if (lblPaidAmount != null)
+                    lblPaidAmount.Text = $"Đã thanh toán: {status.TotalPaid:N0} VNĐ";
+                if (lblRemainingAmount != null)
+                    lblRemainingAmount.Text = $"Còn lại: {status.RemainingAmount:N0} VNĐ";
+
+                if (!string.IsNullOrEmpty(status.PaymentStatus) && status.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (lblQRStatus != null)
+                    {
+                        lblQRStatus.Text = "✓ ĐÃ THANH TOÁN THÀNH CÔNG";
+                        lblQRStatus.ForeColor = System.Drawing.Color.FromArgb(34, 197, 94);
+                        AnimationHelper.Pulse(lblQRStatus, 400);
+                    }
+                    _autoRefreshTimer?.Stop();
+                }
+            }
+            catch { }
         }
 
         private void FormPayment_KeyDown(object sender, KeyEventArgs e)
@@ -611,7 +786,7 @@ namespace QLTN_LT.GUI.Order
                     try
                     {
                         var form = new QLTN_LT.GUI.Helper.FormShortcuts();
-                        form.ShowDialog(this);
+                        UIHelper.ShowFormDialog(this, form);
                     }
                     catch { }
                 }
@@ -621,7 +796,7 @@ namespace QLTN_LT.GUI.Order
                     try
                     {
                         var form = new QLTN_LT.GUI.Payment.FormVietQRGenerator(_order);
-                        form.ShowDialog(this);
+                        UIHelper.ShowFormDialog(this, form);
                     }
                     catch { }
                 }

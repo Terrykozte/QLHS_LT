@@ -17,7 +17,6 @@ namespace QLTN_LT.GUI.Supplier
             InitializeComponent();
             _supplierId = supplierId;
             _bll = new SupplierBLL();
-            try { UIHelper.ApplyFormStyle(this); } catch { }
 
             this.Load += (s, e) =>
             {

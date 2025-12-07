@@ -266,7 +266,7 @@ namespace QLTN_LT.GUI.Report
                     FileName = $"BaoCao_Thang_{_currentReport.Month}_{_currentReport.Year}.csv"
                 };
 
-                if (sfd.ShowDialog() == DialogResult.OK)
+                if (UIHelper.ShowSaveFileDialog(this, sfd) == DialogResult.OK)
                 {
                     string csv = _reportService.ExportMonthlyReportToCSV(_currentReport.Year, _currentReport.Month);
                     File.WriteAllText(sfd.FileName, csv, System.Text.Encoding.UTF8);
@@ -296,7 +296,7 @@ namespace QLTN_LT.GUI.Report
             try
             {
                 PrintDialog pd = new PrintDialog();
-                if (pd.ShowDialog() == DialogResult.OK)
+                if (UIHelper.ShowPrintDialog(this, pd) == DialogResult.OK)
                 {
                     MessageBox.Show("Chức năng in ấn sẽ được thêm");
                 }
